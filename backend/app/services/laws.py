@@ -66,7 +66,7 @@ class LocalLawIndex:
     """BM25 po fragmentach; bez wyników, gdy zapytanie nie ma żadnego pasującego terminu."""
 
     K1 = 1.5
-    B = 0.75
+    B = 0.4
 
     def __init__(self, chunks: list[LawChunk]) -> None:
         self.chunks = list(chunks)
