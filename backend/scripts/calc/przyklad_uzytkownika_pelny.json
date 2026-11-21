@@ -1,0 +1,90 @@
+{
+  "_opis": "Anna, 34 lata, umowa o pracę (pełny etat, pracodawca 45 osób). Córka Zosia urodzona przedwcześnie 2026-10-20 (33. tydz., 1750 g, 20 dni w szpitalu). W ciąży 14 dni L4 z kodem B (czerwiec). Jednolity wniosek o 81,5% złożony 16 dni po porodzie. Plan: macierzyński → uzupełniający 3 tyg. → rodzicielski w 2 częściach (druga z pracą na 1/2 etatu); mąż Piotr (JDG): ojcowski + 9 tyg. rodzicielskiego. Dochód rodziny 1777,78 zł/os. Liczyć z data_ref = 2026-11-21.",
+
+  "pesel": "92071512346",
+  "data_urodzenia": "1992-07-15",
+  "stan_cywilny": "zonaty_zamezna",
+
+  "tytul_ubezpieczenia": "umowa_o_prace",
+  "ubezpieczenie_chorobowe": "obowiazkowe",
+  "data_objecia_ubezpieczeniem_chorobowym": "2019-09-01",
+  "okresy_ubezpieczenia": [
+    {"od": "2019-09-01", "do": null, "tytul": "umowa_o_prace", "platnik_nip": "5251234567"}
+  ],
+  "ubezpieczenie_chorobowe_w_dniu_porodu_lub_przyjecia": true,
+  "data_ustania_ubezpieczenia": null,
+  "przyczyna_rozwiazania_umowy": null,
+  "prawomocny_wyrok_naruszenie_przepisow": false,
+  "platnik": {"nazwa": "Przykładowa Sp. z o.o.", "nip": "5251234567", "regon": "146123456", "adres": "ul. Prosta 1, 00-001 Warszawa"},
+  "platnik_liczba_ubezpieczonych_chorobowo": 45,
+  "platnik_wyplaca_zasilki": true,
+  "wymiar_etatu": 1.0,
+  "podstawa_wymiaru_12_miesiecy": [
+    {"rok": 2025, "miesiac": 10, "podstawa_wymiaru_skladek": 5800.00, "dni_przepracowane": 23, "dni_do_przepracowania": 23},
+    {"rok": 2025, "miesiac": 11, "podstawa_wymiaru_skladek": 5800.00, "dni_przepracowane": 18, "dni_do_przepracowania": 18},
+    {"rok": 2025, "miesiac": 12, "podstawa_wymiaru_skladek": 5800.00, "dni_przepracowane": 21, "dni_do_przepracowania": 21},
+    {"rok": 2026, "miesiac": 1, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 20, "dni_do_przepracowania": 20},
+    {"rok": 2026, "miesiac": 2, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 20, "dni_do_przepracowania": 20},
+    {"rok": 2026, "miesiac": 3, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 22, "dni_do_przepracowania": 22},
+    {"rok": 2026, "miesiac": 4, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 21, "dni_do_przepracowania": 21},
+    {"rok": 2026, "miesiac": 5, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 19, "dni_do_przepracowania": 19},
+    {"rok": 2026, "miesiac": 6, "podstawa_wymiaru_skladek": 3142.86, "dni_przepracowane": 11, "dni_do_przepracowania": 21},
+    {"rok": 2026, "miesiac": 7, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 23, "dni_do_przepracowania": 23},
+    {"rok": 2026, "miesiac": 8, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 20, "dni_do_przepracowania": 20},
+    {"rok": 2026, "miesiac": 9, "podstawa_wymiaru_skladek": 6000.00, "dni_przepracowane": 22, "dni_do_przepracowania": 22}
+  ],
+  "zadeklarowana_podstawa_jdg": [],
+  "zadluzenie_skladkowe": {"kwota": 0, "na_dzien": "2026-10-20"},
+
+  "w_ciazy": false,
+  "przewidywana_data_porodu": "2026-12-08",
+  "liczba_dzieci_przy_porodzie": 1,
+  "opieka_medyczna_od_10_tyg": true,
+  "zaswiadczenia_e_zla": [
+    {"seria_numer": "ZY 1234567", "od": "2026-06-08", "do": "2026-06-21", "kod_literowy_b": true}
+  ],
+  "okres_zasilkowy_wykorzystany_dni": 14,
+  "hospitalizacja_matki": [],
+  "orzeczenie_niezdolnosci_samodzielnej_egzystencji_matki": false,
+  "zgon_matki_lub_porzucenie_dziecka": "brak",
+
+  "dzieci": [
+    {
+      "imie": "Zosia",
+      "data_urodzenia": "2026-10-20",
+      "urodzone_zywe": true,
+      "data_zgonu": null,
+      "tydzien_ciazy_przy_urodzeniu": 33,
+      "masa_urodzeniowa_g": 1750,
+      "hospitalizacja": [{"od": "2026-10-20", "do": "2026-11-08"}],
+      "zaswiadczenie_za_zyciem": false,
+      "przyjete_na_wychowanie": null,
+      "odroczony_obowiazek_szkolny": false
+    }
+  ],
+
+  "drugi_rodzic": {"imie": "Piotr", "tytul_ubezpieczenia": "jdg"},
+  "uznanie_ojcostwa": null,
+
+  "urlop_macierzynski": {"od": "2026-10-20", "do": "2027-03-08", "tygodnie_przed_porodem": 0, "data_zlozenia_wniosku": "2026-10-22"},
+  "jednolity_wniosek_81_5_procent": {"czy": true, "data_zlozenia": "2026-11-05"},
+  "rezygnacja_z_macierzynskiego_po_14_tyg": {"czy": false, "data": null, "data_zlozenia_wniosku": null},
+  "urlop_uzupelniajacy": {"wymiar_tyg": 3, "od": "2027-03-09", "do": "2027-03-29", "rodzic": "matka", "data_zlozenia_wniosku": "2027-02-10"},
+  "czesci_urlopu_rodzicielskiego": [
+    {"rodzic": "matka", "od": "2027-03-30", "do": "2027-07-19", "wymiar_pracy_w_trakcie": 0, "data_zlozenia_wniosku": "2027-02-10"},
+    {"rodzic": "matka", "od": "2027-07-20", "do": "2027-11-08", "wymiar_pracy_w_trakcie": 0.5, "data_zlozenia_wniosku": "2027-06-15"},
+    {"rodzic": "ojciec", "od": "2027-11-09", "do": "2028-01-10", "wymiar_pracy_w_trakcie": 0, "data_zlozenia_wniosku": "2027-10-10"}
+  ],
+  "czesci_urlopu_ojcowskiego": [
+    {"od": "2026-11-23", "do": "2026-12-06", "data_zlozenia_wniosku": "2026-11-12"}
+  ],
+
+  "sklad_rodziny": [
+    {"imie": "Anna", "pokrewienstwo": "wnioskodawca", "data_urodzenia": "1992-07-15"},
+    {"imie": "Piotr", "pokrewienstwo": "maz", "data_urodzenia": "1990-01-01"},
+    {"imie": "Zosia", "pokrewienstwo": "corka", "data_urodzenia": "2026-10-20"}
+  ],
+  "dochod_rodziny_rok_bazowy": {"rok": 2025, "dochody_opodatkowane": 64000, "dochody_nieopodatkowane": 0, "dochody_utracone": 0, "dochody_uzyskane": 0},
+  "dochod_na_osobe": 1777.78,
+  "inne_pobierane_swiadczenia": []
+}
