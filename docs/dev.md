@@ -161,3 +161,30 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   Seed ich nie nadpisuje, jeśli urzędnik je zmienił.
 - **Tymczasowo** model `Benefit` i zasięg `covers` pochodzą z mocków planu 03 (`backend/app/mocks/`). Patrz
   `docs/superpowers/plans/NOTES-MOCKS.md`.
+
+## Poczta, statusy wniosków, kalendarz i powiadomienia (plan 09)
+
+- **Poczta symulowana, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
+  Skrzynka rodziny ma też 6 maili niezwiązanych (sklep, szkoła, przychodnia…), które filtr pomija.
+- **Filtr** (`services/mail_filter.py`): czytamy wątek wniosku, dokładny adres odbiorcy oraz domenę tylko dla
+  instytucji (`zus.pl`, `gov.pl`, domeny z katalogu, `um.krakow.pl`) — nigdy całych domen publicznych
+  (`gmail.com`, `onet.pl`, `wp.pl`, `outlook.com`…). Maile sprzed wysyłki wniosku są ignorowane.
+- **Klasyfikacja** (`services/mail_classify.py`, LLM `mail_classify`): `received|more_info|accepted|rejected|other`.
+  Pewność ≥ 0,8 → status wniosku zmienia się sam + powiadomienie; poniżej → „Nowa wiadomość w sprawie wniosku X —
+  sprawdź” bez zmiany statusu. Błąd modelu → „do sprawdzenia”. Synchronizacja jest idempotentna.
+  W trybie demo klasyfikują słowa kluczowe (`seed/demo_mail.py`).
+- **Odpowiedzi urzędów** (`mail/sim_inbox.py`): pracodawca → „otrzymaliśmy”, potem „zatwierdzony”; ZUS → „wezwanie
+  do uzupełnienia”; gmina → „decyzja pozytywna”. Przychodzą po `MAIL_SIM_REPLY_DELAY_S` (20 s) przy kolejnym
+  sprawdzeniu poczty albo od razu przyciskiem „Symuluj odpowiedzi” (`POST /api/mail/simulate-replies`).
+- **Sprawdzanie w tle:** pętla w `lifespan` co `MAIL_POLL_S` s (0 = wyłączona; testy ustawiają 0 w `conftest.py`);
+  tokeny z dziennego budżetu AI. Ręcznie: „Sprawdź pocztę” (`POST /api/mail/sync`, za `ai_guard`).
+- **Kalendarz** (`/kalendarz`, widżet „Najbliższe terminy”, narzędzie MCP `kalendarz`): terminy świadczeń względem
+  porodu/urodzenia, złożone wnioski („kto złożył”, do kogo, status), termin porodu i ostrzeżenia z ryzyk (plan 04).
+  Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
+  oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
+  „Wkrótce”.
+- **Demo bez planu 08:** na pustej stronie `/poczta` jest przycisk „Wyślij przykładowy wniosek (demo)” —
+  `POST /api/mock/applications` (tylko `ENV=dev`). Scenariusz: Anna zakłada rodzinę → `/poczta` → wyślij przykładowy
+  wniosek → „Symuluj odpowiedzi” → status „Zaakceptowany”, powiadomienia, wpis w kalendarzu.
+- **Tymczasowo** `Application`, wysyłka (`MailProvider`/`SimMailProvider`) i katalog świadczeń do kalendarza to mocki
+  planów 08/03 (`backend/app/mocks/`) — patrz `docs/superpowers/plans/NOTES-MOCKS.md`.

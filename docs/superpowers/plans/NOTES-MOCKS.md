@@ -14,10 +14,24 @@ mocki** tych interfejsów, odtworzone z opisów w `03-benefits.md` i `08-applica
 | `mail_provider.py`: `MailProvider`, `SentMessage`, `SimMailProvider`, `get_mail` | `app/mail/provider.py` + `app/mail/__init__.get_mail` (plan 08) | plan 09 | Skrzynka odbiorcza (plan 09) jest w `app/mail/sim_inbox.py` i korzysta z tego samego `SimMailProvider`. |
 | `app/routers/mock_applications.py` (`/api/mock/applications`) | kreator wniosków (plan 08) | demo planu 09 (frontend `/poczta`) | Endpoint tylko do demo: „złóż” przykładowy wniosek bez planu 08. Do usunięcia po scaleniu planu 08. |
 
+## Inne zmiany w plikach spoza moich planów (do sprawdzenia przy scalaniu)
+- `backend/app/mail/__init__.py` — utworzony przez plan 09 (pakiet `app/mail/`), a plan 08 też go tworzy, więc
+  przy scalaniu będzie konflikt add/add. Docelowo `get_mail()` z planu 08 powinno zwracać `SimInbox`
+  (`app/mail/sim_inbox.py`), bo rozszerza on `SimMailProvider` o skrzynkę odbiorczą.
+- `backend/app/main.py` — jedna zmiana w `lifespan`: start `poll_loop` (plan 09 na to pozwala).
+- `backend/tests/conftest.py` — `MAIL_POLL_S=0` dla testów.
+- `frontend/src/features/registry.ts` + `components/AppShell.tsx` — slot nagłówka `features/<nazwa>/header-slot.tsx`
+  (dzwonek powiadomień, plan 09).
+- `backend/app/seed/__init__.py` — importy handlerów demo i seed świadczeń lokalnych.
+
 ## Jak podmienić po scaleniu
 1. `grep -rn "app.mocks\|from \.\.mocks\|from \.mocks" backend/` — każdy import zamienić na prawdziwy moduł.
 2. Dopisać do prawdziwego `Benefit` rozszerzenia z tabeli (status `awaiting_approval`, `deadline_text`, `apply_url`).
 3. W prawdziwym `submit` (plan 08) wywołać `schedule_reply` z `app/mail/sim_inbox.py`.
 4. Kalendarz (`services/calendar_gen.py`) przyjmuje `benefits_with_match` z polami `benefit` i `status`:
    przekazać wynik silnika planu 03 (`match.status`).
-5. Usunąć `backend/app/mocks/`, `routers/mock_applications.py` i testy oznaczone `# MOCK` w nazwie pliku.
+5. Usunąć `backend/app/mocks/`, `routers/mock_applications.py` oraz przycisk „Wyślij przykładowy wniosek (demo)”
+   w `frontend/src/features/mail/MailPage.tsx`. Testy korzystające z mocków mają komentarz `# MOCK planu 0x`
+   przy imporcie; `test_mail_api.py` i `test_flow_mail_calendar_e2e.py` wysyłają wnioski przez
+   `/api/mock/applications` — przepiąć je na prawdziwe `POST /api/applications` + `/submit`.
+6. Frontend `features/official/types.ts` ma lokalne typy `Benefit/Condition/Criteria` — przenieść do wspólnych.
