@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     ai_reserve_tokens: int = 4000
     ai_max_inflight: int = 20
 
+    # Poczta symulowana (plan 09): opóźnienie predefiniowanych odpowiedzi i cykl pobierania (0 = wyłączony).
+    mail_sim_reply_delay_s: int = 20
+    mail_poll_s: int = 30
+
     @property
     def is_production(self) -> bool:
         """Produkcja = ENV != dev albo podłączony Cosmos (prawdziwe dane)."""
