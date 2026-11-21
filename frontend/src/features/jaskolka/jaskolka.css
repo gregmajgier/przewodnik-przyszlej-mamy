@@ -1,0 +1,306 @@
+/* /jaskolka: ta sama marka co landing (Nunito 800, pigułki, karty 1.5rem z miękkim cieniem),
+   ale w trybie mono: bez koloru akcentu, bez ruchu poza delikatnym pojawieniem się treści.
+   Wyłącznie tokeny z theme.css (data-theme="mono" ustawia JaskolkaPage). */
+
+.jk {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.jk h1,
+.jk h2,
+.jk h3 {
+  font-weight: 800;
+}
+.jk h1 {
+  font-size: clamp(1.75rem, 4.5vw, 2.5rem);
+  margin: 0 0 1rem;
+}
+.jk h2 {
+  font-size: clamp(1.4rem, 3.5vw, 1.9rem);
+  margin: 0 0 0.75rem;
+}
+.jk h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.jk-skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-weight: 700;
+  z-index: 20;
+}
+.jk-skip:focus {
+  top: 0.75rem;
+}
+
+/* ----- nagłówek: logo po lewej, nawigacja po prawej, pas w kolorze głównym motywu ----- */
+.jk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding: 1.1rem clamp(1.25rem, 4vw, 3rem);
+  background: var(--primary);
+  color: var(--bg);
+}
+.jk-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--bg);
+  text-decoration: none;
+}
+.jk-header .wordmark {
+  color: var(--bg);
+  font-size: 1.75rem;
+}
+.jk-logo {
+  height: 1.5rem;
+  width: auto;
+  color: var(--bg);
+}
+.jk-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+}
+.jk-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: none;
+}
+.jk-back:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.jk-header :focus-visible {
+  outline-color: var(--bg);
+}
+
+/* ----- treść ----- */
+.jk-main {
+  flex: 1;
+  width: 100%;
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4rem) 1.25rem 3rem;
+}
+.jk-lead {
+  font-size: 1.1rem;
+  color: var(--fg);
+  margin: 0 0 1.5rem;
+}
+.jk-note {
+  margin: 0 0 1.5rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+}
+
+/* ----- wybór sytuacji ----- */
+.jk-situations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+.jk-situation {
+  display: flex;
+  align-items: center;
+  min-height: 4.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: 1.5rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
+  color: var(--fg);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.jk-situation:hover {
+  border-color: var(--fg);
+}
+
+/* ----- checklista ----- */
+.jk-list,
+.jk-found-list {
+  list-style: none;
+  margin: 0 0 3rem;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+.jk-item,
+.jk-card {
+  padding: 1.25rem 1.5rem;
+  border-radius: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
+}
+.jk-item p,
+.jk-card p {
+  margin: 0.5rem 0 0;
+}
+.jk-item-done {
+  background: var(--primary-soft);
+}
+.jk-item-done .jk-item-title {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.jk-item-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+.jk-item-check input {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--primary);
+}
+.jk-item-check label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 2.75rem;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.jk-kind {
+  align-self: flex-start;
+  padding: 0.05rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--fg);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.jk-item-body {
+  white-space: pre-line;
+}
+.jk-deadline,
+.jk-forms {
+  font-size: 0.95rem;
+}
+.jk-verify {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.jk-source {
+  font-size: 0.9rem;
+}
+.jk-source a,
+.jk-card a,
+.jk-help a {
+  color: var(--fg);
+  text-underline-offset: 3px;
+}
+.jk-region {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* ----- fundacje ----- */
+.jk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 1.5rem;
+  max-width: 20rem;
+  font-weight: 600;
+}
+.jk-field select {
+  font: inherit;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--fg);
+}
+
+/* ----- przyciski ----- */
+.jk-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--bg);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* ----- stały telefon wsparcia ----- */
+.jk-help {
+  position: sticky;
+  bottom: 0;
+  padding: 0.75rem clamp(1.25rem, 4vw, 3rem);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.jk-help p {
+  margin: 0 auto;
+  max-width: 46rem;
+}
+
+.jk-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* jedyny ruch: delikatne pojawienie się treści */
+.jk-fade {
+  animation: jk-fade 0.4s ease-out;
+}
+@keyframes jk-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jk-fade {
+    animation: none;
+  }
+}
+
+@media (max-width: 30rem) {
+  .jk-item,
+  .jk-card {
+    padding: 1.1rem 1.15rem;
+  }
+}
