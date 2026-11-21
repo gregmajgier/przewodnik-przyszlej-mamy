@@ -53,10 +53,13 @@ function App() {
               Zobacz, co możemy dla ciebie zrobić.
             </a>
           </div>
-          <a className="scroll-hint" href="#film" aria-label="Przewiń w dół">
-            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 9l7 7 7-7" />
-            </svg>
+          <a className="scroll-hint" href="#film" aria-label="Przewiń w dół, zobacz więcej">
+            <span className="scroll-hint-text">Przewiń, żeby zobaczyć więcej</span>
+            <span className="scroll-hint-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 9l7 7 7-7" />
+              </svg>
+            </span>
           </a>
         </section>
 
