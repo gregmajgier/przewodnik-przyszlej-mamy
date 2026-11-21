@@ -1,9 +1,12 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from ..models.user import User
 from ..security import Principal, current_principal, issue_token, verify_password
 from ..seed.personas import PERSONAS, get_persona
+from ..services.zus_sim import fetch_zus_data
 from ..storage import Store, get_store
 
 router = APIRouter(prefix="/api", tags=["auth"])
@@ -39,6 +42,10 @@ async def login_mobywatel(body: PersonaLogin, store: Store = Depends(get_store))
     if user_doc is None:
         user = User(id=user_id, role="parent", name=persona["name"], persona_id=persona["id"])
         user_doc = await store.put("users", user.model_dump(mode="json"))
+    if await store.get("profiles", user_id) is None:
+        # dane „z ZUS/mObywatela” pobierane przy pierwszym logowaniu persony
+        zus = fetch_zus_data(persona["id"], date.today())
+        await store.put("profiles", {**zus.model_dump(mode="json"), "id": user_id})
     return _session(user_doc)
 
 
