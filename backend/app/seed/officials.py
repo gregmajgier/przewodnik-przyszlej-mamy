@@ -1,8 +1,12 @@
-from ..config import settings
+import logging
+
+from ..config import DEFAULT_OFFICIAL_PASSWORD, settings
 from ..security import hash_password
 from ..storage import Store
 
-# Konta urzędników nadajemy my (brak samorejestracji). Hasło: OFFICIAL_DEFAULT_PASSWORD.
+logger = logging.getLogger("mrodzina.seed")
+
+# Konta urzędników nadajemy my (brak samorejestracji). Hasło początkowe: OFFICIAL_DEFAULT_PASSWORD.
 OFFICIALS = [
     {
         "id": "official-krakow",
@@ -20,7 +24,18 @@ OFFICIALS = [
 
 
 async def seed_officials(store: Store) -> None:
-    password_hash = hash_password(settings.official_default_password)
+    """Tworzy brakujące konta urzędników; istniejących (i ich haseł) nigdy nie nadpisuje."""
+    password = settings.official_default_password
+    if settings.is_production and (not password or password == DEFAULT_OFFICIAL_PASSWORD):
+        logger.warning(
+            "Pomijam konta urzędników: ustaw własne OFFICIAL_DEFAULT_PASSWORD "
+            "(domyślne hasło jest dozwolone tylko w trybie ENV=dev)."
+        )
+        return
+    password_hash: str | None = None
     for o in OFFICIALS:
+        if await store.get("users", o["id"]) is not None:
+            continue
+        password_hash = password_hash or hash_password(password)
         doc = {**o, "role": "official", "persona_id": None, "family_id": None}
         await store.put("users", {**doc, "password_hash": password_hash})

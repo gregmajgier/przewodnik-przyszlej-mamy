@@ -5,14 +5,35 @@ import binascii
 import hashlib
 import hmac
 import json
+import logging
 import secrets
 import time
 from dataclasses import dataclass
 
 from fastapi import Depends, Header, HTTPException
 
-from .config import settings
+from .config import DEFAULT_SESSION_SECRET, MIN_SESSION_SECRET_LENGTH, settings
 from .storage import Store, get_store
+
+
+logger = logging.getLogger("mrodzina.security")
+
+
+def validate_startup_config() -> None:
+    """Fail-closed: poza trybem dev (lub z Cosmos) wymagamy własnego, długiego SESSION_SECRET."""
+    weak = (
+        settings.session_secret == DEFAULT_SESSION_SECRET
+        or len(settings.session_secret) < MIN_SESSION_SECRET_LENGTH
+    )
+    if not weak:
+        return
+    if settings.is_production:
+        raise RuntimeError(
+            "SESSION_SECRET jest domyślny lub krótszy niż "
+            f"{MIN_SESSION_SECRET_LENGTH} znaków. Ustaw własny, losowy SESSION_SECRET "
+            "(np. `python -c \"import secrets; print(secrets.token_urlsafe(48))\"`)."
+        )
+    logger.warning("SESSION_SECRET jest domyślny/krótki — dozwolone tylko w trybie ENV=dev.")
 
 
 class AuthError(Exception):

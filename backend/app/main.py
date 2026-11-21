@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from . import db, routers
 from .config import settings
 from .errors import DomainError
+from .security import validate_startup_config
 from .seed import seed_all
 from .storage import CosmosStore, MemoryStore, Store
 
@@ -28,6 +29,7 @@ def create_app(store: Store | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        validate_startup_config()
         if use_cosmos:
             await db.init_db()
             app.state.store = CosmosStore(db.get_database())
