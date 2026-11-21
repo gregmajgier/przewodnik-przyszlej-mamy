@@ -1,33 +1,57 @@
+import importlib
+import pkgutil
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import db
+from . import db, routers
 from .config import settings
-from .routers import wnioski
+from .seed import seed_all
+from .storage import CosmosStore, MemoryStore, Store
 
 
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    await db.init_db()
-    yield
-    await db.close_db()
+def _include_routers(app: FastAPI) -> None:
+    """Dołącza każdy moduł z `app/routers/` eksponujący `router`."""
+    for info in pkgutil.iter_modules(routers.__path__):
+        module = importlib.import_module(f"{routers.__name__}.{info.name}")
+        router = getattr(module, "router", None)
+        if router is not None:
+            app.include_router(router)
 
 
-app = FastAPI(title="mrodzina API", lifespan=lifespan)
+def create_app(store: Store | None = None) -> FastAPI:
+    """Buduje aplikację. Bez `store`: Cosmos gdy ustawiono `COSMOS_ENDPOINT`, inaczej MemoryStore."""
+    use_cosmos = store is None and bool(settings.cosmos_endpoint)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        if use_cosmos:
+            await db.init_db()
+            app.state.store = CosmosStore(db.get_database())
+        await seed_all(app.state.store)
+        yield
+        if use_cosmos:
+            await db.close_db()
+
+    app = FastAPI(title="mrodzina API", lifespan=lifespan)
+    if not use_cosmos:
+        app.state.store = store if store is not None else MemoryStore()
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    _include_routers(app)
+
+    @app.get("/health")
+    async def health():
+        return {"status": "ok"}
+
+    return app
 
 
-app.include_router(wnioski.router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+app = create_app()
