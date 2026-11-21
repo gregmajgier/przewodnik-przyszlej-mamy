@@ -309,3 +309,24 @@ h2 {
 }
 
 .final-cta .cta { position: relative; z-index: 2; margin-top: 0; }
+
+/* Calm, unobtrusive link to the /jaskolka support path (no accent fill, no motion). */
+.site-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1.25rem clamp(2rem, 6vw, 4rem);
+}
+.support-link {
+  display: inline-block;
+  max-width: 40rem;
+  padding: 0.75em 1.4em;
+  border: 2px solid var(--text);
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+}
+.support-link:hover { background: var(--text); color: var(--bg); }
+.support-link:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
