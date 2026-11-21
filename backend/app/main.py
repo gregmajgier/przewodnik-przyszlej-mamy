@@ -2,11 +2,13 @@ import importlib
 import pkgutil
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from . import db, routers
 from .config import settings
+from .errors import DomainError
 from .seed import seed_all
 from .storage import CosmosStore, MemoryStore, Store
 
@@ -44,6 +46,10 @@ def create_app(store: Store | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.exception_handler(DomainError)
+    async def domain_error_handler(_: Request, exc: DomainError):
+        return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
     _include_routers(app)
 
