@@ -1,6 +1,7 @@
 """Dane startowe. `seed_all` jest idempotentne (stałe id, `put` = upsert)."""
 
 from ..storage import Store
+from . import demo_handlers  # noqa: F401 - rejestruje odpowiedzi trybu demo (plan 04)
 from .officials import seed_officials
 from .units import seed_units
 
