@@ -97,7 +97,7 @@ type Placement = {
 }
 
 // Icons may repeat. Irregular on purpose; they fill the gaps around the copy.
-export const HERO_PLACEMENTS: Placement[] = [
+const HERO_PLACEMENTS: Placement[] = [
   { icon: 'bottle', x: 22, y: 11, size: 70, rot: 12, m: { x: 15, y: 12 } },
   { icon: 'thermometer', x: 12, y: 15, size: 66, rot: 14, m: { x: 50, y: 13 } },
   { icon: 'magnifier', x: 36, y: 11, size: 60, rot: -10 },
@@ -132,7 +132,7 @@ export const HERO_PLACEMENTS: Placement[] = [
   { icon: 'thermometer', x: 36, y: 72, size: 48, rot: -14 },
 ]
 
-export const CTA_PLACEMENTS: Placement[] = [
+const CTA_PLACEMENTS: Placement[] = [
   { icon: 'bottle', x: 10, y: 22, size: 64, rot: -10, m: { x: 14, y: 14 } },
   { icon: 'calendar', x: 30, y: 18, size: 56, rot: 6 },
   { icon: 'thermometer', x: 44, y: 12, size: 56, rot: -14, m: { x: 50, y: 12 } },
@@ -161,13 +161,9 @@ const drift = (i: number) => ({
   delay: -((i * 17) % 70) / 10,
 })
 
-export function HeroIcons({
-  placements = HERO_PLACEMENTS,
-  seed = 0,
-}: {
-  placements?: Placement[]
-  seed?: number
-}) {
+export function HeroIcons({ variant = 'hero' }: { variant?: 'hero' | 'cta' }) {
+  const placements = variant === 'cta' ? CTA_PLACEMENTS : HERO_PLACEMENTS
+  const seed = variant === 'cta' ? 7 : 0
   return (
     <div className="hero-icons" aria-hidden="true">
       {placements.map((p, i) => {

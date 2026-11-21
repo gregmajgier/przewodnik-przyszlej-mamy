@@ -1,6 +1,6 @@
 import { Logo } from './components/Logo'
 import { ScrollRibbons } from './components/ScrollRibbons'
-import { CTA_PLACEMENTS, HeroIcons } from './components/HeroIcons'
+import { HeroIcons } from './components/HeroIcons'
 import { Timeline } from './components/Timeline'
 import './App.css'
 
@@ -109,7 +109,7 @@ function App() {
         <Timeline />
 
         <section id="cta" className="final-cta">
-          <HeroIcons placements={CTA_PLACEMENTS} seed={7} />
+          <HeroIcons variant="cta" />
           <a className="cta" href={APP_URL}>
             Sprawdź, co możemy dla ciebie zrobić.
           </a>
