@@ -18,7 +18,7 @@
   „Gdzie uzyskać pomoc psychologiczną i psychiatryczną”, która podaje także 800 70 2222 (Centrum Wsparcia, Fundacja ITAKA).
 - Filtr regionu fundacji: organizacje bez regionu (ogólnopolskie) są zawsze widoczne.
 - Landing: link w nowej stopce (`site-footer`/`support-link`), obrys-pigułka w tokenach landingu, bez wypełnienia akcentem.
-- Dane: 5 sytuacji, 34 pozycje checklisty, 19 organizacji (`backend/app/data/jaskolka.json`). Dane są generowane ręcznie z
+- Dane: 5 sytuacji, 35 pozycji checklisty, 19 organizacji (`backend/app/data/jaskolka.json`). Dane są generowane ręcznie z
   oficjalnych stron (zus.pl, gov.pl, pacjent.gov.pl, bip.brpo.gov.pl, pip.gov.pl); każdy adres sprawdzony (HTTP 200) w dniu implementacji.
 
 ## Do weryfikacji przez człowieka (pozycje z `verify: true` i inne)
@@ -36,8 +36,8 @@
   „Za życiem”; zakres praktyczny zależy od gminy.
 - **Opieka wytchnieniowa 120 h**: zapis z informatora MZ; NIK wskazywał braki we wdrożeniu — dostępność lokalna.
 - **Opisy organizacji**: pisane na podstawie ich stron głównych; Fundacja Ernesta i Fundacja „Zdążyć z Pomocą” opisane ogólnie
-  (strony nie podają jasnego opisu w pierwszym ekranie), Panda Team, hospicja — wg opisów na stronach. Hospicjum „Formuła Dobra”
-  nie ma na stronie głównej wzmianki o grupie wsparcia po stracie (informacja z komunikatu miasta Wrocławia nie weszła do danych).
+  (strony nie podają jasnego opisu w pierwszym ekranie), Panda Team, hospicja — wg opisów na stronach. Grupa wsparcia po stracie
+  hospicjum „Formuła Dobra” (komunikat miasta Wrocławia) nie weszła do danych, bo nie potwierdziłem jej na stronie hospicjum.
   Sprawdzić aktualną ofertę każdej organizacji i zgodę na umieszczenie w bazie.
 - **Telefony**: 116 123, 800 70 2222, 116 111 — potwierdzone na stronach MZ/MC; godziny 116 123 różnią się w starszych źródłach (nowsze: całodobowo).
 - **Nie dodano** (brak oficjalnego źródła w czasie pracy): zawiadamianie ZUS/gminy o zakończeniu świadczeń na dziecko po jego śmierci,
