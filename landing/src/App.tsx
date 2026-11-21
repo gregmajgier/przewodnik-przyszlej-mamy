@@ -4,6 +4,7 @@ import { HeroIcons } from './components/HeroIcons'
 import { Timeline } from './components/Timeline'
 import { HowItWorks } from './components/HowItWorks'
 import { Extras } from './components/Extras'
+import { Calculator } from './components/Calculator'
 import './App.css'
 
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
@@ -34,6 +35,7 @@ function App() {
         <nav>
           <a href="#film">Film</a>
           <a href="#jak-to-dziala">Jak to działa</a>
+          <a href="#kalkulator">Kalkulator</a>
           <a href="#cta">Zacznij</a>
         </nav>
       </header>
@@ -97,6 +99,8 @@ function App() {
         <HowItWorks />
 
         <Extras />
+
+        <Calculator appUrl={APP_URL} />
 
         <Timeline />
 

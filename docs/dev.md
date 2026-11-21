@@ -157,6 +157,22 @@ wszystko od razu), potem na `/` — dashboard (nagłówek z podsumowaniem, stawk
 „Parametry ZUS 2026 – aktywne” i siatka kafelków). Kafelek dokłada każda funkcja plikiem
 `features/<nazwa>/widget.tsx` (`{ order, Component }`) — dashboard ich nie zna z nazwy. Lista świadczeń: `/swiadczenia`.
 
+### Silnik uprawnień i kalkulator (kontrakt v1.1, `app/engine/`)
+
+Drugi, niezależny silnik (autor: Eryk, gałąź `prompt_eryka`) liczy **kwoty i okresy**: reguły JSONLogic z
+`data/reguly_uprawnien.json` oceniane trójwartościowo (brak danych → `brak_danych`, nigdy fałszywe „nie”), zmienne
+wyliczane `wyl.*` (`derived.py`) i kalkulator (`calculator.py`, `Decimal`, kwoty brutto). W aplikacji o uprawnieniach
+dalej decyduje `services/matching.py`; silnik działa obok.
+
+**API (publiczne, bez logowania):** `POST /api/silnik/ocena[?data_oceny=YYYY-MM-DD]` (profil `UserProfile` z
+`engine/schemas.py` → statusy, kwoty, ryzyka, wnioski, kalendarz) i `GET /api/silnik/formularz`. Wejście ma twarde
+limity: zakresy dat `od ≤ do` i najwyżej 3 lata, listy do 50 pozycji (inaczej 422) — silnik rozwija okresy dzień po dniu.
+
+**Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, logika w `calcEngine.ts`): kilka pytań → profil
+silnika → `POST ${VITE_API_URL}/api/silnik/ocena`. W ciąży liczy stan na termin porodu (`data_oceny`), więc pokazuje
+też to, co zaczyna się po porodzie. Landing sam niczego nie liczy i nic nie zapisuje; pokazuje tylko świadczenia
+pieniężne z listy `SHOWN` (bez zasiłku opiekuńczego i ścieżek straty). Origin landingu musi być w `CORS_ORIGINS` backendu.
+
 ## Wnioski, agent i makiety portali (plan 08)
 
 **Kanały** (`services/applications.py::channels_for`, dane z `katalog_wnioskow_pdf.json`):
