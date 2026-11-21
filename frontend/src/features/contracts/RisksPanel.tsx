@@ -22,7 +22,7 @@ export function RiskList({ risks }: { risks: Risk[] }) {
           {r.action && (
             <p>
               <strong>Co zrobić:</strong> {r.action}
-              {r.deadline && <> — najlepiej do {formatDate(r.deadline)}</>}
+              {r.deadline && <>, najlepiej do {formatDate(r.deadline)}</>}
             </p>
           )}
         </li>

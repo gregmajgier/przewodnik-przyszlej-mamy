@@ -179,7 +179,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
                     </label>
                     {f.type === 'choice' ? (
                       <select {...common} value={String(values[f.id] ?? '')} onChange={(e) => edit(f, e.target.value)}>
-                        <option value="">— wybierz —</option>
+                        <option value="">Wybierz</option>
                         {(f.choices ?? []).map((c) => (
                           <option key={c} value={c}>
                             {c}

@@ -6,6 +6,8 @@ export interface NavItem {
   path: string
   order: number
   area: 'parent' | 'official'
+  /** Zakładka w dolnym pasku na telefonie (reszta chowa się pod „Więcej”). Gdy żadna pozycja nie jest `primary`, pokazujemy wszystkie. */
+  primary?: boolean
 }
 
 export interface Widget {

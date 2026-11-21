@@ -60,6 +60,7 @@ describe('OnboardingPage', () => {
     await waitFor(() => expect(mocked).toHaveBeenCalledWith('/api/families', { method: 'POST', body: {} }))
     expect(session.refresh).toHaveBeenCalled()
     expect(await screen.findByRole('heading', { name: /dzieci/i })).toBeInTheDocument()
+    expect(screen.getByText(/rodzina założona/i)).toBeInTheDocument() // potwierdzenie, że coś się stało
   })
 
   it('krok 2: dzieci prefilowane z known_children, zatwierdzenie zapisuje wybrane', async () => {

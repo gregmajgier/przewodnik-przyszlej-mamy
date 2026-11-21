@@ -91,7 +91,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
           case 'invalid':
             if (phaseRef.current === 'submitting') {
               setPhase('review')
-              setError('Makieta nie przyjęła wniosku — uzupełnij zaznaczone pola i zatwierdź ponownie.')
+              setError('Makieta nie przyjęła wniosku. Uzupełnij zaznaczone pola i zatwierdź ponownie.')
             }
             break
           case 'submitted':
@@ -198,7 +198,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
       <div className="agent-status" role="status" aria-live="polite">
         {phase === 'loading' && 'Przygotowuję plan…'}
         {phase === 'running' && `Wypełniam formularz: krok ${Math.min(progress + 1, total)} z ${total}`}
-        {phase === 'blocked' && 'Zatrzymałem się — potrzebuję jeszcze kilku danych.'}
+        {phase === 'blocked' && 'Zatrzymałem się, bo potrzebuję jeszcze kilku danych.'}
         {phase === 'review' && 'Gotowe. Sprawdź formularz i zatwierdź wysyłkę.'}
         {phase === 'submitting' && 'Wysyłam…'}
         {phase === 'done' && 'Wniosek złożony w makiecie portalu.'}

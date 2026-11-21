@@ -44,7 +44,7 @@ function QuestionForm({ q, onAnswer, busy }: { q: Question; onAnswer: Props['onA
         <label htmlFor={inputId}>{q.label}</label>
         {q.type === 'choice' ? (
           <select id={inputId} value={value} onChange={(e) => setValue(e.target.value)}>
-            <option value="">— wybierz —</option>
+            <option value="">Wybierz</option>
             {(q.choices ?? []).map((c) => (
               <option key={c} value={c}>
                 {c}

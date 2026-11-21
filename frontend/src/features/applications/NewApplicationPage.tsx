@@ -46,6 +46,8 @@ export default function NewApplicationPage() {
   const effectiveChild = childId || (needsChild && children.length === 1 ? children[0].id : '')
   const effectiveChannel = channel || form?.default_channel || ''
   const canStart = form !== undefined && (!needsChild || effectiveChild !== '') && !busy
+  // dlaczego przycisk jest nieaktywny — mówimy wprost, zamiast zostawiać wyszarzony przycisk bez wyjaśnienia
+  const hint = busy ? null : form === undefined ? 'Wybierz rodzaj wniosku powyżej.' : needsChild && effectiveChild === '' ? 'Wybierz dziecko, którego dotyczy wniosek.' : null
 
   async function start(e: FormEvent) {
     e.preventDefault()
@@ -82,27 +84,32 @@ export default function NewApplicationPage() {
 
       {data && (
         <form className="card stack" onSubmit={start} noValidate>
-          <div className="field">
-            <label htmlFor="form-code">Rodzaj wniosku</label>
-            <select
-              id="form-code"
-              value={code}
-              onChange={(e) => {
-                setCode(e.target.value)
-                setChannel('')
-              }}
-            >
-              <option value="">— wybierz —</option>
-              {forms.map((f) => (
-                <option key={f.code} value={f.code}>
-                  {f.name}
-                  {recommended.has(f.code) ? ' (polecany)' : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {form?.deadline && <p className="muted">Termin: {form.deadline}</p>}
+          <fieldset className="form-tiles">
+            <legend>Rodzaj wniosku</legend>
+            {forms.map((f) => (
+              <label key={f.code} className={`form-tile${code === f.code ? ' is-selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="form-code"
+                  value={f.code}
+                  checked={code === f.code}
+                  onChange={() => {
+                    setCode(f.code)
+                    setChannel('')
+                  }}
+                />
+                <span className="form-tile-body">
+                  <span className="form-tile-title">
+                    {f.name}
+                    {recommended.has(f.code) && <span className="form-tile-badge">Polecany</span>}
+                  </span>
+                  {f.institution && <span className="muted">Do: {f.institution}</span>}
+                  {f.deadline && <span className="muted">Termin: {f.deadline}</span>}
+                  {f.only_electronic && <span className="muted">Tylko elektronicznie, wypełni go agent</span>}
+                </span>
+              </label>
+            ))}
+          </fieldset>
 
           {needsChild && (
             <div className="field">
@@ -113,7 +120,7 @@ export default function NewApplicationPage() {
                 </p>
               ) : (
                 <select id="child" value={effectiveChild} onChange={(e) => setChildId(e.target.value)}>
-                  <option value="">— wybierz —</option>
+                  <option value="">Wybierz</option>
                   {children.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({describeChild(c)})
@@ -135,14 +142,18 @@ export default function NewApplicationPage() {
               ))}
             </fieldset>
           )}
-          {form?.only_electronic && <p className="muted">Ten wniosek składa się wyłącznie elektronicznie — wypełni go dla Ciebie agent.</p>}
 
           <div className="row">
-            <button type="submit" className="btn" disabled={!canStart}>
+            <button type="submit" className="btn" disabled={!canStart} aria-describedby={hint ? 'start-hint' : undefined}>
               Zacznij wypełnianie
             </button>
             <Link to="/wnioski">Anuluj</Link>
           </div>
+          {hint && (
+            <p id="start-hint" className="muted">
+              {hint}
+            </p>
+          )}
         </form>
       )}
     </div>

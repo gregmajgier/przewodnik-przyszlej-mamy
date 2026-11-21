@@ -14,7 +14,7 @@ const money = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN
 
 function ZusSection({ m }: { m: MemberProfile }) {
   return (
-    <section className="stack" aria-label={`ZUS i mObywatel — ${m.user_name}`}>
+    <section className="stack" aria-label={`ZUS i mObywatel: ${m.user_name}`}>
       <h3>
         ZUS i mObywatel <span className="badge-sim">symulacja</span>
       </h3>
@@ -82,7 +82,7 @@ function ZusSection({ m }: { m: MemberProfile }) {
 function AnswersSection({ m }: { m: MemberProfile }) {
   const entries = Object.entries(m.answers)
   return (
-    <section className="stack" aria-label={`Odpowiedzi — ${m.user_name}`}>
+    <section className="stack" aria-label={`Odpowiedzi: ${m.user_name}`}>
       <h3>Twoje odpowiedzi</h3>
       {entries.length === 0 ? (
         <p className="muted">
@@ -136,13 +136,13 @@ export default function ProfilePage() {
             <h2>{m.user_name}</h2>
             <ZusSection m={m} />
             {profileSections.length === 0 && (
-              <section className="stack" aria-label={`Umowy — ${m.user_name}`}>
+              <section className="stack" aria-label={`Umowy: ${m.user_name}`}>
                 <h3>Umowy o pracę</h3>
                 <p className="muted">Tutaj pojawią się dane z zatwierdzonych skanów umów.</p>
               </section>
             )}
             {profileSections.map((s) => (
-              <section key={s.title} className="stack" aria-label={`${s.title} — ${m.user_name}`}>
+              <section key={s.title} className="stack" aria-label={`${s.title}: ${m.user_name}`}>
                 <h3>{s.title}</h3>
                 <s.Component userId={m.user_id} userName={m.user_name} />
               </section>

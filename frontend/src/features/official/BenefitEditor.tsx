@@ -99,7 +99,7 @@ export default function BenefitEditor() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setBusy('save')
-    if (await save()) setInfo('Zapisano. Edycja wraca świadczenie do szkicu — opublikuj je ponownie.')
+    if (await save()) setInfo('Zapisano. Edycja wraca świadczenie do szkicu. Opublikuj je ponownie.')
     setBusy(null)
   }
 
@@ -111,7 +111,7 @@ export default function BenefitEditor() {
       try {
         load(await api<OfficialBenefit>(`/api/official/benefits/${saved.id}/extract-conditions`, { method: 'POST' }))
       } catch (e) {
-        setAiError(errText(e, 'Nie udało się wyodrębnić warunków — dodaj je ręcznie.'))
+        setAiError(errText(e, 'Nie udało się wyodrębnić warunków. Dodaj je ręcznie.'))
       }
     }
     setBusy(null)
@@ -140,7 +140,7 @@ export default function BenefitEditor() {
     setError(null)
     try {
       load(await api<OfficialBenefit>(`/api/official/benefits/${benefit.id}/${publish ? 'publish' : 'unpublish'}`, { method: 'POST' }))
-      setInfo(publish ? 'Opublikowano — rodzice z Twojego obszaru już widzą to świadczenie.' : 'Wycofano publikację.')
+      setInfo(publish ? 'Opublikowano. Rodzice z Twojego obszaru już widzą to świadczenie.' : 'Wycofano publikację.')
     } catch (e) {
       setError(errText(e, 'Nie udało się zmienić publikacji.'))
     }
@@ -163,7 +163,7 @@ export default function BenefitEditor() {
       setDirty(true)
       setInfo('Wypełniono z uchwały. Sprawdź pola i zapisz.')
     } catch (e) {
-      setAiError(errText(e, 'Nie udało się wypełnić formularza z uchwały — uzupełnij pola ręcznie.'))
+      setAiError(errText(e, 'Nie udało się wypełnić formularza z uchwały. Uzupełnij pola ręcznie.'))
     }
     setBusy(null)
   }

@@ -27,7 +27,7 @@ export default function SignModal({ busy, error, onConfirm, onCancel }: Props) {
           Podpisz Profilem Zaufanym <span className="badge-sim">SYMULACJA</span>
         </h2>
         <p>
-          To symulacja podpisu. Nic nie wysyłamy do gov.pl — potwierdzasz tylko, że dane we wniosku się zgadzają i
+          To symulacja podpisu. Nic nie wysyłamy do gov.pl. Potwierdzasz tylko, że dane we wniosku się zgadzają i
           chcesz go podpisać.
         </p>
         {error && (

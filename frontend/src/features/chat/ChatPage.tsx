@@ -18,9 +18,11 @@ export default function ChatPage() {
   })
   const logRef = useRef<HTMLDivElement>(null)
 
+  // Odpowiedzi przewija cała strona (bez własnego okienka z paskiem): po nowej wiadomości pokazujemy jej koniec.
   useEffect(() => {
-    const el = logRef.current
-    if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: el.scrollHeight })
+    if (messages.length === 0) return
+    const last = logRef.current?.lastElementChild
+    if (last && typeof last.scrollIntoView === 'function') last.scrollIntoView({ block: 'nearest' })
   }, [messages])
 
   function submit(e: FormEvent) {
@@ -74,28 +76,30 @@ export default function ChatPage() {
         </p>
       )}
 
-      <form className="chat-form" onSubmit={submit}>
-        <label className="field" htmlFor="chat-input">
-          <span>Twoje pytanie</span>
-          <textarea
-            id="chat-input"
-            rows={2}
-            value={draft}
-            maxLength={MAX_MESSAGE_CHARS}
-            placeholder="Np. Co mi przysługuje, gdy wrócę do pracy?"
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) submit(e)
-            }}
-          />
-        </label>
-        <button type="submit" className="btn" disabled={sending || draft.trim() === ''}>
-          {sending ? 'Odpowiadam…' : 'Wyślij'}
-        </button>
-      </form>
+      <div className="chat-composer">
+        <form className="chat-form" onSubmit={submit}>
+          <label className="field" htmlFor="chat-input">
+            <span>Twoje pytanie</span>
+            <textarea
+              id="chat-input"
+              rows={2}
+              value={draft}
+              maxLength={MAX_MESSAGE_CHARS}
+              placeholder="Np. Co mi przysługuje, gdy wrócę do pracy?"
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) submit(e)
+              }}
+            />
+          </label>
+          <button type="submit" className="btn" disabled={sending || draft.trim() === ''}>
+            {sending ? 'Odpowiadam…' : 'Wyślij'}
+          </button>
+        </form>
+      </div>
       <p className="muted chat-disclaimer">
         To pomoc informacyjna, nie porada prawna. Przy wątpliwościach zapytaj w urzędzie gminy, ZUS albo powiatowym
-        urzędzie pracy. Czat nie składa wniosków — wskaże Ci, jak to zrobić w aplikacji.
+        urzędzie pracy. Czat nie składa wniosków, tylko wskaże Ci, jak to zrobić w aplikacji.
       </p>
     </div>
   )

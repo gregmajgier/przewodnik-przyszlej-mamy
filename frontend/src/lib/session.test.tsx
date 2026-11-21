@@ -59,8 +59,8 @@ describe('SessionProvider', () => {
     expect(spy).not.toHaveBeenCalled()
   })
 
-  it('login zapisuje token, ustawia usera; brak rodziny (404) => family null', async () => {
-    mockApi({
+  it('login zapisuje token, ustawia usera; bez rodziny nie pytamy o nią API (brak 404 w konsoli)', async () => {
+    const spy = mockApi({
       '/api/auth/mobywatel': () => json({ token: 'tok', user: USER }),
       '/api/families/me': () => json({ detail: 'Nie należysz jeszcze do żadnej rodziny.' }, 404),
     })
@@ -70,6 +70,7 @@ describe('SessionProvider', () => {
       expect(screen.getByTestId('state').textContent).toBe('user:Anna Nowak|nofamily|tok'),
     )
     expect(localStorage.getItem(TOKEN_KEY)).toBe('tok')
+    expect(spy.mock.calls.some(([url]) => String(url).includes('/api/families/me'))).toBe(false)
   })
 
   it('login pobiera rodzinę, gdy istnieje', async () => {

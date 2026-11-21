@@ -187,7 +187,7 @@ export default function FamilyPage() {
                     <span>
                       Ciężka, nieodwracalna choroba dziecka („Za życiem”)
                       {c.serious_illness && (
-                        <span className="muted"> — dodaliśmy do Twojej listy świadczenia z programu „Za życiem”.</span>
+                        <span className="muted"> (dodaliśmy do Twojej listy świadczenia z programu „Za życiem”)</span>
                       )}
                     </span>
                   </label>

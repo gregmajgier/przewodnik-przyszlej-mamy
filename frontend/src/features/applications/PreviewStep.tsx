@@ -43,7 +43,7 @@ function FieldRow({ field, value, disabled, onEdit }: { field: FieldInfo; value:
             </label>
             {field.type === 'choice' ? (
               <select id={inputId} value={draft} onChange={(e) => setDraft(e.target.value)}>
-                <option value="">— wybierz —</option>
+                <option value="">Wybierz</option>
                 {(field.choices ?? []).map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -120,7 +120,7 @@ export default function PreviewStep({ app, form, busy, error, onEdit, onChannel,
   return (
     <section className="card stack" aria-labelledby="preview-h">
       <h2 id="preview-h">Sprawdź wniosek</h2>
-      <p className="muted">Tak wypełniliśmy wniosek na podstawie Waszych danych. Popraw, co trzeba — nic nie poszło jeszcze do urzędu.</p>
+      <p className="muted">Tak wypełniliśmy wniosek na podstawie Waszych danych. Popraw, co trzeba. Nic nie poszło jeszcze do urzędu.</p>
       {error && (
         <p role="alert" className="alert">
           {error}

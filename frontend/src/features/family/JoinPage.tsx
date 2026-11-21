@@ -46,7 +46,7 @@ export default function JoinPage() {
       <div className="card stack">
         <h1>Prośba wysłana</h1>
         <p role="status">
-          Czekaj na akceptację — założyciel rodziny zobaczy Twoją prośbę po zalogowaniu i może ją
+          Czekaj na akceptację. Założyciel rodziny zobaczy Twoją prośbę po zalogowaniu i może ją
           zaakceptować.
         </p>
         <div className="row">

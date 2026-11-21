@@ -32,7 +32,7 @@ export default function OfficialLayout() {
   return (
     <>
       <header className="official-header">
-        <NavLink to="/urzednik" end className="row" aria-label="mRodzina — panel jednostki">
+        <NavLink to="/urzednik" end className="row" aria-label="mRodzina, panel jednostki">
           <Logo className="logo-mark" animate={false} />
           <span className="wordmark">Rodzina</span>
         </NavLink>

@@ -36,9 +36,11 @@ export default function LoginPage() {
 
   return (
     <main className="shell-main stack" style={{ maxWidth: '40rem' }}>
-      <div className="row">
+      <div className="row login-brand" role="img" aria-label="mRodzina">
         <Logo className="logo-mark" animate={false} />
-        <span className="wordmark">Rodzina</span>
+        <span className="wordmark" aria-hidden="true">
+          Rodzina
+        </span>
       </div>
       <h1>Zaloguj się przez mObywatela</h1>
       <p className="muted">

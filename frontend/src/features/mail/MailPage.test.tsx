@@ -55,7 +55,7 @@ describe('Poczta', () => {
   it('wiadomość do sprawdzenia jest oznaczona', async () => {
     routeApi({ 'GET /api/mail/threads': [{ ...THREAD, needs_review: true }] })
     renderWithSession(<MailPage />)
-    expect(await screen.findByText(/sprawdź, nie zmieniliśmy statusu/)).toBeInTheDocument()
+    expect(await screen.findByText(/nie zmieniliśmy statusu/)).toBeInTheDocument()
   })
 
   it('ustawienia pokazują zakres czytania i „Gmail podłączony”', async () => {

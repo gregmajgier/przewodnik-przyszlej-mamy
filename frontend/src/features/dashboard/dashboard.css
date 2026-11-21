@@ -54,6 +54,14 @@
 .dash-rates {
   margin-top: 0.75rem;
 }
+/* kwoty nie łamią się na dwie linie i nie wychodzą poza kartę (na wąskim ekranie lista jest jednokolumnowa) */
+.dash-rates dd {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.dash-params {
+  overflow-wrap: anywhere;
+}
 .dash-grid {
   display: grid;
   gap: 1rem;

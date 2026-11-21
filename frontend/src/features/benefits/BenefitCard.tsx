@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { applyActions } from '../applications/formLabels'
+import type { FormEntry } from '../applications/types'
 import { STATUS_LABEL } from './types'
 import type { BenefitMatch } from './types'
 import '../../components/a11y.css'
@@ -9,12 +11,20 @@ interface Props {
   /** Odpowiedź tak/nie na pytanie warunku; strona zapisuje ją przez API. */
   onAnswer: (benefitId: string, conditionId: string, answer: boolean) => void | Promise<void>
   busy?: boolean
+  /** Katalog wniosków (do etykiet „dla pracodawcy”, „do ZUS”); bez niego przyciski mają ogólny podpis. */
+  forms?: FormEntry[]
+  /** Uzasadnienia wspólne dla całej grupy — pokazane raz nad listą, więc tu je pomijamy. */
+  hideReasons?: string[]
 }
 
-export default function BenefitCard({ item, onAnswer, busy = false }: Props) {
+export default function BenefitCard({ item, onAnswer, busy = false, forms = [], hideReasons = [] }: Props) {
   const { benefit, match } = item
   const headingId = `benefit-${benefit.id}`
-  const why = match.status === 'no' ? match.unmet : match.reasons
+  const all = match.status === 'no' ? match.unmet : match.reasons
+  const own = all.filter((r) => !hideReasons.includes(r))
+  const lead = own[0]
+  const actions = match.status === 'no' ? [] : applyActions(benefit.form_codes, forms)
+  const hasDetails = benefit.description || benefit.how_to_apply || all.length > 1 || benefit.verify
 
   return (
     <article className={`benefit-card is-${match.status}`} aria-labelledby={headingId}>
@@ -24,16 +34,12 @@ export default function BenefitCard({ item, onAnswer, busy = false }: Props) {
       </header>
 
       {benefit.amount_text && <p className="benefit-amount">{benefit.amount_text}</p>}
-
-      {why.length > 0 && (
-        <div className="benefit-why">
-          <h4>{match.status === 'no' ? 'Dlaczego nie' : 'Dlaczego'}</h4>
-          <ul>
-            {why.map((r) => (
-              <li key={r}>{r}</li>
-            ))}
-          </ul>
-        </div>
+      {benefit.form_codes.length > 0 && match.status !== 'no' && <p className="benefit-kind">Wymaga złożenia wniosku</p>}
+      {lead && (
+        <p className="benefit-lead">
+          <span className="muted">{match.status === 'no' ? 'Dlaczego nie: ' : 'Dlaczego: '}</span>
+          {lead}
+        </p>
       )}
 
       {match.status === 'maybe' && match.questions.length > 0 && (
@@ -54,15 +60,35 @@ export default function BenefitCard({ item, onAnswer, busy = false }: Props) {
         </div>
       )}
 
-      {benefit.verify && <p className="muted benefit-verify">Dane do weryfikacji — sprawdź w źródle.</p>}
+      {hasDetails && (
+        <details className="benefit-details">
+          <summary>Szczegóły</summary>
+          <div className="stack benefit-details-body">
+            {benefit.description && <p>{benefit.description}</p>}
+            {all.length > 1 && (
+              <ul>
+                {all.map((r) => (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+            )}
+            {benefit.how_to_apply && (
+              <p>
+                <strong>Jak skorzystać: </strong>
+                {benefit.how_to_apply}
+              </p>
+            )}
+            {benefit.verify && <p className="muted">Dane do weryfikacji, sprawdź je w źródle.</p>}
+          </div>
+        </details>
+      )}
 
       <footer className="benefit-foot row">
-        {match.status !== 'no' &&
-          benefit.form_codes.map((code) => (
-            <Link key={code} className="btn" to={`/wnioski/nowy?form=${encodeURIComponent(code)}`}>
-              Złóż wniosek{benefit.form_codes.length > 1 ? ` (${code})` : ''}
-            </Link>
-          ))}
+        {actions.map((a) => (
+          <Link key={a.code} className="btn" to={`/wnioski/nowy?form=${encodeURIComponent(a.code)}`}>
+            {a.label}
+          </Link>
+        ))}
         <a href={benefit.source_url} target="_blank" rel="noopener noreferrer">
           Źródło
           <span className="sr-only"> (otwiera się w nowej karcie)</span>

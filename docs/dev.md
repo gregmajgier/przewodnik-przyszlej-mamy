@@ -358,3 +358,28 @@ Zgłoszenie straty dziecka przełącza **całą rodzinę** w spokojny, monochrom
   potwierdzeń; na karcie dziecka w `FamilyPage`), `JaskolkaHome` (lista „Dla Was”; `AppShell` podstawia ją pod `/` w
   trybie i ustawia `data-theme="mono"`), trasa `/dla-was`.
 - **Scenariusz całości:** `backend/tests/test_e2e_nowak.py` (czytaj jak dokumentację).
+
+## Wygląd i dostępność (konwencje po przeglądzie UX)
+
+- **Kolory.** Czysty róż marki `#EF4363` ma na bieli kontrast tylko 3,71:1 (WCAG AA wymaga 4,5:1), więc interfejs używa
+  `--primary: #C8234A` (5,5:1 na bieli, 5,3:1 pod jasnym tekstem) dla przycisków, linków i tła kart z jasnym tekstem.
+  `--brand: #EF4363` zostaje dla logo, wordmarku (duży tekst) i dekoracji. Nie wpisuj kolorów w komponentach, używaj tokenów
+  z `theme.css`.
+- **Nawigacja.** Na telefonie dolny pasek z zakładkami oznaczonymi w `nav.ts` jako `primary: true` (Panel, Świadczenia, Wnioski,
+  Czat) i przyciskiem „Więcej” (reszta); od 56rem jedna linia w nagłówku. Nowa funkcja z `nav.ts` bez `primary` trafia pod
+  „Więcej”. Gdy żadna pozycja obszaru nie ma `primary` (panel urzędnika), wszystkie są w pasku.
+- **Cele dotyku ≥ 44 px** (`--tap`): przyciski, samodzielne linki w listach/stopkach, pola formularzy i `summary` dostają
+  minimalną wysokość z `theme.css`; pola wyboru mają etykietę obejmującą cały wiersz. Tekst plakietek i etykiet nie jest
+  mniejszy niż 0,875rem (ok. 15 px).
+- **Szerokość.** Żadna podstrona nie może się przewijać w bok (`overflow-x: hidden` na `body` to tylko ostatnia zapora):
+  siatki używają `minmax(0, …)`, a długie wartości `overflow-wrap`.
+- **Fonty** (Nunito, Sniglet) są hostowane lokalnie przez pakiety `@fontsource/*` (importy w `main.tsx`), bez Google Fonts:
+  działają offline i nie ujawniają adresu IP użytkownika Google. Polskie znaki wymagają importu podzbioru `latin-ext`.
+- **Teksty.** Bez długich myślników (—) w tekstach widocznych dla użytkownika: zdanie rozdziel kropką, przecinkiem albo
+  dwukropkiem.
+- **Terminy w podsumowaniu i kalendarzu.** „Najbliższy termin” bierze pod uwagę także kamienie milowe ciąży i porodu
+  (`services/milestones.py`: zaświadczenie lekarskie dla pracodawcy, zgłoszenie urodzenia w USC), a kalendarz pokazuje też
+  terminy „po porodzie” (urlop rodzicielski, 800+) liczone orientacyjnie od przewidywanego porodu.
+- **Czat w trybie demo** odpowiada konkretnie (kwota, sytuacja rodziny, jak złożyć wniosek, oficjalne źródło) z katalogu
+  świadczeń; narzędzie MCP `swiadczenia` przyjmuje `query` i zwraca wtedy tylko najtrafniejsze pozycje z opisem. Fragmenty
+  ustaw pokazuje tylko wtedy, gdy katalog nie zna tematu.

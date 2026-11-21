@@ -37,7 +37,7 @@ export default function BenefitsWidget() {
             {fits.slice(0, TOP).map((m) => (
               <li key={m.benefit.id}>
                 <span>{m.benefit.name}</span>
-                {m.benefit.amount_text && <span className="muted"> — {m.benefit.amount_text}</span>}
+                {m.benefit.amount_text && <span className="muted">: {m.benefit.amount_text}</span>}
               </li>
             ))}
           </ul>

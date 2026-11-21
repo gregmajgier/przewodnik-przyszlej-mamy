@@ -1,9 +1,14 @@
-/* Tokeny marki mRodzina. Kolory: #EF4363 (primary), #f8fbef (tło), #191919 (tekst).
-   Nunito = treść, Sniglet = wyłącznie wordmark „Rodzina”. */
+/* Tokeny marki mRodzina. Kolory marki: #EF4363 (--brand), #f8fbef (tło), #191919 (tekst).
+   Nunito = treść, Sniglet = wyłącznie wordmark „Rodzina”.
+
+   Kontrast (WCAG AA, 4,5:1): oryginalny róż marki #EF4363 daje na bieli tylko 3,71:1, więc nie nadaje się na
+   tekst, przyciski ani tło jasnego tekstu. Elementy interfejsu używają --primary (#C8234A: 5,5:1 na bieli,
+   5,3:1 pod jasnym tekstem), a czysty kolor marki (--brand) zostaje dla logo, wordmarku (duży tekst) i dekoracji. */
 :root {
   --bg: #f8fbef;
   --fg: #191919;
-  --primary: #ef4363;
+  --brand: #ef4363;
+  --primary: #c8234a;
   --primary-fg: #ffffff;
   --primary-soft: #fde4e9;
   --surface: #ffffff;
@@ -12,6 +17,8 @@
   --danger: #b3261e;
   --ai: #5b4bd6; /* elementy AI/symulacji (legenda z materiałów) */
   --radius: 14px;
+  --tap: 44px; /* minimalny cel dotyku */
+  --nav-h: 4.25rem; /* wysokość dolnego paska nawigacji (telefon) */
   --font-body: 'Nunito', system-ui, sans-serif;
   --font-wordmark: 'Sniglet', 'Nunito', system-ui, sans-serif;
 }
@@ -19,6 +26,7 @@
 /* Tryb monochromatyczny (/jaskolka i tryb jaskółki): bez kolorowych akcentów. */
 [data-theme='mono'] {
   --bg: #f4f4f4;
+  --brand: #4a4a4a;
   --primary: #4a4a4a;
   --primary-fg: #ffffff;
   --primary-soft: #e6e6e6;
@@ -37,6 +45,7 @@
 
 html {
   font-size: 17px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -45,6 +54,14 @@ body {
   color: var(--fg);
   font-family: var(--font-body);
   line-height: 1.5;
+  overflow-x: hidden; /* ostatnia zapora: żadna podstrona nie przewija się w bok */
+}
+
+img,
+svg,
+iframe,
+video {
+  max-width: 100%;
 }
 
 h1,
@@ -64,19 +81,26 @@ a {
   border-radius: 4px;
 }
 
+.logo-mark {
+  color: var(--brand);
+}
+
 .wordmark {
   font-family: var(--font-wordmark);
-  font-size: 1.5rem;
-  color: var(--primary);
+  font-size: 1.5rem; /* duży tekst: wystarcza 3:1, dlatego może zostać czystym różem marki */
+  color: var(--brand);
 }
 
 /* ----- powłoka ----- */
 .shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding: 0.75rem 1.25rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface);
 }
@@ -85,39 +109,134 @@ a {
   align-items: center;
   gap: 0.4rem;
   text-decoration: none;
+  min-height: var(--tap);
 }
 .shell-brand .logo-mark {
   width: 2rem;
   height: 2rem;
-  color: var(--primary);
-}
-.shell-nav {
-  display: flex;
-  gap: 0.25rem;
-  flex: 1;
-  flex-wrap: wrap;
-}
-.shell-nav a {
-  padding: 0.4rem 0.8rem;
-  border-radius: 999px;
-  text-decoration: none;
-  color: var(--fg);
-  font-weight: 600;
-}
-.shell-nav a[aria-current='page'] {
-  background: var(--primary-soft);
-  color: var(--fg);
+  color: var(--brand);
 }
 .shell-user {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   color: var(--muted);
+}
+.shell-user-name {
+  display: none; /* na telefonie imię nie mieści się w nagłówku */
 }
 .shell-main {
   max-width: 62rem;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 4rem;
+  min-width: 0;
+  padding: 1.25rem 1rem calc(var(--nav-h) + 2.5rem);
+}
+
+/* Nawigacja: na telefonie dolny pasek z kilkoma zakładkami + „Więcej”, na szerokim ekranie jedna linia w nagłówku. */
+.shell-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 16px rgb(25 25 25 / 0.08);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-bar {
+  display: flex;
+  min-height: var(--nav-h);
+}
+.nav-bar > a,
+.nav-more {
+  /* szerokość zależna od treści (dłuższe „Świadczenia” dostaje więcej miejsca niż „Czat”), bez łamania słów */
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.35rem 0.4rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--fg);
+  background: none;
+  border: 0;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nav-bar > a[aria-current='page'],
+.nav-more[aria-expanded='true'] {
+  background: var(--primary-soft);
+  box-shadow: inset 0 3px 0 var(--primary);
+}
+.nav-sheet {
+  display: none;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
+.nav-sheet.is-open {
+  display: flex;
+}
+.nav-sheet a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap);
+  padding: 0.5rem 1.25rem;
+  color: var(--fg);
+  font-weight: 700;
+  text-decoration: none;
+}
+.nav-sheet a[aria-current='page'] {
+  background: var(--primary-soft);
+}
+
+@media (min-width: 56rem) {
+  .shell-header {
+    padding: 0.5rem 1.25rem;
+  }
+  .shell-user-name {
+    display: inline;
+  }
+  .shell-main {
+    padding: 1.5rem 1.25rem 4rem;
+  }
+  .shell-nav {
+    position: static;
+    flex: 1;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .nav-bar,
+  .nav-sheet,
+  .nav-sheet.is-open {
+    display: contents;
+  }
+  .nav-more {
+    display: none;
+  }
+  .nav-bar > a,
+  .nav-sheet a {
+    flex: none;
+    display: inline-flex;
+    min-height: var(--tap);
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .nav-bar > a[aria-current='page'],
+  .nav-sheet a[aria-current='page'] {
+    background: var(--primary-soft);
+    box-shadow: none;
+  }
 }
 
 /* ----- elementy ----- */
@@ -135,13 +254,14 @@ a {
 .grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(16rem, 100%), 1fr));
 }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.1rem 1.25rem;
+  min-width: 0;
 }
 .card h2,
 .card h3 {
@@ -157,10 +277,14 @@ a {
   background: var(--primary);
   color: var(--primary-fg);
   padding: 0.55rem 1.1rem;
+  min-height: var(--tap);
   border-radius: 999px;
   cursor: pointer;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 .btn:hover {
   filter: brightness(0.94);
@@ -182,6 +306,10 @@ a {
   color: var(--danger);
   border-color: var(--danger);
 }
+.login-brand .logo-mark {
+  width: 2.5rem;
+  height: 2.5rem;
+}
 .persona-card {
   text-align: left;
   font: inherit;
@@ -199,6 +327,7 @@ a {
 .field input,
 .field select {
   font: inherit;
+  min-height: var(--tap);
   padding: 0.5rem 0.7rem;
   border: 2px solid var(--border);
   border-radius: 10px;
@@ -217,9 +346,10 @@ a {
   padding: 0.6rem 0.9rem;
   border-radius: 8px;
 }
+/* Etykieta AI/symulacji: nie mniejsza niż ~14 px, żeby dało się ją przeczytać zmęczonymi oczami. */
 .badge-sim {
   display: inline-block;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ai);
   border: 1px solid var(--ai);
@@ -231,10 +361,11 @@ a {
   font-size: 1.6rem;
   letter-spacing: 0.15em;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 dl.facts {
   display: grid;
-  grid-template-columns: max-content 1fr;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
   gap: 0.25rem 1rem;
   margin: 0;
 }
@@ -243,6 +374,48 @@ dl.facts dt {
 }
 dl.facts dd {
   margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 30rem) {
+  dl.facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  dl.facts dd {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Cele dotyku ≥ 44 px: samodzielne linki i przyciski w listach, stopkach i kafelkach (linki w zdaniach zostają
+   w linii). Pola formularzy i `summary` dostają tę samą minimalną wysokość. */
+main :is(li, div, footer, header, section, article) > a:not(.btn),
+main summary,
+main button:not(.btn):not(.link-button) {
+  min-height: var(--tap);
+}
+main :is(li, div, footer, header, section, article) > a:not(.btn) {
+  display: inline-flex;
+  align-items: center;
+}
+main summary {
+  display: flex;
+  align-items: center;
+}
+main input:not([type='checkbox']):not([type='radio']),
+main select {
+  min-height: var(--tap);
+}
+main input[type='checkbox'],
+main input[type='radio'] {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+main label:has(> input[type='checkbox']),
+main label:has(> input[type='radio']) {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

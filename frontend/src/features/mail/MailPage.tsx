@@ -24,7 +24,7 @@ function Thread({ t }: { t: MailThread }) {
       </p>
       {t.needs_review && (
         <p className="notice" style={{ margin: 0 }}>
-          Nowa wiadomość w sprawie wniosku — sprawdź, nie zmieniliśmy statusu automatycznie.
+          Nowa wiadomość w sprawie wniosku. Sprawdź ją, bo nie zmieniliśmy statusu automatycznie.
         </p>
       )}
       <ul className="stack" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -32,7 +32,7 @@ function Thread({ t }: { t: MailThread }) {
           <li key={m.id}>
             <details>
               <summary>
-                <strong>{m.folder === 'sent' ? 'Wysłano' : m.from_addr}</strong> — {m.subject}{' '}
+                <strong>{m.folder === 'sent' ? 'Wysłano' : m.from_addr}</strong>: {m.subject}{' '}
                 <span className="muted">({day(m.received_at)})</span>
               </summary>
               <p style={{ whiteSpace: 'pre-line' }}>{m.body}</p>
@@ -96,7 +96,7 @@ export default function MailPage() {
       </div>
       <p className="muted">
         Widzisz tylko korespondencję w sprawie Waszych wniosków. Odpowiedzi czyta asystent i sam
-        aktualizuje status, gdy jest pewny — inaczej poprosi Cię o sprawdzenie.
+        aktualizuje status, gdy jest pewny, a inaczej poprosi Cię o sprawdzenie.
       </p>
       <div className="row">
         <button className="btn" type="button" disabled={busy !== null} onClick={() =>

@@ -53,7 +53,7 @@ export default function AnalysisPage() {
       <div className="analysis-hero">
         <Logo className="analysis-logo" />
         <h1>Sprawdzam, co Wam przysługuje</h1>
-        <p>Chwilkę — czytam Wasze dane i porównuję je z listą świadczeń.</p>
+        <p>Chwilkę, czytam Wasze dane i porównuję je z listą świadczeń.</p>
       </div>
 
       {error && (

@@ -29,7 +29,7 @@
   }
 }
 .status-pill {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 800;
   border: 2px solid var(--fg);
   border-radius: 999px;
@@ -151,4 +151,56 @@
   border: 3px solid var(--ai);
   border-radius: 1.5rem;
   box-shadow: 0 6px 24px rgb(25 25 25 / 0.25);
+}
+
+.form-tiles {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.form-tiles legend {
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+.form-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: var(--tap);
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 1rem;
+  cursor: pointer;
+}
+.form-tile.is-selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.form-tile input {
+  margin-top: 0.2rem;
+  flex: none;
+}
+.form-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+.form-tile-title {
+  font-weight: 800;
+}
+.form-tile-badge {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--primary-fg);
+  background: var(--primary);
+  border-radius: 999px;
+  padding: 0 0.6rem;
+  white-space: nowrap;
 }

@@ -21,7 +21,8 @@ export interface SessionValue {
 export const SessionContext = createContext<SessionValue | null>(null)
 
 async function loadFamily(user: User): Promise<FamilyView | null> {
-  if (user.role !== 'parent') return null
+  // Bez `family_id` rodziny jeszcze nie ma — nie pytamy API, żeby nie wywoływać 404 przy każdym pierwszym logowaniu.
+  if (user.role !== 'parent' || !user.family_id) return null
   try {
     return await api<FamilyView>('/api/families/me')
   } catch (e) {

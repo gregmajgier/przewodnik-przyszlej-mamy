@@ -16,8 +16,8 @@ export default function CalendarPage() {
     <div className="stack">
       <h1>Kalendarz</h1>
       <p className="muted">
-        Terminy wniosków, złożone wnioski i ostrzeżenia całej rodziny. Odklikaj to, co już zrobione —
-        drugi rodzic też to zobaczy.
+        Terminy wniosków, złożone wnioski i ostrzeżenia całej rodziny. Odklikaj to, co już zrobione, a drugi
+        rodzic też to zobaczy.
       </p>
       <div className="row" role="group" aria-label="Filtry">
         <label className="event-done">

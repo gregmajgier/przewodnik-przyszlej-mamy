@@ -70,7 +70,7 @@ function ChildrenStep({ onDone }: { onDone: () => void }) {
     <section className="card stack" aria-labelledby="kids-h">
       <h2 id="kids-h">Dzieci w rodzinie</h2>
       <p className="muted">
-        Znamy już te dzieci z danych ZUS. Zaznacz te, które mają trafić do Waszej rodziny — resztę
+        Znamy już te dzieci z danych ZUS. Zaznacz te, które mają trafić do Waszej rodziny, resztę
         możesz dodać później.
       </p>
       <ul style={{ listStyle: 'none', padding: 0 }} className="stack">
@@ -79,7 +79,7 @@ function ChildrenStep({ onDone }: { onDone: () => void }) {
             <label className="row">
               <input type="checkbox" checked={selected.has(i)} onChange={() => toggle(i)} />
               <span>
-                {k.name} <span className="muted">— {describeChild({ status: k.due_date && !k.birth_date ? 'expected' : 'born', birth_date: k.birth_date, due_date: k.due_date })}</span>
+                {k.name} <span className="muted">({describeChild({ status: k.due_date && !k.birth_date ? 'expected' : 'born', birth_date: k.birth_date, due_date: k.due_date })})</span>
               </span>
             </label>
           </li>
@@ -108,6 +108,7 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<Step>(family ? 'children' : 'family')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [created, setCreated] = useState(false)
 
   async function createFamily() {
     setBusy(true)
@@ -115,6 +116,7 @@ export default function OnboardingPage() {
     try {
       await api('/api/families', { method: 'POST', body: {} })
       await refresh()
+      setCreated(true)
       setStep('children')
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : 'Nie udało się założyć rodziny.')
@@ -127,11 +129,17 @@ export default function OnboardingPage() {
     <div className="stack" style={{ maxWidth: '40rem' }}>
       <h1>Zaczynamy</h1>
 
+      {created && step !== 'family' && (
+        <p role="status" className="notice">
+          Gotowe, rodzina założona! Teraz dodamy dzieci.
+        </p>
+      )}
+
       {step === 'family' && (
         <section className="card stack" aria-labelledby="fam-h">
           <h2 id="fam-h">Twoja rodzina</h2>
           <p className="muted">
-            Załóż rodzinę — wszystkie dane (Twoje, drugiego rodzica i dzieci) będą w jednym miejscu.
+            Załóż rodzinę, a wszystkie dane (Twoje, drugiego rodzica i dzieci) będą w jednym miejscu.
           </p>
           {error && (
             <p role="alert" className="alert">

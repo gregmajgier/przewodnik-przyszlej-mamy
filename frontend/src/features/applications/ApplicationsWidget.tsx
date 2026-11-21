@@ -41,7 +41,7 @@ export default function ApplicationsWidget() {
             <ul className="widget-list">
               {open.slice(0, TOP).map((a) => (
                 <li key={a.id}>
-                  <Link to={`/wnioski/${a.id}`}>{nameOf(a.form_code)}</Link> <span className="muted">— {STATUS_LABEL[a.status]}</span>
+                  <Link to={`/wnioski/${a.id}`}>{nameOf(a.form_code)}</Link> <span className="muted">({STATUS_LABEL[a.status]})</span>
                 </li>
               ))}
             </ul>
