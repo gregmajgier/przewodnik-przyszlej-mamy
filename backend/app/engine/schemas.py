@@ -17,11 +17,32 @@ from __future__ import annotations
 from datetime import date
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+# Silnik rozwija okresy e-ZLA i hospitalizacji do pojedynczych dni, więc wejście z API ma twarde limity:
+# bez nich jeden zakres 0001-01-01 – 9999-12-31 to miliony dni na żądanie.
+MAX_ZAKRES_DNI = 3 * 366
+MAX_POZYCJI = 50
 
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class _ZakresDat(_Model):
+    """Zakres od–do rozwijany przez silnik dzień po dniu: od ≤ do i najwyżej `MAX_ZAKRES_DNI`."""
+
+    od: date | None = None
+    do: date | None = None
+
+    @model_validator(mode="after")
+    def _zakres(self):
+        if self.od is not None and self.do is not None:
+            if self.do < self.od:
+                raise ValueError("data „do” jest wcześniejsza niż „od”")
+            if (self.do - self.od).days > MAX_ZAKRES_DNI:
+                raise ValueError(f"zakres dat dłuższy niż {MAX_ZAKRES_DNI} dni")
+        return self
 
 
 # ─────────────────────────────── enumy (z zmienne_uzytkownika.json) ───────────────────────────────
@@ -47,9 +68,8 @@ Rodzic = Literal["matka", "ojciec"]
 # ─────────────────────────────── obiekty pomocnicze ───────────────────────────────
 
 
-class Okres(_Model):
-    od: date | None = None
-    do: date | None = None
+class Okres(_ZakresDat):
+    pass
 
 
 class DokumentTozsamosci(_Model):
@@ -160,7 +180,7 @@ class Ubezpieczenie(_Model):
     tytul: TytulUbezpieczenia | None = None
     chorobowe: Chorobowe | None = None
     data_objecia_chorobowym: date | None = None
-    okresy: list[OkresUbezpieczenia] | None = None
+    okresy: list[OkresUbezpieczenia] | None = Field(default=None, max_length=MAX_POZYCJI)
     data_ustania: date | None = None
     umowa_rozwiazana_w_ciazy: bool | None = None
     przyczyna_rozwiazania_umowy: PrzyczynaRozwiazania | None = None
@@ -171,10 +191,10 @@ class Ubezpieczenie(_Model):
     rodzaj_umowy_o_prace: RodzajUmowyOPrace | None = None
     data_konca_umowy: date | None = None
     dni_wynagrodzenia_chorobowego_w_roku: int | None = Field(default=None, ge=0)
-    przychody_12_miesiecy: list[PrzychodMiesieczny] | None = None
+    przychody_12_miesiecy: list[PrzychodMiesieczny] | None = Field(default=None, max_length=MAX_POZYCJI)
     przerwa_od_poprzedniego_zasilku_dni: int | None = Field(default=None, ge=0)
     podstawa_poprzedniego_zasilku: float | None = Field(default=None, ge=0)
-    zadeklarowana_podstawa_jdg: list[PodstawaJdg] | None = None
+    zadeklarowana_podstawa_jdg: list[PodstawaJdg] | None = Field(default=None, max_length=MAX_POZYCJI)
     zmiana_podstawy_w_ciazy: ZmianaPodstawy | None = None
     zmiana_warunkow_zatrudnienia_w_ciazy: ZmianaWarunkow | None = None
     zadluzenie_skladkowe: Zadluzenie | None = None
@@ -182,15 +202,13 @@ class Ubezpieczenie(_Model):
     zlozyla_wniosek_emerytura_renta: bool | None = None
 
 
-class Ezla(_Model):
+class Ezla(_ZakresDat):
     seria_numer: str | None = None
-    od: date | None = None
-    do: date | None = None
     kod_B: bool | None = None  # noqa: N815 - nazwa z kontraktu
 
 
 class Zdrowie(_Model):
-    ezla: list[Ezla] | None = None
+    ezla: list[Ezla] | None = Field(default=None, max_length=MAX_POZYCJI)
     okres_zasilkowy_wykorzystany_dni: int | None = Field(default=None, ge=0)
     nadal_niezdolna_do_pracy: bool | None = None
     rokowania_odzyskania_zdolnosci: bool | None = None
@@ -236,7 +254,7 @@ class Dziecko(_Model):
     pesel: str | None = Field(default=None, pattern=r"^\d{11}$")
     data_urodzenia: date | None = None
     masa_urodzeniowa_g: int | None = Field(default=None, ge=200, le=7000)
-    hospitalizacja: list[Okres] | None = None
+    hospitalizacja: list[Okres] | None = Field(default=None, max_length=MAX_POZYCJI)
     zaswiadczenie_za_zyciem: bool | None = None
     niepelnosprawnosc: Niepelnosprawnosc | None = None
     przyjete_na_wychowanie: PrzyjecieNaWychowanie | None = None
@@ -254,7 +272,7 @@ class Matka(_Model):
     wykorzystala_14_tyg: bool | None = None
     data_konca_urlopu_macierzynskiego: date | None = None
     pobiera_zasilek_8_tyg_po_porodzie: bool | None = None
-    hospitalizacja: list[Okres] | None = None
+    hospitalizacja: list[Okres] | None = Field(default=None, max_length=MAX_POZYCJI)
     orzeczenie_niezdolnosci_do_samodzielnej_egzystencji: bool | None = None
     podjela_prace_min_pol_etatu: bool | None = None
 
@@ -303,13 +321,13 @@ class InneSwiadczenie(_Model):
 
 
 class Rodzina(_Model):
-    sklad: list[CzlonekRodziny] | None = None
+    sklad: list[CzlonekRodziny] | None = Field(default=None, max_length=MAX_POZYCJI)
     dochod_rok_bazowy: DochodRodziny | None = None
     samotne_wychowywanie: bool | None = None
     uznanie_ojcostwa: bool | None = None
     wspolne_gospodarstwo_domowe: bool | None = None
     opieka_naprzemienna: bool | None = None
-    inne_pobierane_swiadczenia: list[InneSwiadczenie] | None = None
+    inne_pobierane_swiadczenia: list[InneSwiadczenie] | None = Field(default=None, max_length=MAX_POZYCJI)
     swiadczenie_za_granica: bool | None = None
     poniesiono_koszty_pogrzebu: bool | None = None
 
@@ -348,9 +366,9 @@ class Plan(_Model):
     urlop_macierzynski: PlanUrlopuMacierzynskiego | None = None
     wniosek_81_5: Wniosek815 | None = None
     rezygnacja_z_macierzynskiego_po_14_tyg: Rezygnacja | None = None
-    czesci_urlopu_rodzicielskiego: list[CzescRodzicielskiego] | None = None
+    czesci_urlopu_rodzicielskiego: list[CzescRodzicielskiego] | None = Field(default=None, max_length=MAX_POZYCJI)
     urlop_uzupelniajacy: UrlopUzupelniajacy | None = None
-    czesci_urlopu_ojcowskiego: list[Okres] | None = None
+    czesci_urlopu_ojcowskiego: list[Okres] | None = Field(default=None, max_length=MAX_POZYCJI)
     data_zlozenia_wniosku_u_pracodawcy: date | None = None
 
 
@@ -368,12 +386,12 @@ class UserProfile(_Model):
     zdrowie: Zdrowie = Field(default_factory=Zdrowie)
     ciaza: Ciaza = Field(default_factory=Ciaza)
     porod: Porod = Field(default_factory=Porod)
-    dzieci: list[Dziecko] | None = None
+    dzieci: list[Dziecko] | None = Field(default=None, max_length=MAX_POZYCJI)
     matka: Matka = Field(default_factory=Matka)
     drugi_rodzic: DrugiRodzic = Field(default_factory=DrugiRodzic)
     rodzina: Rodzina = Field(default_factory=Rodzina)
     plan: Plan = Field(default_factory=Plan)
-    wnioski_zlozone: list[WniosekZlozony] | None = None
+    wnioski_zlozone: list[WniosekZlozony] | None = Field(default=None, max_length=MAX_POZYCJI)
 
     def kontekst(self) -> dict[str, Any]:
         """Słownik do JSONLogic (daty jako ISO, `None` zostaje `None`). Bez `wyl` i `param`."""

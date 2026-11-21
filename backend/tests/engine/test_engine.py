@@ -268,3 +268,19 @@ def test_api_ocena_i_endpointy_kontraktu():
     assert c.get("/api/zmienne").json()[0]["klucz"] == "wnioskodawca.etap"
     assert "drzewo" in c.get("/api/parametry").json()
     assert c.get("/api/wnioski/Z-15/pdf").headers["content-type"] == "application/pdf"
+
+
+def test_api_ocena_odrzuca_zakresy_dat_bez_limitu():
+    """Silnik rozwija e-ZLA i hospitalizację do dni — absurdalny zakres ma dać 422, a nie miliony dni."""
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    c = TestClient(app)
+    ogromny = {"od": "0001-01-01", "do": "9999-12-31"}
+    assert c.post("/api/silnik/ocena", json={"zdrowie": {"ezla": [ogromny]}}).status_code == 422
+    assert c.post("/api/silnik/ocena", json={"matka": {"hospitalizacja": [ogromny]}}).status_code == 422
+    odwrocony = {"od": "2026-05-10", "do": "2026-05-01"}
+    assert c.post("/api/silnik/ocena", json={"zdrowie": {"ezla": [odwrocony]}}).status_code == 422
+    za_duzo = [{"od": "2026-05-01", "do": "2026-05-02"}] * 51
+    assert c.post("/api/silnik/ocena", json={"zdrowie": {"ezla": za_duzo}}).status_code == 422
