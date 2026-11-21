@@ -119,7 +119,7 @@ const PLACEMENTS: Placement[] = [
   { icon: 'bottle', x: 74, y: 51, size: 48, rot: 14 },
   { icon: 'blocks', x: 76, y: 60, size: 44, rot: -8 },
   { icon: 'cap', x: 91, y: 70, size: 96, rot: -10 },
-  { icon: 'stroller', x: 30, y: 76, size: 70, rot: 6, m: { x: 26, y: 89 } },
+  { icon: 'stroller', x: 30, y: 76, size: 70, rot: 6, m: { x: 28, y: 78 } },
   { icon: 'teddy', x: 18, y: 84, size: 84, rot: -6, m: { x: 15, y: 83 } },
   { icon: 'checklist', x: 38, y: 88, size: 60, rot: -5 },
   { icon: 'blocks', x: 47, y: 77, size: 56, rot: 6 },
@@ -128,7 +128,7 @@ const PLACEMENTS: Placement[] = [
   { icon: 'nappy', x: 71, y: 73, size: 52, rot: 10, m: { x: 88, y: 82 } },
   { icon: 'rattle', x: 58, y: 74, size: 56, rot: -20 },
   { icon: 'document', x: 8, y: 82, size: 60, rot: 10 },
-  { icon: 'book', x: 92, y: 86, size: 60, rot: -6, m: { x: 80, y: 89 } },
+  { icon: 'book', x: 92, y: 86, size: 60, rot: -6, m: { x: 72, y: 79 } },
   { icon: 'thermometer', x: 36, y: 72, size: 48, rot: -14 },
 ]
 
