@@ -2,3 +2,4 @@
 pytest
 pytest-asyncio
 httpx
+fpdf2==2.9.0
