@@ -9,7 +9,7 @@ import json
 import re
 from pathlib import Path
 
-from ..mocks.application import Application  # MOCK planu 08 — patrz NOTES-MOCKS.md
+from ..models.application import Application
 from ..models.mail import MailMessage
 
 CATALOG = Path(__file__).resolve().parent.parent / "data" / "katalog_wnioskow_pdf.json"

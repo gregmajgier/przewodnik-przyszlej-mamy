@@ -1,13 +1,12 @@
 import asyncio
 from datetime import date, datetime, timedelta, timezone
 
-from app.mocks.application import Application  # MOCK planu 08
-from app.mocks.benefit import Benefit, Criteria, Deadline  # MOCK planu 03
-from app.mocks.benefit_catalog import BenefitWithMatch
+from app.models.application import Application
+from app.models.benefit import Benefit, Criteria, Deadline
 from app.models.contract import Risk
 from app.models.family import Child, Family, FamilyView
 from app.models.user import User
-from app.services.calendar_gen import add_months, generate_events, merge_done
+from app.services.calendar_gen import BenefitWithMatch, add_months, generate_events, merge_done
 from conftest import login
 
 TODAY = date(2026, 11, 21)
@@ -16,11 +15,11 @@ ANNA = User(id="u-anna", role="parent", name="Anna Nowak")
 PIOTR = User(id="u-piotr", role="parent", name="Piotr Nowak")
 
 ZASILEK = Benefit(
-    id="zas", name="Zasiłek macierzyński", scope="national", description="x",
+    id="zas", name="Zasiłek macierzyński", scope="national", category="benefit", description="x", how_to_apply="x", source_url="https://x.pl",
     deadline=Deadline(anchor="due", offset_days=-21), criteria=Criteria(requires_pregnancy=True),
 )
 B800 = Benefit(
-    id="800", name="800+", scope="national", description="x",
+    id="800", name="800+", scope="national", category="benefit", description="x", how_to_apply="x", source_url="https://x.pl",
     deadline=Deadline(anchor="birth", offset_months=3), criteria=Criteria(child_age_min_months=0, child_age_max_months=215),
 )
 
@@ -86,7 +85,7 @@ def test_month_end_offsets():
 
 def test_application_event_shows_who_submitted():
     sent = datetime(2026, 11, 20, 9, 0, tzinfo=timezone.utc)
-    app = Application(id="a1", family_id="fam", applicant_id="u-piotr", form_code="URLOP-OJC", status="sent",
+    app = Application(id="a1", family_id="fam", applicant_id="u-piotr", form_code="URLOP-OJC", channel="employer_email", status="sent",
                       recipient_email="kadry@firma.pl", sent_at=sent, created_at=sent)
     [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
     assert e.actor_name == "Piotr Nowak" and e.actor_user_id == "u-piotr"
@@ -132,7 +131,7 @@ def test_calendar_api_generates_and_patch_done_persists(client):
     anna, _ = family(client)
     evs = client.get("/api/calendar", headers=anna).json()
     assert any(e["kind"] == "child" for e in evs)
-    assert any(e["source_ref"] == "benefit:mock-zasilek-macierzynski" for e in evs)
+    assert any(e["source_ref"] == "benefit:nat-zasilek-macierzynski" for e in evs)
     target = evs[0]["id"]
     assert client.patch(f"/api/calendar/{target}", json={"done": True}, headers=anna).json()["done"] is True
     again = client.get("/api/calendar", headers=anna).json()

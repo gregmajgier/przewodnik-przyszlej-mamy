@@ -10,11 +10,22 @@ import calendar as _cal
 import hashlib
 from datetime import date, timedelta
 
-from ..mocks.application import Application  # MOCK planu 08 — patrz NOTES-MOCKS.md
-from ..mocks.benefit_catalog import BenefitWithMatch  # MOCK planu 03
+from typing import Literal
+
+from pydantic import BaseModel
+
+from ..models.application import Application
+from ..models.benefit import Benefit
 from ..models.calendar import CalendarEvent
 from ..models.contract import Risk
 from ..models.family import Child, FamilyView
+
+class BenefitWithMatch(BaseModel):
+    """Świadczenie + wynik dopasowania dla rodziny (z `BenefitService.list_matches`)."""
+
+    benefit: Benefit
+    status: Literal["fits", "maybe", "no"]
+
 
 STALE_DAYS = 365  # terminów sprzed ponad roku nie pokazujemy (np. 800+ dla 7-latka)
 
@@ -27,6 +38,7 @@ APP_STATUS_LABEL = {
     "more_info": "wezwanie do uzupełnienia",
     "accepted": "zaakceptowany",
     "rejected": "odrzucony",
+    "cancelled": "anulowany",
 }
 
 

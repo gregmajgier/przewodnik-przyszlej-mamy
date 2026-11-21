@@ -1,12 +1,11 @@
 """E2E planu 09: Anna składa wniosek -> symulowane odpowiedzi -> zmiana statusu -> wpis w kalendarzu i powiadomienia.
 
-Wysyłka wniosku idzie przez MOCK planu 08 (`/api/mock/applications`) — po scaleniu planu 08 zamienić na
-prawdziwy kreator (`POST /api/applications` + `/submit`).
+Wniosek składany prawdziwym kreatorem planu 08 (`send_application`).
 """
 
 from datetime import date, timedelta
 
-from conftest import login
+from conftest import login, send_application
 
 
 def test_anna_application_reply_status_calendar_notification(client):
@@ -19,7 +18,7 @@ def test_anna_application_reply_status_calendar_notification(client):
     client.post("/api/families/me/children", json={"name": "Maluszek", "due_date": due}, headers=anna)
 
     # 1. Anna wysyła wniosek o urlop do pracodawcy
-    app = client.post("/api/mock/applications", json={"form_code": "URLOP-MAC-ROD"}, headers=anna).json()
+    app = send_application(client, anna)
     assert app["status"] == "sent" and app["thread_id"]
 
     # 2. kalendarz od razu pokazuje wniosek z „kto złożył”

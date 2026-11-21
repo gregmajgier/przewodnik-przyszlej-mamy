@@ -1,6 +1,6 @@
 """Symulowana skrzynka odbiorcza rodziny (plan 09): predefiniowane odpowiedzi urzędów po wysyłce wniosku.
 
-- `schedule_reply(store, app, now)` — wołane po wysyłce wniosku (plan 08 `submit`; teraz MOCK `mock_submit`):
+- `schedule_reply(store, app, now)` — wołane po wysyłce wniosku (plan 08 `submit`):
   zapisuje oczekującą odpowiedź (`mail_pending`) z terminem `now + MAIL_SIM_REPLY_DELAY_S`.
 - `SimInbox.deliver_due(family_id, now, force)` — dostarcza odpowiedzi, którym minął termin (albo wszystkie
   przy `force=True`, „Symuluj odpowiedzi” w demo).
@@ -14,9 +14,9 @@ import hashlib
 from datetime import datetime, timedelta
 
 from ..config import settings
-from ..mocks.application import Application  # MOCK planu 08 — patrz NOTES-MOCKS.md
-from ..mocks.mail_provider import SimMailProvider  # MOCK planu 08
+from ..models.application import Application
 from ..models.mail import MailMessage
+from .provider import SimMailProvider
 from ..services.mail_filter import domain_of, is_institutional
 from ..storage import Store
 

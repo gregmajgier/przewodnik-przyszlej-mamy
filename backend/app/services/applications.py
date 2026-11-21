@@ -20,6 +20,7 @@ from typing import Any
 
 from ..errors import DomainError
 from ..mail import MailProvider
+from ..mail.sim_inbox import schedule_reply
 from ..models.application import (
     FINAL_STATUSES,
     Application,
@@ -100,6 +101,13 @@ def _drop_lock(app_id: str) -> None:
 
 
 # ---------- anulowanie szkiców (plan 10: tryb straty) ----------
+
+
+async def list_family_applications(store: Store, family_id: str) -> list[Application]:
+    """Wszystkie wnioski rodziny, od najstarszego."""
+    apps = [Application.model_validate(d) for d in await store.find("applications", family_id=family_id)]
+    apps.sort(key=lambda a: (a.created_at, a.id))
+    return apps
 
 
 async def cancel_drafts_for_child(store: Store, child_id: str) -> int:
@@ -436,7 +444,10 @@ class ApplicationService:
                 raise DomainError(502, "Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę.") from None
             app.thread_id = sent.thread_id
         app.status, app.sent_at = "sent", _now()
-        return await self._save(app)
+        app = await self._save(app)
+        if app.channel == "employer_email":
+            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy (plan 09)
+        return app
 
     async def portal_submitted(self, user_id: str, app_id: str) -> Application:
         """Callback makiety portalu: rodzic zatwierdził i „wysłał” wniosek w makiecie. Idempotentne."""
@@ -455,7 +466,13 @@ class ApplicationService:
                     await self._save(app)
                     raise DomainError(409, "Brakuje danych we wniosku. Uzupełnij je przed wysłaniem.")
                 app.status, app.sent_at = "sent", _now()
-                return await self._save(app)
+                # makieta portalu = adresat do filtra poczty: ZUS (eZUS) albo urząd gminy (Emp@tia)
+                zus = (pf.CODE_TO_PORTAL.get(app.form_code) or "").startswith("ezus")
+                app.recipient_email = "wnioski@zus.pl" if zus else "swiadczenia@um.krakow.pl"
+                app.recipient_domain = app.recipient_email.rsplit("@", 1)[1]
+                app = await self._save(app)
+                await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź urzędu (plan 09)
+                return app
         finally:
             if not lock.locked():
                 _drop_lock(app_id)

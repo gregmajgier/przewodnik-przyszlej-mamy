@@ -65,7 +65,7 @@ def test_seed_is_idempotent(store):
     from app.seed import seed_all
 
     asyncio.run(seed_all(store))
-    docs = asyncio.run(store.find("benefits"))
+    docs = asyncio.run(store.find("benefits", scope="national"))
     assert len(docs) == len(load_national_benefits())
 
 

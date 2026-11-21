@@ -48,7 +48,7 @@ def test_anna_flow_from_benefits_to_sent_application(client, store):
 
     # 4. Mail trafił do folderu „wysłane” symulowanej skrzynki rodziny, z załącznikiem PDF
     (message,) = asyncio.run(store.find("mail_messages", family_id=sent["family_id"]))
-    assert message["folder"] == "sent" and message["to"] == "kadry@kcuw.example.pl"
+    assert message["folder"] == "sent" and message["to_addr"] == "kadry@kcuw.example.pl"
     assert message["thread_id"] == sent["thread_id"] and message["attachments"][0]["filename"] == "URLOP-MAC-ROD.pdf"
 
     # 5. ZAM: agent w makiecie portalu → plan z profilu (bez braków) → zatwierdzenie → wysłane

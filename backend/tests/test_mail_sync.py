@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.ai.llm import DemoLLM, FakeLLM, LLMError, LLMResult
 from app.mail.sim_inbox import SimInbox, schedule_reply
-from app.mocks.application import Application  # MOCK planu 08
+from app.models.application import Application
 from app.models.mail import MailMessage
 from app.seed import demo_mail  # noqa: F401
 from app.seed.mail_seed import ensure_seed_inbox
@@ -21,7 +21,7 @@ def run(c):
 def setup(store, **kw):
     run(store.put("families", {"id": "fam-1", "name": "Nowak", "owner_id": "u1", "member_ids": ["u1", "u2"]}))
     a = Application(
-        id="app-1", family_id="fam-1", applicant_id="u1", form_code="URLOP-MAC-ROD", status="sent",
+        id="app-1", family_id="fam-1", applicant_id="u1", form_code="URLOP-MAC-ROD", channel="employer_email", status="sent",
         recipient_email="kadry@kcuw.example.pl", recipient_domain="kcuw.example.pl", thread_id="thread-1",
         sent_at=SENT, created_at=SENT, **kw,
     )

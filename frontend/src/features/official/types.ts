@@ -1,5 +1,5 @@
-// Typy panelu urzędnika (plan 07). Benefit/Condition/Criteria odpowiadają MOCKOWI planu 03
-// (backend/app/mocks/benefit.py) — po scaleniu planu 03 przenieść do wspólnych typów.
+// Typy panelu urzędnika (plan 07). Criteria/Condition/Benefit odpowiadają backend/app/models/benefit.py
+// (+ `OfficialBenefit` w models/official_benefit.py: stan zatwierdzenia warunków).
 
 export interface Criteria {
   child_age_min_months: number | null
@@ -7,6 +7,7 @@ export interface Criteria {
   max_income_per_person: number | null
   min_children: number | null
   requires_pregnancy: boolean | null
+  pregnant_or_child_max_months: number | null
   requires_disability: boolean | null
   requires_foster: boolean | null
   employment_kinds: ('employment' | 'mandate' | 'jdg')[] | null
@@ -78,6 +79,7 @@ export const EMPTY_CRITERIA: Criteria = {
   max_income_per_person: null,
   min_children: null,
   requires_pregnancy: null,
+  pregnant_or_child_max_months: null,
   requires_disability: null,
   requires_foster: null,
   employment_kinds: null,

@@ -8,7 +8,7 @@ def test_sim_mail_stores_message_in_sent_folder_without_attachment_bytes(store):
     sent = asyncio.run(mail.send("fam-1", "user-1", "kadry@firma.pl", "Wniosek", "Treść", [("a.pdf", b"%PDF-1")]))
     assert sent.thread_id.startswith("thread-") and sent.message_id.startswith("mail-")
     (doc,) = asyncio.run(store.find("mail_messages", family_id="fam-1"))
-    assert doc["folder"] == "sent" and doc["to"] == "kadry@firma.pl" and doc["user_id"] == "user-1"
+    assert doc["folder"] == "sent" and doc["to_addr"] == "kadry@firma.pl" and doc["user_id"] == "user-1"
     assert doc["attachments"] == [{"filename": "a.pdf", "size": 6}]
     assert "%PDF" not in str(doc)
 

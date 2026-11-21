@@ -5,7 +5,7 @@ from app.ai.llm import FakeLLM, get_llm
 from app.config import settings
 from app.main import create_app
 from app.services.mail_classify import Classification
-from conftest import login
+from conftest import login, send_application
 
 
 def family(client, persona="persona-nowak-anna"):
@@ -15,9 +15,7 @@ def family(client, persona="persona-nowak-anna"):
 
 
 def submit(client, h, **body):
-    r = client.post("/api/mock/applications", json=body, headers=h)  # MOCK planu 08
-    assert r.status_code == 201, r.text
-    return r.json()
+    return send_application(client, h, **body)
 
 
 def test_status_connected_by_default(client):
@@ -120,13 +118,14 @@ async def test_poll_once_syncs_active_families(store):
 
     from app.mail.poller import poll_once
     from app.mail.sim_inbox import SimInbox, schedule_reply
-    from app.mocks.application import Application, mock_submit
+    from app.models.application import Application
 
     await store.put("families", {"id": "fam-x", "name": "X", "owner_id": "u", "member_ids": ["u"]})
     now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    a = Application(id="a-x", family_id="fam-x", applicant_id="u", form_code="ZAM", recipient_email="wnioski@zus.pl",
+    a = Application(id="a-x", family_id="fam-x", applicant_id="u", form_code="ZAM", channel="portal_agent",
+                    status="sent", recipient_email="wnioski@zus.pl", recipient_domain="zus.pl", sent_at=now,
                     created_at=now)
-    a = await mock_submit(store, SimInbox(store), a, subject="s", body="b", now=now)
+    await store.put("applications", a.model_dump(mode="json"))
     await schedule_reply(store, a, now)
     app = create_app(store)
     assert await poll_once(app) == 1  # termin odpowiedzi minął (data w przeszłości)

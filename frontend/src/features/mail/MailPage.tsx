@@ -126,13 +126,10 @@ export default function MailPage() {
       {threads?.length === 0 && (
         <div className="card stack">
           <p className="muted">Nie wysłaliście jeszcze żadnego wniosku, więc nie ma tu korespondencji.</p>
-          {/* MOCK planu 08: do usunięcia, gdy będzie kreator wniosków (/wnioski) */}
           <div>
-            <button className="btn btn-secondary" type="button" disabled={busy !== null} onClick={() =>
-              run('mock', '/api/mock/applications', { form_code: 'URLOP-MAC-ROD' }, () => 'Wysłano przykładowy wniosek do pracodawcy.')
-            }>
-              Wyślij przykładowy wniosek (demo)
-            </button>
+            <Link className="btn btn-secondary" to="/wnioski">
+              Przejdź do wniosków
+            </Link>
           </div>
         </div>
       )}

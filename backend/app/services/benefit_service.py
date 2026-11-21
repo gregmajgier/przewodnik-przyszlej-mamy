@@ -11,9 +11,10 @@ from pydantic import BaseModel, Field
 
 from ..errors import DomainError
 from ..models.benefit import Benefit
-from ..models.profile import ParentProfile
+from ..models.profile import Address, ParentProfile
 from ..storage import Store
 from .families import FamilyService
+from .units import units_for
 from .matching import FamilyContext, MatchResult, build_context, match_benefit, next_deadline
 
 PARAMETERS_LABEL = "Parametry ZUS 2026 – aktywne"
@@ -55,6 +56,16 @@ class Summary(BaseModel):
 
 class Analysis(Summary):
     steps: list[AnalysisStep] = Field(default_factory=list)
+
+
+async def visible_benefits(store: Store, address: Address) -> list[Benefit]:
+    """Opublikowane świadczenia obejmujące dany adres (krajowe + jednostki, które go obejmują)."""
+    unit_ids = set(units_for(address, await store.find("units")))
+    benefits = [Benefit.model_validate(d) for d in await store.find("benefits", status="published")]
+    return sorted(
+        (b for b in benefits if b.scope == "national" or (b.unit_id and b.unit_id in unit_ids)),
+        key=lambda b: (b.scope != "national", b.name),
+    )
 
 
 def answer_key(benefit_id: str, condition_id: str) -> str:

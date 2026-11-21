@@ -13,7 +13,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 from ..ai.llm import LLM, track_usage
-from ..mocks.application import Application  # MOCK planu 08 — patrz NOTES-MOCKS.md
+from ..models.application import Application
 from ..models.mail import MailMessage
 from ..models.notification import Notification
 from ..storage import Store

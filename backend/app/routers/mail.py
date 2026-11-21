@@ -8,7 +8,7 @@ from ..ai.limits import GuardContext, ai_guard, get_budget, record_usage
 from ..ai.llm import LLM, get_llm
 from ..errors import DomainError
 from ..mail.sim_inbox import SimInbox
-from ..mocks.application import list_family_applications  # MOCK planu 08 — patrz NOTES-MOCKS.md
+from ..services.applications import list_family_applications
 from ..security import Principal, require_parent
 from ..seed.mail_seed import ensure_seed_inbox
 from ..services.mail_sync import SyncReport, sync_family_mail
@@ -42,7 +42,7 @@ async def status(
         "connected": True,
         "provider": "gmail-sim",
         "simulated": True,
-        "address": await inbox._address(fid, p.user_id),
+        "address": await inbox.address(fid, p.user_id),
         "scope_note": SCOPE_NOTE,
     }
 
@@ -55,7 +55,7 @@ async def threads(
     fid = _family(p)
     await ensure_seed_inbox(store, fid, datetime.now(timezone.utc))
     users = {}
-    msgs = await inbox.list_messages(fid)
+    msgs = sorted(await inbox.list_messages(fid), key=lambda m: (m.received_at, m.id))
     out = []
     for app in await list_family_applications(store, fid):
         if app.sent_at is None:

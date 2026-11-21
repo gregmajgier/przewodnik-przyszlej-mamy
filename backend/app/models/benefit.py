@@ -57,6 +57,10 @@ class Benefit(BaseModel):
     criteria: Criteria = Field(default_factory=Criteria)
     extra_conditions: list[Condition] = Field(default_factory=list)
     extra_text: str | None = None
-    status: Literal["draft", "published"] = "published"
+    # `awaiting_approval`: urzędnik zatwierdził warunki, ale jeszcze nie opublikował (plan 07)
+    status: Literal["draft", "awaiting_approval", "published"] = "published"
     verify: bool = False
     tags: list[str] = Field(default_factory=list)
+    # pola edytora urzędnika (plan 07)
+    deadline_text: str | None = None
+    apply_url: str | None = None

@@ -1,6 +1,6 @@
 import asyncio
 
-from app.mocks.benefit_catalog import visible_benefits  # MOCK planu 03
+from app.services.benefit_service import visible_benefits
 from app.models.profile import Address
 from app.seed import seed_all
 from app.seed.benefits_local import load_local_samples
@@ -22,7 +22,7 @@ def test_samples_valid_and_marked():
 
 
 def test_seed_loads_and_is_idempotent(store):
-    docs = asyncio.run(store.find("benefits"))
+    docs = [d for d in asyncio.run(store.find("benefits")) if d["scope"] != "national"]
     assert len(docs) == len(load_local_samples())
     edited = {**docs[0], "name": "Zmienione przez urzędnika"}
     asyncio.run(store.put("benefits", edited))

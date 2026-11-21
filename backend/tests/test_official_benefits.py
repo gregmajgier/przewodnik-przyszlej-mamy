@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 from app.ai.llm import FakeLLM, LLMError, get_llm
 from app.config import settings
 from app.main import create_app
-from app.mocks.benefit_catalog import visible_benefits  # MOCK planu 03
+from app.services.benefit_service import visible_benefits
 from app.models.profile import Address
 from app.services.conditions import ConditionList, RawCondition, ResolutionExtract
 from conftest import login, login_official
@@ -167,7 +167,8 @@ def test_publish_makes_benefit_visible_to_residents_only(env):
     asyncio.run(store.put("units", {"id": "unit-gdansk", "name": "Gdańsk", "level": "gmina", "gmina": "Gdańsk",
                                     "powiat": "Gdańsk", "voivodeship": "Pomorskie"}))
     asyncio.run(store.put("benefits", {"id": "gdansk-1", "name": "Bon Gdańsk", "scope": "municipal",
-                                       "unit_id": "unit-gdansk", "description": "x", "status": "published"}))
+                                       "unit_id": "unit-gdansk", "description": "x", "category": "benefit", "how_to_apply": "x",
+                                       "source_url": "https://x.pl", "status": "published"}))
     h = login_official(c, KRAKOW)
     b = create(c, h)
     names = lambda addr: {x.id for x in asyncio.run(visible_benefits(store, addr))}  # noqa: E731

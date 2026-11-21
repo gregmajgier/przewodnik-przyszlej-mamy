@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 from ..ai.llm import LLM, LLMError, LLMMessage
 from ..errors import DomainError
-from ..mocks.benefit import Condition, Criteria  # MOCK planu 03 — patrz NOTES-MOCKS.md
+from ..models.benefit import Condition, Criteria
 
 logger = logging.getLogger("mrodzina.conditions")
 

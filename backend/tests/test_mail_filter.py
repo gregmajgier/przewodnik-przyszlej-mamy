@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 
 from app.mail.sim_inbox import SimInbox, schedule_reply
-from app.mocks.application import Application  # MOCK planu 08
+from app.models.application import Application
 from app.models.mail import MailMessage
 from app.seed.mail_seed import SEED_MESSAGES, ensure_seed_inbox
 from app.services.mail_filter import INSTITUTIONAL_DOMAINS, PUBLIC_DOMAINS, find_application, matches_application
@@ -13,7 +13,7 @@ SENT = datetime(2026, 11, 20, 10, 0, tzinfo=timezone.utc)
 def app_(**kw) -> Application:
     base = dict(
         id="app-1", family_id="fam-1", applicant_id="user-nowak-anna", form_code="URLOP-MAC-ROD",
-        status="sent", recipient_email="kadry@kcuw.example.pl", recipient_domain="kcuw.example.pl",
+        status="sent", channel="employer_email", recipient_email="kadry@kcuw.example.pl", recipient_domain="kcuw.example.pl",
         thread_id="thread-1", sent_at=SENT, created_at=SENT,
     )
     return Application(**{**base, **kw})

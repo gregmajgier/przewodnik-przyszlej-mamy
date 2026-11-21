@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 from ..ai.limits import GuardContext, ai_guard, enforce_max_input, record_usage
 from ..ai.llm import LLM, Usage, get_llm, track_usage
 from ..errors import DomainError
-from ..mocks.benefit import Condition, Criteria  # MOCK planu 03 — patrz NOTES-MOCKS.md
+from ..models.benefit import Condition, Criteria
 from ..models.official_benefit import OfficialBenefit
 from ..models.unit import Unit
 from ..models.user import User

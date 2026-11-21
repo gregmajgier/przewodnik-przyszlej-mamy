@@ -14,8 +14,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 from fastapi import Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from ..models.mail import AttachmentInfo, MailMessage
 from ..storage import Store, get_store
 
 
@@ -38,24 +39,6 @@ class SentMessage(BaseModel):
     message_id: str
 
 
-class AttachmentInfo(BaseModel):
-    filename: str
-    size: int
-
-
-class MailMessage(BaseModel):
-    id: str
-    family_id: str
-    user_id: str  # rodzic, który wysłał wiadomość
-    folder: str = "sent"
-    thread_id: str
-    to: str
-    subject: str
-    body: str
-    attachments: list[AttachmentInfo] = Field(default_factory=list)
-    created_at: datetime
-
-
 class MailProvider(Protocol):
     async def send(
         self,
@@ -72,7 +55,13 @@ class MailProvider(Protocol):
 
 class SimMailProvider:
     def __init__(self, store: Store) -> None:
-        self._store = store
+        self.store = store
+
+    async def address(self, family_id: str, user_id: str) -> str:
+        """Adres skrzynki rodzica (symulowany Gmail)."""
+        user = await self.store.get("users", user_id)
+        name = (user or {}).get("name", "rodzic").lower().replace(" ", ".")
+        return f"{name}@gmail.com"
 
     async def send(
         self,
@@ -88,20 +77,25 @@ class SimMailProvider:
         msg = MailMessage(
             id=message_id,
             family_id=family_id,
-            user_id=from_user_id,
-            thread_id=thread_id,
-            to=to,
+            folder="sent",
+            from_addr=await self.address(family_id, from_user_id),
+            to_addr=to or "",
             subject=subject,
             body=body,
+            thread_id=thread_id,
+            message_id=f"<{message_id}@mrodzina.sim>",
+            received_at=_now(),
+            classified=True,
+            user_id=from_user_id,
             attachments=[AttachmentInfo(filename=name, size=len(data)) for name, data in attachments],
-            created_at=_now(),
         )
-        await self._store.put("mail_messages", msg.model_dump(mode="json"))
+        await self.store.put("mail_messages", msg.model_dump(mode="json"))
         return SentMessage(thread_id=thread_id, message_id=message_id)
 
     async def list_messages(self, family_id: str) -> list[MailMessage]:
-        docs = await self._store.find("mail_messages", family_id=family_id)
-        return sorted((MailMessage.model_validate(d) for d in docs), key=lambda m: m.created_at, reverse=True)
+        """Wszystkie wiadomości rodziny (wysłane i odebrane), najnowsze pierwsze."""
+        docs = await self.store.find("mail_messages", family_id=family_id)
+        return sorted((MailMessage.model_validate(d) for d in docs), key=lambda m: (m.received_at, m.id), reverse=True)
 
 
 def get_mail(store: Store = Depends(get_store)) -> MailProvider:

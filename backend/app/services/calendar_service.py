@@ -5,13 +5,12 @@ from __future__ import annotations
 from datetime import date
 
 from ..errors import DomainError
-from ..mocks.application import list_family_applications  # MOCK planu 08 — patrz NOTES-MOCKS.md
-from ..mocks.benefit_catalog import BenefitWithMatch, naive_match, visible_benefits  # MOCK planu 03
 from ..models.calendar import CalendarEvent
-from ..models.profile import ParentProfile
 from ..storage import Store
-from .calendar_gen import generate_events, merge_done
-from .contracts import family_risks
+from .applications import list_family_applications
+from .benefit_service import BenefitService
+from .calendar_gen import BenefitWithMatch, generate_events, merge_done
+from .contracts import ContractService
 from .families import FamilyService
 
 NO_FAMILY = "Najpierw załóż rodzinę albo dołącz do niej — kalendarz jest wspólny dla rodziny."
@@ -25,14 +24,10 @@ async def family_calendar(store: Store, user_id: str, today: date) -> list[Calen
             raise DomainError(404, NO_FAMILY) from None
         raise
     fid = view.family.id
-    profile_doc = await store.get("profiles", user_id) or await store.get("profiles", view.family.owner_id)
-    benefits: list[BenefitWithMatch] = []
-    if profile_doc is not None:
-        address = ParentProfile.model_validate({**profile_doc, "user_id": user_id}).address
-        for b in await visible_benefits(store, address):
-            benefits.append(BenefitWithMatch(benefit=b, status=naive_match(b, view.children, today)))
+    matches = await BenefitService(store).list_matches(user_id, today)
+    benefits = [BenefitWithMatch(benefit=m.benefit, status=m.match.status) for m in matches]
     applications = await list_family_applications(store, fid)
-    risks = await family_risks(store, user_id, fid, today)
+    risks = await ContractService(store).family_risks(fid, today)
 
     events = generate_events(view, benefits, applications, risks, today)
     stored = {d["id"]: d for d in await store.find("calendar_events", family_id=fid)}

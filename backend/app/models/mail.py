@@ -1,7 +1,14 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class AttachmentInfo(BaseModel):
+    """Metadane załącznika — zawartość nie trafia do magazynu."""
+
+    filename: str
+    size: int
 
 
 class MailMessage(BaseModel):
@@ -25,3 +32,5 @@ class MailMessage(BaseModel):
     classification_confidence: float | None = None
     classification_summary: str | None = None
     needs_review: bool = False
+    user_id: str | None = None  # rodzic, który wysłał wiadomość (folder `sent`)
+    attachments: list[AttachmentInfo] = Field(default_factory=list)
