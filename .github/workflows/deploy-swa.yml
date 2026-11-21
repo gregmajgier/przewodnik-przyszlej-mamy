@@ -23,6 +23,10 @@ jobs:
           cache-dependency-path: ${{ matrix.app }}/package-lock.json
       - name: Build
         working-directory: ${{ matrix.app }}
+        env:
+          # landing -> adres aplikacji; aplikacja -> adres API (SWA nie proxy'uje /api do backendu)
+          VITE_APP_URL: https://app.mrodzina.app
+          VITE_API_URL: https://api.mrodzina.app
         run: |
           npm ci
           npm run build
