@@ -1,5 +1,5 @@
 import type { Widget } from '../registry'
-import ChatLauncher from './ChatLauncher'
+import { ChatLauncher } from './ChatLauncher'
 
 const widget: Widget = { order: 5, Component: ChatLauncher }
 

@@ -1,126 +1,107 @@
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent, KeyboardEvent } from 'react'
-import { useLocation } from 'react-router-dom'
-import { api } from '../../lib/api'
-import './chat.css'
-import { EXAMPLE_QUESTIONS } from './examples'
+import type { FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Message } from './Message'
-import { useChatStream } from './useChatStream'
+import { MAX_MESSAGE_CHARS, useChatStream } from './useChatStream'
+import './chat.css'
 
-const MAX_CHARS = 2000
+const EXAMPLE_QUESTIONS = ['Jak działa urlop macierzyński?', 'Jak zapisać dziecko do przedszkola?']
 
 export default function ChatPage() {
-  const { messages, sending, notice, activity, send, reset } = useChatStream()
-  // Pytanie z kafelka dashboardu trafia tylko do pola (router state) — nigdy nie wysyłamy niczego
-  // automatycznie, a parametry adresu URL są ignorowane (link z zewnątrz nie może zużyć budżetu AI).
-  const location = useLocation()
-  const [draft, setDraft] = useState(() => {
-    const q = (location.state as { q?: unknown } | null)?.q
-    return typeof q === 'string' ? q.slice(0, MAX_CHARS) : ''
-  })
-  const [demo, setDemo] = useState(false)
-  const endRef = useRef<HTMLDivElement>(null)
+  const { messages, sending, banner, error, send, reset } = useChatStream()
+  const [draft, setDraft] = useState('')
+  const [params, setParams] = useSearchParams()
+  const logRef = useRef<HTMLDivElement>(null)
+  const started = useRef(false)
 
+  // Pytanie z kafelka na dashboardzie (`/czat?q=…`): wysyłamy raz, a adres czyścimy.
   useEffect(() => {
-    let cancelled = false
-    api<{ mode: 'demo' | 'live' }>('/api/ai/status')
-      .then((s) => {
-        if (!cancelled) setDemo(s.mode === 'demo')
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
+    const q = params.get('q')
+    if (q && !started.current) {
+      started.current = true
+      setParams({}, { replace: true })
+      void send(q)
     }
-  }, [])
+  }, [params, send, setParams])
 
   useEffect(() => {
-    endRef.current?.scrollIntoView?.({ block: 'end' })
-  }, [messages, activity])
+    const el = logRef.current
+    if (el && typeof el.scrollTo === 'function') el.scrollTo({ top: el.scrollHeight })
+  }, [messages])
 
-  function submit(e?: FormEvent) {
-    e?.preventDefault()
+  function submit(e: FormEvent) {
+    e.preventDefault()
     const text = draft.trim()
     if (!text || sending) return
     setDraft('')
     void send(text)
   }
 
-  function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault()
-      submit()
-    }
-  }
-
-  const empty = messages.length === 0
-
   return (
     <div className="chat stack">
-      <div className="row chat-head">
-        <h1>Zapytaj mRodzinę</h1>
-        {demo && (
-          <span className="badge-sim" title="Asystent AI nie jest podłączony do modelu">
-            TRYB DEMO
-          </span>
-        )}
-        <button type="button" className="btn btn-secondary chat-new" onClick={reset} disabled={empty && !notice}>
+      <header className="chat-head">
+        <div>
+          <h1>Zapytaj mRodzinę</h1>
+          <p className="muted">
+            Odpowiadam na podstawie przepisów, danych Twojej rodziny i oficjalnych stron. Zawsze podaję źródło.
+          </p>
+        </div>
+        <button type="button" className="btn btn-secondary" onClick={reset}>
           Nowa rozmowa
         </button>
-      </div>
+      </header>
 
-      <section className="chat-window card" aria-label="Rozmowa" aria-live="polite" aria-busy={sending}>
-        {empty && (
-          <div className="chat-empty stack">
-            <p>
-              Zapytaj o urlopy, zasiłki, żłobek czy przedszkole. Odpowiadam na podstawie przepisów i danych
-              Twojej rodziny — i zawsze podaję, skąd to wiem.
-            </p>
-            <div className="chat-examples" role="group" aria-label="Przykładowe pytania">
+      {banner && (
+        <p className="notice chat-banner" role="status">
+          {banner}
+        </p>
+      )}
+
+      <div className="chat-log" ref={logRef} role="log" aria-live="polite" aria-label="Rozmowa">
+        {messages.length === 0 ? (
+          <div className="chat-empty">
+            <p>Zapytaj o urlop, zasiłki, żłobek, przedszkole albo szkołę. Na przykład:</p>
+            <div className="row">
               {EXAMPLE_QUESTIONS.map((q) => (
-                <button key={q} type="button" className="chat-chip" onClick={() => void send(q)} disabled={sending}>
+                <button key={q} type="button" className="btn btn-secondary" onClick={() => void send(q)} disabled={sending}>
                   {q}
                 </button>
               ))}
             </div>
           </div>
+        ) : (
+          messages.map((m, i) => <Message key={m.id} message={m} streaming={sending && i === messages.length - 1} />)
         )}
-        {messages.map((m) => (
-          <Message key={m.id} message={m} />
-        ))}
-        {activity && (
-          <p className="chat-activity muted" role="status">
-            {activity}
-          </p>
-        )}
-        <div ref={endRef} />
-      </section>
+      </div>
 
-      {notice && (
-        <p className="notice" role="status" aria-label="Komunikat">
-          {notice}
+      {error && (
+        <p className="alert" role="alert">
+          {error}
         </p>
       )}
 
       <form className="chat-form" onSubmit={submit}>
-        <div className="field chat-field">
-          <label htmlFor="chat-input">Twoje pytanie</label>
+        <label className="field" htmlFor="chat-input">
+          <span>Twoje pytanie</span>
           <textarea
             id="chat-input"
             rows={2}
-            maxLength={MAX_CHARS}
             value={draft}
+            maxLength={MAX_MESSAGE_CHARS}
+            placeholder="Np. Co mi przysługuje, gdy wrócę do pracy?"
             onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder="Np. ile trwa urlop rodzicielski?"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) submit(e)
+            }}
           />
-        </div>
+        </label>
         <button type="submit" className="btn" disabled={sending || draft.trim() === ''}>
-          Wyślij
+          {sending ? 'Odpowiadam…' : 'Wyślij'}
         </button>
       </form>
       <p className="muted chat-disclaimer">
-        To informacja, nie porada prawna. W sprawach spornych zapytaj w urzędzie, ZUS lub PUP. Nie wpisuj numeru
-        PESEL ani danych finansowych.
+        To pomoc informacyjna, nie porada prawna. Przy wątpliwościach zapytaj w urzędzie gminy, ZUS albo powiatowym
+        urzędzie pracy. Czat nie składa wniosków — wskaże Ci, jak to zrobić w aplikacji.
       </p>
     </div>
   )

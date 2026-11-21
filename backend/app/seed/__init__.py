@@ -7,6 +7,7 @@ from . import demo_conditions  # noqa: F401 - odpowiedzi trybu demo (plan 07)
 from . import demo_handlers  # noqa: F401 - rejestruje odpowiedzi trybu demo (plan 04)
 from . import demo_mail  # noqa: F401 - odpowiedzi trybu demo (plan 09)
 from .benefits_local import seed_local_benefits
+from . import demo_chat  # noqa: F401  (rejestruje odpowiedzi demo czatu)
 from .officials import seed_officials
 from .units import seed_units
 

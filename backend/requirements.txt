@@ -8,3 +8,5 @@ openai==3.57.0
 jsonschema==4.26.0
 tzdata==2026.6
 fpdf2==2.9.0
+httpx==0.28.1
+mcp==2.3.0

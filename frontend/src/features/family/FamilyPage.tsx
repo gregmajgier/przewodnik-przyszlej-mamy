@@ -5,9 +5,12 @@ import { api, ApiError } from '../../lib/api'
 import { describeChild } from '../../lib/format'
 import { useSession } from '../../lib/session'
 import type { FamilyView } from '../../lib/types'
+import { SituationMenu } from '../situations/SituationMenu'
+import { useFamilyMode } from '../situations/useFamilyMode'
 
 export default function FamilyPage() {
   const { user, refresh } = useSession()
+  const familyMode = useFamilyMode()
   const [view, setView] = useState<FamilyView | null>(null)
   const [noFamily, setNoFamily] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -149,17 +152,47 @@ export default function FamilyPage() {
         {view.children.length === 0 && <p className="muted">Nie dodano jeszcze dzieci.</p>}
         <ul>
           {view.children.map((c) => (
-            <li key={c.id} className="row">
-              <strong>{c.name}</strong>
-              <span className="muted">{describeChild(c)}</span>
-              <button
-                type="button"
-                className="btn btn-danger"
-                aria-label={`Usuń dziecko ${c.name}`}
-                onClick={() => run(() => api(`/api/families/me/children/${c.id}`, { method: 'DELETE' }))}
-              >
-                Usuń
-              </button>
+            <li key={c.id}>
+              <div className="row">
+                <strong>{c.name}</strong>
+                <span className="muted">{describeChild(c)}</span>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  aria-label={`Usuń dziecko ${c.name}`}
+                  onClick={() => run(() => api(`/api/families/me/children/${c.id}`, { method: 'DELETE' }))}
+                >
+                  Usuń
+                </button>
+              </div>
+              {c.situation === 'loss' ? (
+                <p className="muted sit-lost">Zmiana sytuacji została zapisana. Jesteśmy z Wami.</p>
+              ) : (
+                <>
+                  <SituationMenu child={c} onChanged={load} />
+                  <label className="sit-flag">
+                    <input
+                      type="checkbox"
+                      checked={c.serious_illness}
+                      onChange={(e) =>
+                        run(async () => {
+                          await api(`/api/families/me/children/${c.id}/serious-illness`, {
+                            method: 'PATCH',
+                            body: { value: e.target.checked },
+                          })
+                          await familyMode.refresh()
+                        })
+                      }
+                    />
+                    <span>
+                      Ciężka, nieodwracalna choroba dziecka („Za życiem”)
+                      {c.serious_illness && (
+                        <span className="muted"> — dodaliśmy do Twojej listy świadczenia z programu „Za życiem”.</span>
+                      )}
+                    </span>
+                  </label>
+                </>
+              )}
             </li>
           ))}
         </ul>

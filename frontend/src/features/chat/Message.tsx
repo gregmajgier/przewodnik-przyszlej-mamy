@@ -1,63 +1,63 @@
-import { Fragment } from 'react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import type { ChatMessage } from './useChatStream'
 
-// Linkujemy tylko adresy http(s) i wewnętrzny kreator wniosku; reszta tekstu jest zwykłym tekstem
-// (bez dangerouslySetInnerHTML — odpowiedź modelu nie może wstrzyknąć znaczników).
-const LINK_RE = /(https?:\/\/[^\s<>"]+|\/wnioski\/nowy\?form=[A-Za-z0-9_-]+)/g
-const TRAILING = /[.,;:!?)\]]+$/
+const TOKEN_RE = /(\*\*[^*\n]+\*\*|https?:\/\/[^\s)<>]+)/g
 
-function inline(line: string): ReactNode[] {
-  const out: ReactNode[] = []
-  let last = 0
-  for (const m of line.matchAll(LINK_RE)) {
-    const start = m.index ?? 0
-    const raw = m[0]
-    const url = raw.replace(TRAILING, '')
-    if (start > last) out.push(line.slice(last, start))
-    if (url.startsWith('/')) {
-      out.push(
-        <Link key={start} to={url}>
-          {url}
-        </Link>,
-      )
-    } else {
-      out.push(
-        <a key={start} href={url} target="_blank" rel="noopener noreferrer">
-          {url}
-        </a>,
+/** Minimalny, bezpieczny renderer: **pogrubienie** i linki http(s); reszta jako zwykły tekst (bez HTML). */
+function renderInline(line: string): ReactNode[] {
+  return line.split(TOKEN_RE).map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) return <strong key={i}>{part.slice(2, -2)}</strong>
+    if (/^https?:\/\//.test(part)) {
+      const trimmed = part.replace(/[.,;:!?]+$/, '')
+      const tail = part.slice(trimmed.length)
+      return (
+        <span key={i}>
+          <a href={trimmed} target="_blank" rel="noopener noreferrer">
+            {trimmed}
+          </a>
+          {tail}
+        </span>
       )
     }
-    out.push(raw.slice(url.length))
-    last = start + raw.length
-  }
-  if (last < line.length) out.push(line.slice(last))
-  return out
+    return part
+  })
 }
 
-export function Message({ message }: { message: ChatMessage }) {
+const TOOL_LABEL: Record<string, string> = {
+  szukaj_w_przepisach: 'Sprawdzam przepisy…',
+  szukaj_w_sieci: 'Szukam w oficjalnych źródłach…',
+  profil_rodziny: 'Sprawdzam dane Twojej rodziny…',
+}
+
+export function Message({ message, streaming }: { message: ChatMessage; streaming: boolean }) {
   const isUser = message.role === 'user'
-  const lines = message.text.split('\n')
+  const lines = message.text.split('\n').filter((l) => l.trim() !== '')
+  const waiting = !isUser && streaming && message.text === ''
+  const lastTool = message.tools[message.tools.length - 1]
+
   return (
-    <article className={`chat-msg ${isUser ? 'chat-msg-user' : 'chat-msg-bot'}`} aria-label={isUser ? 'Ty' : 'mRodzina'}>
-      <div className="chat-msg-body">
-        {lines.map((line, i) =>
-          line.trim() === '' ? null : (
-            <p key={i}>
-              <Fragment>{isUser ? line : inline(line)}</Fragment>
-            </p>
-          ),
-        )}
-      </div>
-      {!isUser && message.sources.length > 0 && (
+    <article
+      className={`chat-msg ${isUser ? 'chat-msg-user' : 'chat-msg-ai'}`}
+      aria-label={isUser ? 'Twoja wiadomość' : 'Odpowiedź mRodziny'}
+    >
+      {!isUser && <span className="chat-msg-badge">asystent AI</span>}
+      {waiting && (
+        <p className="muted chat-status" role="status">
+          {lastTool ? (TOOL_LABEL[lastTool] ?? 'Sprawdzam…') : 'Myślę…'}
+        </p>
+      )}
+      {lines.map((line, i) => (
+        <p key={i}>{renderInline(line)}</p>
+      ))}
+      {message.sources.length > 0 && (
         <div className="chat-sources">
-          <strong>Źródła</strong>
+          <h3>Źródła</h3>
           <ul>
             {message.sources.map((s) => (
-              <li key={`${s.article ?? ''}${s.url}`}>
+              <li key={`${s.url}-${s.title}`}>
                 <a href={s.url} target="_blank" rel="noopener noreferrer">
                   {s.title}
+                  <span className="chat-sr"> (otwiera się w nowej karcie)</span>
                 </a>
               </li>
             ))}

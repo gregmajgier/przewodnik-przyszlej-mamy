@@ -47,6 +47,9 @@ class Settings(BaseSettings):
     mail_sim_reply_delay_s: int = 20
     mail_poll_s: int = 30
 
+    # Tryb jaskółki (plan 10): ile dni od zgłoszenia można je cofnąć.
+    undo_window_days: int = 7
+
     @property
     def is_production(self) -> bool:
         """Produkcja = ENV != dev albo podłączony Cosmos (prawdziwe dane)."""

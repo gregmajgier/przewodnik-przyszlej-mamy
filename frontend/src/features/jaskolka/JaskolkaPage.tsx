@@ -114,7 +114,7 @@ function Situation({ id }: { id: string }) {
   }
   return (
     <>
-      <Checklist key={id} situation={detail.data} />
+      <Checklist key={detail.data.id} situation={detail.data} />
       <Foundations key={id} situationId={id} />
     </>
   )

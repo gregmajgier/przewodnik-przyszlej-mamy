@@ -113,13 +113,11 @@ function App() {
           <a className="cta" href={APP_URL}>
             Sprawdź, co możemy dla ciebie zrobić.
           </a>
+          <a className="support-link" href={`${APP_URL}/jaskolka`}>
+            Potrzebujesz wsparcia po stracie dziecka lub w trudnej sytuacji? →
+          </a>
         </section>
       </main>
-      <footer className="site-footer">
-        <a className="support-link" href={`${APP_URL}/jaskolka`}>
-          Potrzebujesz wsparcia po stracie dziecka lub w trudnej sytuacji? <span aria-hidden="true">→</span>
-        </a>
-      </footer>
     </>
   )
 }

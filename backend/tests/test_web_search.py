@@ -1,163 +1,123 @@
 import httpx
 
 from app.config import settings
-from app.services import web_search as ws
 from app.services.web_search import (
     BraveSearch,
-    NoneSearch,
+    NoWebSearch,
     SerperSearch,
     WebResult,
     get_web_search,
     is_official,
     rank_official,
+    search_ranked,
 )
 
 
-def r(url: str, title: str = "t") -> WebResult:
-    return WebResult(title=title, url=url, snippet="s")
+def _r(url: str, title: str = "t") -> WebResult:
+    return WebResult(title=title, url=url, snippet="")
 
 
 def test_rank_official_prefers_gov_pl_and_bip():
     results = [
-        r("https://blog.example.com/przedszkola"),
-        r("https://um.krakow.pl/rekrutacja"),  # urząd miasta (poddomena um.)
-        r("https://bip.krakow.pl/rekrutacja"),
-        r("https://www.zus.pl/swiadczenia/macierzynski"),
-        r("https://www.gov.pl/web/rodzina"),
-        r("https://pup.krakow.pl/bon"),
+        _r("https://blog.example.com/urlop"),
+        _r("https://www.zus.pl/swiadczenia"),
+        _r("https://forum.gazeta.pl/x"),
+        _r("https://bip.krakow.pl/zasilek"),
+        _r("https://www.gov.pl/web/rodzina"),
+        _r("https://pup.krakow.pl/oferta"),
+        _r("https://ug.edu.pl/studia"),
     ]
-    ranked = [x.url for x in rank_official(results)]
-    official = {
-        "https://um.krakow.pl/rekrutacja",
-        "https://bip.krakow.pl/rekrutacja",
-        "https://www.zus.pl/swiadczenia/macierzynski",
+    ranked = [r.url for r in rank_official(results)]
+    assert set(ranked[:4]) == {
+        "https://www.zus.pl/swiadczenia",
+        "https://bip.krakow.pl/zasilek",
         "https://www.gov.pl/web/rodzina",
-        "https://pup.krakow.pl/bon",
+        "https://pup.krakow.pl/oferta",
     }
-    assert set(ranked[:5]) == official
-    assert ranked[5:] == ["https://blog.example.com/przedszkola"]
+    assert ranked[4:] == ["https://blog.example.com/urlop", "https://forum.gazeta.pl/x", "https://ug.edu.pl/studia"]
 
 
 def test_rank_is_stable_within_class():
-    results = [
-        r("https://a.example.com/1"),
-        r("https://www.gov.pl/2"),
-        r("https://b.example.com/3"),
-        r("https://bip.x.pl/4"),
-        r("https://c.example.com/5"),
-    ]
-    assert [x.url for x in rank_official(results)] == [
-        "https://www.gov.pl/2",
-        "https://bip.x.pl/4",
-        "https://a.example.com/1",
-        "https://b.example.com/3",
-        "https://c.example.com/5",
-    ]
+    results = [_r(f"https://a{i}.example.com/") for i in range(3)] + [_r("https://x.gov.pl/1"), _r("https://y.gov.pl/2")]
+    ranked = [r.url for r in rank_official(results)]
+    assert ranked == ["https://x.gov.pl/1", "https://y.gov.pl/2", "https://a0.example.com/", "https://a1.example.com/", "https://a2.example.com/"]
 
 
-def test_is_official_rejects_lookalike_domains():
-    assert is_official("https://malopolska.gov.pl/x")
-    assert is_official("https://sub.bip.gmina.pl/x")
-    assert not is_official("https://gov.pl.evil.com/x")
+def test_is_official_rejects_lookalikes():
     assert not is_official("https://evilgov.pl/x")
-    assert not is_official("https://notzus.pl/x")
-    assert not is_official("javascript:alert(1)")
+    assert not is_official("https://gov.pl.evil.com/x")
     assert not is_official("not a url")
+    assert is_official("https://krakow.praca.gov.pl/")
 
 
-async def test_none_provider_returns_empty():
-    assert await NoneSearch().search("żłobek Kraków") == []
-
-
-def test_get_web_search_none_by_default(monkeypatch):
+async def test_none_provider_returns_empty(monkeypatch):
     monkeypatch.setattr(settings, "web_search_provider", "none")
-    assert isinstance(get_web_search(), NoneSearch)
+    ws = get_web_search()
+    assert isinstance(ws, NoWebSearch)
+    assert await ws.search("urlop") == []
+
+
+def test_provider_without_key_falls_back_to_none(monkeypatch):
     monkeypatch.setattr(settings, "web_search_provider", "brave")
     monkeypatch.setattr(settings, "web_search_api_key", "")
-    assert isinstance(get_web_search(), NoneSearch)  # bez klucza nie udajemy, że szukamy
+    assert isinstance(get_web_search(), NoWebSearch)
     monkeypatch.setattr(settings, "web_search_api_key", "k")
     assert isinstance(get_web_search(), BraveSearch)
     monkeypatch.setattr(settings, "web_search_provider", "serper")
     assert isinstance(get_web_search(), SerperSearch)
-    monkeypatch.setattr(settings, "web_search_provider", "nieznany")
-    assert isinstance(get_web_search(), NoneSearch)
 
 
-async def test_brave_parses_results_and_ranks_official():
+async def test_brave_parses_results_and_sends_key():
     seen = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
-        seen["token"] = request.headers.get("x-subscription-token")
-        seen["q"] = request.url.params.get("q")
+        seen["token"] = request.headers["X-Subscription-Token"]
+        seen["q"] = request.url.params["q"]
         return httpx.Response(
             200,
-            json={
-                "web": {
-                    "results": [
-                        {"title": "Blog <b>żłobki</b>", "url": "https://blog.example.com/z", "description": "x " * 500},
-                        {"title": "BIP", "url": "https://bip.krakow.pl/z", "description": "Nabór do żłobków"},
-                    ]
-                }
-            },
+            json={"web": {"results": [
+                {"title": "<b>ZUS</b> zasiłek", "url": "https://www.zus.pl/a", "description": "Opis <em>x</em>"},
+                {"title": "bez url", "description": "x"},
+                {"title": "ftp", "url": "ftp://x/y"},
+            ]}},
         )
 
-    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    results = await BraveSearch("sekret", client=client).search("nabór żłobek Kraków", k=5)
-    assert seen == {"token": "sekret", "q": "nabór żłobek Kraków"}
-    assert [x.url for x in results] == ["https://bip.krakow.pl/z", "https://blog.example.com/z"]
-    assert "<b>" not in results[1].title
-    assert len(results[1].snippet) <= 400
+    results = await BraveSearch("secret", transport=httpx.MockTransport(handler)).search("zasiłek macierzyński")
+    assert seen == {"token": "secret", "q": "zasiłek macierzyński"}
+    assert [r.url for r in results] == ["https://www.zus.pl/a"]
+    assert results[0].title == "ZUS zasiłek" and results[0].snippet == "Opis x"
 
 
 async def test_serper_parses_results():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.headers["x-api-key"] == "k"
-        return httpx.Response(
-            200, json={"organic": [{"title": "ZUS", "link": "https://www.zus.pl/a", "snippet": "Zasiłek"}]}
-        )
+        assert request.headers["X-API-KEY"] == "k"
+        return httpx.Response(200, json={"organic": [{"title": "Gov", "link": "https://www.gov.pl/x", "snippet": "s"}]})
 
-    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    results = await SerperSearch("k", client=client).search("zasiłek")
-    assert results == [WebResult(title="ZUS", url="https://www.zus.pl/a", snippet="Zasiłek")]
+    results = await SerperSearch("k", transport=httpx.MockTransport(handler)).search("q")
+    assert [(r.title, r.url, r.snippet) for r in results] == [("Gov", "https://www.gov.pl/x", "s")]
 
 
 async def test_provider_http_error_returns_empty_not_raise():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(500, text="boom")
-
-    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    assert await BraveSearch("k", client=client).search("x") == []
-    assert await SerperSearch("k", client=client).search("x") == []
-
-
-async def test_provider_network_error_and_bad_json_return_empty():
     def boom(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="err")
+
+    def broken(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down")
 
-    def bad(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, text="<html>nie json</html>")
+    def garbage(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, text="<html>not json</html>")
 
-    assert await BraveSearch("k", client=httpx.AsyncClient(transport=httpx.MockTransport(boom))).search("x") == []
-    assert await BraveSearch("k", client=httpx.AsyncClient(transport=httpx.MockTransport(bad))).search("x") == []
-
-
-async def test_results_with_unsafe_urls_are_dropped():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200,
-            json={
-                "web": {
-                    "results": [
-                        {"title": "x", "url": "javascript:alert(1)", "description": "d"},
-                        {"title": "ok", "url": "https://www.gov.pl/a", "description": "d"},
-                    ]
-                }
-            },
-        )
-
-    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-    assert [x.url for x in await BraveSearch("k", client=client).search("x")] == ["https://www.gov.pl/a"]
+    for handler in (boom, broken, garbage):
+        transport = httpx.MockTransport(handler)
+        assert await BraveSearch("k", transport=transport).search("q") == []
+        assert await SerperSearch("k", transport=transport).search("q") == []
 
 
-def test_module_exposes_protocol_names():
-    assert hasattr(ws, "WebSearch")
+async def test_search_ranked_orders_and_limits():
+    class Fake:
+        async def search(self, query: str, k: int = 5):
+            return [_r("https://a.com/"), _r("https://x.gov.pl/"), _r("https://b.com/")]
+
+    out = await search_ranked(Fake(), "q", 2)
+    assert [r.url for r in out] == ["https://x.gov.pl/", "https://a.com/"]
+

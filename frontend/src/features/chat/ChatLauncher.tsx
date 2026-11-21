@@ -1,52 +1,55 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { MAX_MESSAGE_CHARS } from './useChatStream'
 import './chat.css'
-import { EXAMPLE_QUESTIONS } from './examples'
 
-/** Kafelek dashboardu „Zapytaj mRodzinę”: pole pytania + przykłady; przenosi do /czat z pytaniem wpisanym
- * w pole (router state) — rodzic sam je wysyła. */
-export default function ChatLauncher() {
-  const [q, setQ] = useState('')
+const EXAMPLES = ['Jak działa urlop macierzyński?', 'Jak zapisać dziecko do przedszkola?']
+
+/** Kafelek dashboardu „Zapytaj mRodzinę”: pole pytania i przykłady; odpowiedź pokazuje strona /czat. */
+export function ChatLauncher() {
+  const [draft, setDraft] = useState('')
   const navigate = useNavigate()
 
-  const ask = (question: string) => {
-    const text = question.trim()
-    if (text) navigate('/czat', { state: { q: text } })
+  function ask(question: string) {
+    const q = question.trim()
+    navigate(q ? `/czat?q=${encodeURIComponent(q)}` : '/czat')
   }
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    ask(q)
+    ask(draft)
   }
 
   return (
-    <section className="card chat-launcher stack" aria-labelledby="chat-launcher-title">
+    <section className="card chat-launcher" aria-labelledby="chat-launcher-title">
       <h2 id="chat-launcher-title">Zapytaj mRodzinę</h2>
-      <p className="muted">Pytaj o urlopy, zasiłki, żłobek i przedszkole — odpowiem z przepisami i linkami.</p>
-      <form className="row chat-launcher-form" onSubmit={submit}>
-        <div className="field chat-field">
-          <label htmlFor="chat-launcher-input">Zadaj pytanie</label>
+      <p className="muted">Pytaj o przepisy, zasiłki i zapisy. Odpowiadam ze źródłami.</p>
+      <form className="row" onSubmit={submit}>
+        <label className="field chat-launcher-field" htmlFor="chat-launcher-input">
+          <span className="chat-sr">Twoje pytanie</span>
           <input
             id="chat-launcher-input"
             type="text"
-            value={q}
-            maxLength={2000}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Np. ile trwa urlop rodzicielski?"
+            value={draft}
+            maxLength={MAX_MESSAGE_CHARS}
+            placeholder="Co chcesz wiedzieć?"
+            onChange={(e) => setDraft(e.target.value)}
           />
-        </div>
-        <button type="submit" className="btn" disabled={q.trim() === ''}>
+        </label>
+        <button type="submit" className="btn">
           Zapytaj
         </button>
       </form>
-      <div className="chat-examples" role="group" aria-label="Przykładowe pytania">
-        {EXAMPLE_QUESTIONS.slice(0, 2).map((ex) => (
-          <button key={ex} type="button" className="chat-chip" onClick={() => ask(ex)}>
-            {ex}
-          </button>
+      <ul className="chat-examples" aria-label="Przykładowe pytania">
+        {EXAMPLES.map((q) => (
+          <li key={q}>
+            <button type="button" className="chat-chip" onClick={() => ask(q)}>
+              {q}
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   )
 }

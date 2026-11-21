@@ -1,8 +1,7 @@
-"""Wyszukiwanie w sieci dla informacji lokalnych i bieżących (czat, narzędzie `szukaj_w_sieci`).
+"""Wyszukiwanie w sieci dla czatu: dostawcy (Brave/Serper), ranking domen urzędowych.
 
-Dostawca z `WEB_SEARCH_PROVIDER` (`none` | `brave` | `serper`), klucz w `WEB_SEARCH_API_KEY`. Domyślnie `none`
-— czat wtedy uczciwie mówi, że nie ma dostępu do wyszukiwarki. Błąd dostawcy nigdy nie jest wyjątkiem: zwracamy
-pustą listę (czat odpowie bez sieci). Nie logujemy zapytań (mogą zawierać dane rodziny).
+Zasady: błąd dostawcy nigdy nie przerywa czatu (zwracamy pustą listę); zapytań ani wyników nie logujemy
+(mogą zawierać dane rodziny) — tylko typ błędu.
 """
 
 from __future__ import annotations
@@ -19,126 +18,116 @@ from ..config import settings
 
 logger = logging.getLogger("mrodzina.web_search")
 
-TIMEOUT_S = 10.0
-MAX_TITLE = 200
-MAX_SNIPPET = 400
-
-# Poddomeny/etykiety typowe dla jednostek publicznych (urząd miasta/gminy, BIP, PUP, ośrodki pomocy).
-_OFFICIAL_LABELS = frozenset("bip um umig ug ugm starostwo pup mops mopr gops ops gok powiat urzad".split())
-_OFFICIAL_SUFFIXES = ("gov.pl", "zus.pl")
+_TIMEOUT = 8.0
+_MAX_SNIPPET = 400
+_MAX_QUERY = 300
 
 
 class WebResult(BaseModel):
     title: str
     url: str
-    snippet: str
+    snippet: str = ""
 
 
 class WebSearch(Protocol):
     async def search(self, query: str, k: int = 5) -> list[WebResult]: ...
 
 
+# Domeny urzędowe: gov.pl i subdomeny (m.in. powiatowe urzędy pracy: *.praca.gov.pl), BIP, ZUS,
+# strony urzędów gmin/miast/starostw (um.*, ug.*, starostwo.*, pup.*, mops.*, gops.*).
+_OFFICIAL_HOST_RE = re.compile(
+    r"(^|\.)(gov\.pl|zus\.pl|sejm\.pl|nfz\.gov\.pl)$"
+    r"|^(bip|um|ug|ugm|urzad|starostwo|pup|mops|gops|mosir)\."
+    r"|(^|\.)bip\.[a-z0-9.-]+$"
+)
+
+
 def is_official(url: str) -> bool:
-    """Czy domena wygląda na urzędową: *.gov.pl, zus.pl, BIP, urząd miasta/gminy (um., ug.), PUP, OPS."""
-    try:
-        parsed = urlparse(url)
-        host = (parsed.hostname or "").lower().rstrip(".")
-    except ValueError:
+    host = (urlparse(url).hostname or "").lower()
+    if not host or host.endswith((".edu.pl", ".com.pl")):  # np. ug.edu.pl to uczelnia, nie urząd gminy
         return False
-    if parsed.scheme not in ("http", "https") or not host:
-        return False
-    for suffix in _OFFICIAL_SUFFIXES:
-        if host == suffix or host.endswith("." + suffix):
-            return True
-    labels = host.split(".")
-    if len(labels) < 3:  # sama „domena.pl” nie jest dowodem urzędowości
-        return False
-    return any(label in _OFFICIAL_LABELS for label in labels[:-2])
+    return bool(_OFFICIAL_HOST_RE.search(host))
 
 
 def rank_official(results: list[WebResult]) -> list[WebResult]:
-    """Domeny urzędowe najpierw; kolejność wewnątrz klasy bez zmian (sortowanie stabilne)."""
+    """Domeny urzędowe najpierw; kolejność wewnątrz każdej klasy bez zmian (sort stabilny)."""
     return sorted(results, key=lambda r: 0 if is_official(r.url) else 1)
 
 
-_TAG_RE = re.compile(r"<[^>]*>")
+def _clean(text: str | None, limit: int) -> str:
+    return re.sub(r"<[^>]+>", "", text or "").strip()[:limit]
 
 
-def _clean(text: object, limit: int) -> str:
-    return re.sub(r"\s+", " ", _TAG_RE.sub("", str(text or ""))).strip()[:limit]
-
-
-def _result(title: object, url: object, snippet: object) -> WebResult | None:
-    url = str(url or "").strip()
-    parsed = urlparse(url)
-    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+def _to_result(title: str | None, url: str | None, snippet: str | None) -> WebResult | None:
+    if not url or not url.startswith(("http://", "https://")):
         return None
-    return WebResult(title=_clean(title, MAX_TITLE), url=url, snippet=_clean(snippet, MAX_SNIPPET))
+    return WebResult(title=_clean(title, 200) or url, url=url, snippet=_clean(snippet, _MAX_SNIPPET))
 
 
-class NoneSearch:
+class NoWebSearch:
     async def search(self, query: str, k: int = 5) -> list[WebResult]:
         return []
 
 
-class _HttpSearch:
-    def __init__(self, api_key: str, client: httpx.AsyncClient | None = None) -> None:
-        self._key = api_key
-        self._client = client
-
-    async def _request(self, client: httpx.AsyncClient, query: str, k: int) -> list[tuple[object, object, object]]:
-        raise NotImplementedError
-
-    async def search(self, query: str, k: int = 5) -> list[WebResult]:
-        client = self._client or httpx.AsyncClient(timeout=TIMEOUT_S)
-        try:
-            # pobieramy więcej, by ranking domen urzędowych miał z czego wybierać
-            rows = await self._request(client, query, max(k * 2, 10))
-            results = [r for r in (_result(*row) for row in rows) if r is not None]
-        except Exception as e:  # noqa: BLE001 - sieć/JSON/schemat: nigdy nie przerywamy rozmowy; logujemy tylko typ
-            logger.warning("Web search (%s) nie powiódł się: %s", type(self).__name__, type(e).__name__)
-            return []
-        finally:
-            if self._client is None:
-                await client.aclose()
-        return rank_official(results)[:k]
-
-
-class BraveSearch(_HttpSearch):
+class BraveSearch:
     URL = "https://api.search.brave.com/res/v1/web/search"
 
-    async def _request(self, client: httpx.AsyncClient, query: str, k: int) -> list[tuple[object, object, object]]:
-        resp = await client.get(
-            self.URL,
-            params={"q": query, "count": min(k, 20), "country": "pl", "search_lang": "pl"},
-            headers={"X-Subscription-Token": self._key, "Accept": "application/json"},
-            timeout=TIMEOUT_S,
-        )
-        resp.raise_for_status()
-        items = resp.json().get("web", {}).get("results", [])
-        return [(i.get("title"), i.get("url"), i.get("description")) for i in items]
+    def __init__(self, api_key: str, transport: httpx.AsyncBaseTransport | None = None) -> None:
+        self._key = api_key
+        self._transport = transport
+
+    async def search(self, query: str, k: int = 5) -> list[WebResult]:
+        try:
+            async with httpx.AsyncClient(timeout=_TIMEOUT, transport=self._transport) as client:
+                r = await client.get(
+                    self.URL,
+                    params={"q": query[:_MAX_QUERY], "count": min(max(k * 2, k), 20), "country": "PL", "search_lang": "pl"},
+                    headers={"X-Subscription-Token": self._key, "Accept": "application/json"},
+                )
+                r.raise_for_status()
+                items = r.json().get("web", {}).get("results", [])
+        except (httpx.HTTPError, ValueError, AttributeError) as e:
+            logger.warning("Brave Search: %s", type(e).__name__)
+            return []
+        out = [_to_result(i.get("title"), i.get("url"), i.get("description")) for i in items if isinstance(i, dict)]
+        return [r for r in out if r is not None]
 
 
-class SerperSearch(_HttpSearch):
+class SerperSearch:
     URL = "https://google.serper.dev/search"
 
-    async def _request(self, client: httpx.AsyncClient, query: str, k: int) -> list[tuple[object, object, object]]:
-        resp = await client.post(
-            self.URL,
-            json={"q": query, "gl": "pl", "hl": "pl", "num": min(k, 20)},
-            headers={"X-API-KEY": self._key},
-            timeout=TIMEOUT_S,
-        )
-        resp.raise_for_status()
-        items = resp.json().get("organic", [])
-        return [(i.get("title"), i.get("link"), i.get("snippet")) for i in items]
+    def __init__(self, api_key: str, transport: httpx.AsyncBaseTransport | None = None) -> None:
+        self._key = api_key
+        self._transport = transport
+
+    async def search(self, query: str, k: int = 5) -> list[WebResult]:
+        try:
+            async with httpx.AsyncClient(timeout=_TIMEOUT, transport=self._transport) as client:
+                r = await client.post(
+                    self.URL,
+                    json={"q": query[:_MAX_QUERY], "num": min(max(k * 2, k), 20), "gl": "pl", "hl": "pl"},
+                    headers={"X-API-KEY": self._key},
+                )
+                r.raise_for_status()
+                items = r.json().get("organic", [])
+        except (httpx.HTTPError, ValueError, AttributeError) as e:
+            logger.warning("Serper: %s", type(e).__name__)
+            return []
+        out = [_to_result(i.get("title"), i.get("link"), i.get("snippet")) for i in items if isinstance(i, dict)]
+        return [r for r in out if r is not None]
 
 
 def get_web_search() -> WebSearch:
+    """Dostawca wg `WEB_SEARCH_PROVIDER` (`none`|`brave`|`serper`); bez klucza zawsze `none`."""
     provider = settings.web_search_provider.strip().lower()
     key = settings.web_search_api_key
     if provider == "brave" and key:
         return BraveSearch(key)
     if provider == "serper" and key:
         return SerperSearch(key)
-    return NoneSearch()
+    return NoWebSearch()
+
+
+async def search_ranked(search: WebSearch, query: str, k: int = 5) -> list[WebResult]:
+    """Wyniki z rankingiem urzędowych domen, obcięte do `k`."""
+    return rank_official(await search.search(query, k))[:k]

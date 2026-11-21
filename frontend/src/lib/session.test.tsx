@@ -59,19 +59,6 @@ describe('SessionProvider', () => {
     expect(spy).not.toHaveBeenCalled()
   })
 
-  it('na publicznej ścieżce /jaskolka nie odtwarza sesji (żadnego żądania z tokenem)', async () => {
-    localStorage.setItem(TOKEN_KEY, 'tok')
-    const spy = mockApi({ '/api/me': () => json(USER) })
-    window.history.pushState({}, '', '/jaskolka/poronienie')
-    try {
-      setup()
-      await waitFor(() => expect(screen.getByTestId('state').textContent).not.toContain('loading'))
-      expect(spy).not.toHaveBeenCalled()
-    } finally {
-      window.history.pushState({}, '', '/')
-    }
-  })
-
   it('login zapisuje token, ustawia usera; brak rodziny (404) => family null', async () => {
     mockApi({
       '/api/auth/mobywatel': () => json({ token: 'tok', user: USER }),

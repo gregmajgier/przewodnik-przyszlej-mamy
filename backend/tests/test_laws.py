@@ -1,87 +1,77 @@
-from app.services.laws import LawChunk, LocalLawIndex, load_default_index
+from app.services.laws import LawChunk, LocalLawIndex, load_default_index, tokenize
+
+LISTED_ACTS = {
+    "Kodeks pracy",
+    "ustawa zasiłkowa",
+    "ustawa o świadczeniach rodzinnych",
+    "ustawa o pomocy państwa w wychowywaniu dzieci (800+)",
+    "Prawo oświatowe (rekrutacja)",
+    "ustawa o opiece nad dziećmi w wieku do lat 3",
+    "ustawa „Za życiem”",
+    "ustawa o Karcie Dużej Rodziny",
+}
 
 
-def chunk(id_: str, text: str, article: str = "Art. 1", act: str = "Ustawa testowa") -> LawChunk:
-    return LawChunk(id=id_, act=act, act_short="UT", article=article, text=text, url="https://example.gov.pl/akt")
-
-
-def small_index() -> LocalLawIndex:
-    return LocalLawIndex(
-        [
-            chunk("a", "Pracownicy przysługuje urlop macierzyński w wymiarze 20 tygodni.", "Art. 180"),
-            chunk("b", "Zasiłek pogrzebowy przysługuje w kwocie 4000 zł.", "Art. 10"),
-            chunk("c", "Dziecko może być przyjęte do przedszkola publicznego w drodze rekrutacji.", "Art. 130"),
-        ]
-    )
+def _chunk(i: str, article: str, text: str, act: str = "Akt testowy") -> LawChunk:
+    return LawChunk(id=i, act=act, act_short=act, article=article, text=text, url="https://isap.sejm.gov.pl/x")
 
 
 def test_search_finds_macierzynski_article():
-    hits = load_default_index().search("urlop macierzyński wymiar tygodni", k=5)
-    assert hits, "indeks powinien znaleźć przepisy o urlopie macierzyńskim"
-    assert any(h.act_short == "KP" and h.article == "Art. 180" for h in hits[:3])
+    results = load_default_index().search("urlop macierzyński", k=5)
+    assert results
+    assert any(c.act_short == "Kodeks pracy" and c.article == "Art. 180" for c in load_default_index().search("urlop macierzyński wymiar tygodni", k=5))
+    assert any("macierzy" in c.text.lower() for c in results)
 
 
 def test_search_polish_diacritics_insensitive():
-    idx = small_index()
-    with_ogonki = [h.id for h in idx.search("urlop macierzyński")]
-    without = [h.id for h in idx.search("urlop macierzynski")]
-    assert with_ogonki == without and with_ogonki[0] == "a"
-    assert idx.search("ZASIŁEK pogrzebowy")[0].id == "b"
+    index = load_default_index()
+    with_diacritics = [c.id for c in index.search("zasiłek macierzyński", k=5)]
+    without = [c.id for c in index.search("zasilek macierzynski", k=5)]
+    assert with_diacritics == without and with_diacritics
 
 
-def test_prefix_stemming_matches_inflected_forms():
-    idx = small_index()
-    # „przedszkolu” / „przedszkola” / „przedszkole” mają wspólny przedrostek 5 znaków
-    assert idx.search("przedszkole rekrutacja")[0].id == "c"
-    assert idx.search("rekrutacji do przedszkoli")[0].id == "c"
+def test_search_matches_inflected_forms():
+    index = LocalLawIndex([_chunk("a", "Art. 1", "Pracownicy przysługuje urlop macierzyński."), _chunk("b", "Art. 2", "Zupełnie inny temat.")])
+    assert [c.id for c in index.search("macierzyńskiego", k=3)] == ["a"]
 
 
 def test_results_have_url_and_article():
-    for h in load_default_index().search("zasiłek macierzyński", k=5):
-        assert h.url.startswith("https://")
-        assert h.article.startswith("Art. ")
-        assert h.act and h.act_short and h.text
+    for c in load_default_index().search("świadczenie wychowawcze 800+", k=5):
+        assert c.url.startswith("https://")
+        assert c.article.startswith("Art. ")
+        assert c.text.startswith(c.article)
 
 
 def test_empty_query_returns_empty():
-    idx = small_index()
-    assert idx.search("") == []
-    assert idx.search("   ") == []
-    assert idx.search("???") == []
-    assert idx.search("a w z") == []  # same stop-słowa / zbyt krótkie tokeny
+    index = load_default_index()
+    assert index.search("") == []
+    assert index.search("   ") == []
+    assert index.search("i w z") == []  # same słowa funkcyjne
+    assert index.search("urlop", k=0) == []
 
 
 def test_no_match_returns_empty():
-    assert small_index().search("kryptowaluty blockchain") == []
-
-
-def test_k_limits_results():
-    assert len(load_default_index().search("dziecko", k=3)) == 3
-
-
-def test_article_number_in_query_boosts_that_article():
-    hits = load_default_index().search("art. 180 kodeks pracy", k=3)
-    assert hits[0].article == "Art. 180" and hits[0].act_short == "KP"
+    assert load_default_index().search("zzzzqqqq xylofon") == []
 
 
 def test_default_index_covers_all_listed_acts():
-    idx = load_default_index()
-    shorts = {c.act_short for c in idx.chunks}
-    assert len(shorts) == 8
-    joined = " ".join(c.act for c in idx.chunks)
-    for needle in (
-        "Kodeks pracy",
-        "choroby i macierzyństwa",
-        "świadczeniach rodzinnych",
-        "wychowywaniu dzieci",
-        "Prawo oświatowe",
-        "do lat 3",
-        "Za życiem",
-        "Karcie Dużej Rodziny",
-    ):
-        assert needle in joined, needle
+    assert load_default_index().acts == LISTED_ACTS
 
 
-def test_chunk_ids_unique():
-    ids = [c.id for c in load_default_index().chunks]
-    assert len(ids) == len(set(ids))
+def test_default_index_has_no_broken_text():
+    chunks = load_default_index().chunks
+    assert len(chunks) > 250
+    assert len({c.id for c in chunks}) == len(chunks)
+    # artefakty ekstrakcji PDF („macierzy ńskiego”) nie mogą zostać
+    assert not any("macierzy ńskiego" in c.text or "zako ńczenia" in c.text for c in chunks)
+
+
+def test_ranking_is_stable_and_respects_k():
+    index = load_default_index()
+    assert [c.id for c in index.search("urlop", k=3)] == [c.id for c in index.search("urlop", k=3)]
+    assert len(index.search("urlop", k=2)) == 2
+
+
+def test_tokenize_normalizes():
+    assert tokenize("Łódź, ŻÓŁĆ!") == ["lodz", "zolc"]
+    assert tokenize("macierzyńskiego") == tokenize("macierzyństwo") == ["macie"]
