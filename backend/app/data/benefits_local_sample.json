@@ -1,0 +1,80 @@
+{
+  "_uwaga": "PRZYKŁADOWE świadczenia lokalne do demo panelu urzędnika (plan 07). Nazwy z dopiskiem „(przykład)”. Kwoty i warunki orientacyjne — nie są aktualną ofertą jednostek; zweryfikuj u źródła.",
+  "benefits": [
+    {
+      "id": "sample-krakow-zlobek",
+      "name": "Dopłata do niepublicznego żłobka w Krakowie (przykład)",
+      "scope": "municipal",
+      "unit_id": "unit-krakow",
+      "category": "benefit",
+      "description": "Miesięczna dopłata do opłaty za niepubliczny żłobek lub klub dziecięcy dla dzieci mieszkających w Krakowie.",
+      "amount_text": "do 500 zł / mies.",
+      "annual_value_estimate": 6000,
+      "deadline_text": "Wniosek w ciągu miesiąca od zapisania dziecka do żłobka.",
+      "how_to_apply": "Wniosek w placówce żłobka lub online przez portal miasta.",
+      "source_url": "https://www.krakow.pl/",
+      "criteria": {"child_age_min_months": 12, "child_age_max_months": 35},
+      "extra_text": "Dziecko uczęszcza do niepublicznego żłobka lub klubu dziecięcego. Rodzic rozlicza PIT w Krakowie.",
+      "extra_conditions": [
+        {"id": "dziecko-w-niepublicznym-zlobku", "text": "Dziecko uczęszcza do niepublicznego żłobka lub klubu dziecięcego", "kind": "auto", "profile_key": "child_in_private_nursery", "question": "Czy dziecko uczęszcza do niepublicznego żłobka lub klubu dziecięcego?"},
+        {"id": "pit-w-krakowie", "text": "Rodzic rozlicza PIT w Krakowie", "kind": "auto", "profile_key": "pays_taxes_in_municipality", "question": "Czy rozliczasz PIT w Krakowie?"}
+      ],
+      "conditions_approved": true,
+      "status": "published",
+      "verify": true
+    },
+    {
+      "id": "sample-krakow-karta-rodzinna",
+      "name": "Krakowska Karta Rodzinna 3+ (przykład)",
+      "scope": "municipal",
+      "unit_id": "unit-krakow",
+      "category": "perk",
+      "description": "Zniżki w miejskich instytucjach kultury, na basenach i w komunikacji dla rodzin z co najmniej trojgiem dzieci.",
+      "amount_text": "zniżki do 50%",
+      "how_to_apply": "Wniosek w urzędzie miasta lub online.",
+      "source_url": "https://www.krakow.pl/",
+      "criteria": {"min_children": 3},
+      "extra_text": "Zameldowanie w Krakowie od co najmniej 12 miesięcy.",
+      "extra_conditions": [
+        {"id": "zameldowanie-12-mies", "text": "Zameldowanie w Krakowie od co najmniej 12 miesięcy", "kind": "ask", "question": "Czy jesteś zameldowana/zameldowany w Krakowie od co najmniej 12 miesięcy?"}
+      ],
+      "conditions_approved": true,
+      "status": "published",
+      "verify": true
+    },
+    {
+      "id": "sample-malopolska-bon-3plus",
+      "name": "Małopolski bon dla rodzin wielodzietnych (przykład)",
+      "scope": "regional",
+      "unit_id": "unit-malopolskie",
+      "category": "benefit",
+      "description": "Jednorazowe wsparcie województwa dla rodzin, w których urodziło się trzecie lub kolejne dziecko.",
+      "amount_text": "1500 zł jednorazowo",
+      "annual_value_estimate": 1500,
+      "deadline_text": "Do 6 miesięcy od urodzenia dziecka.",
+      "how_to_apply": "Wniosek online w serwisie województwa.",
+      "source_url": "https://www.malopolska.pl/",
+      "criteria": {"min_children": 3, "child_age_min_months": 0, "child_age_max_months": 5},
+      "extra_conditions": [],
+      "conditions_approved": true,
+      "status": "published",
+      "verify": true
+    },
+    {
+      "id": "sample-malopolska-opieka-wytchnieniowa",
+      "name": "Małopolska opieka wytchnieniowa dla rodziców dzieci z niepełnosprawnością (przykład)",
+      "scope": "regional",
+      "unit_id": "unit-malopolskie",
+      "category": "perk",
+      "description": "Bezpłatne godziny opieki nad dzieckiem z orzeczeniem o niepełnosprawności, żeby rodzic mógł odpocząć.",
+      "amount_text": "do 240 godzin rocznie",
+      "how_to_apply": "Zgłoszenie w ośrodku pomocy społecznej.",
+      "source_url": "https://www.malopolska.pl/",
+      "criteria": {"requires_disability": true},
+      "extra_conditions": [],
+      "conditions_approved": true,
+      "status": "published",
+      "verify": true
+    }
+  ]
+}

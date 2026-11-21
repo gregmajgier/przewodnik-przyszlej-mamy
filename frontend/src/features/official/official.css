@@ -1,0 +1,77 @@
+/* Panel urzędnika (plan 07). Kolory wyłącznie z tokenów theme.css. */
+.official-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1.25rem;
+  background: var(--fg);
+  color: var(--bg);
+}
+.official-header a {
+  color: var(--bg);
+  font-weight: 700;
+  text-decoration: none;
+}
+.official-header a[aria-current='page'] {
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+.official-header .wordmark {
+  color: var(--bg);
+}
+.official-header .btn-secondary {
+  color: var(--bg);
+  border-color: var(--bg);
+}
+.official-main {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+.official-form {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+.official-form .field-wide {
+  grid-column: 1 / -1;
+}
+.field textarea {
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--fg);
+  min-height: 5rem;
+}
+.status-pill {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+.status-published {
+  border-color: var(--primary);
+  color: var(--fg);
+  background: var(--primary-soft);
+}
+.condition-row {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+}
+@media (max-width: 40rem) {
+  .condition-row {
+    grid-template-columns: 1fr;
+  }
+}
+.plain-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}

@@ -1,4 +1,7 @@
 import asyncio
+import os
+
+os.environ.setdefault("MAIL_POLL_S", "0")  # plan 09: bez pętli poczty w tle w testach
 
 import pytest
 from fastapi.testclient import TestClient

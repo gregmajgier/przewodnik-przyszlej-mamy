@@ -214,3 +214,82 @@ z jawnym `targetOrigin`. Makieta odrzuca pola spoza schematu i wartości niezgod
 **Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis, poczta
 i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
 `/poczta`) działają dopiero po wdrożeniu planu 09.
+
+## Umowy i ostrzeżenia o ryzyku (plan 04)
+
+- Rodzic wgrywa umowę (`/umowy` albo opcjonalny krok `/start/umowy`): `POST /api/contracts/scan` (multipart
+  `file`, PDF/PNG/JPG/TXT, maks. 5 MB, za `ai_guard("contract_scan")`) → szkic (`confirmed=false`) z listą
+  `missing`. Dane trafiają do profilu dopiero po `POST /api/contracts/{id}/confirm` (scalane z wpisem
+  ubezpieczenia z ZUS o tym samym płatniku i rodzaju). Maks. 5 zatwierdzonych umów na rodzica.
+- Typ pliku sprawdzamy po magic bytes (musi zgadzać się z `Content-Type`); PDF z JavaScriptem/załącznikami
+  jest odrzucany. Sam plik nie jest przechowywany — zapisujemy tylko nazwę, widoczną wyłącznie dla właściciela;
+  partner widzi zatwierdzone dane. Tekst umowy jest przycinany do `AI_MAX_INPUT_CHARS`.
+- `GET /api/risks` — ostrzeżenia obojga rodziców (`services/risk.py`: umowa terminowa kończąca się przed
+  porodem, zlecenie bez dobrowolnego chorobowego, zadłużenie JDG). Narzędzie MCP: `ryzyka`.
+  Ryzyka pojawiają się tylko, gdy w rodzinie jest dziecko „w drodze” z terminem porodu.
+
+**Skan w trybie demo (bez Azure):** `DemoLLM` odczytuje umowę regexami (`app/seed/demo_handlers.py`) — działa
+dla plików tekstowych/PDF z etykietami „Pracodawca:”, „Stanowisko:”, „Wynagrodzenie:” itd. (zdjęć w demo nie
+odczytamy). Przykładowa umowa Anny Nowak jest w repo: `backend/app/seed/sample_umowa_anna_nowak.pdf`.
+Wygenerowanie jej od nowa (wymaga `fpdf2` z `requirements-dev.txt` i czcionki TTF z polskimi znakami):
+
+```bash
+cd backend && .venv/bin/python scripts/make_sample_contract.py   # opcjonalnie --font /ścieżka/do.ttf
+```
+
+Test ręczny: zaloguj się jako Anna, załóż rodzinę, wejdź w „Umowy”, wgraj ten PDF, zatwierdź — umowa pojawi się
+w „Moich danych”. Żeby zobaczyć ostrzeżenie, wgraj plik `.txt` z „UMOWA ZLECENIA”, „Zleceniodawca: …”,
+„Dobrowolne ubezpieczenie chorobowe: nie” (dziecko w drodze musi być dodane w „Rodzina”).
+
+**Node:** frontend (vite 8 / rolldown) wymaga Node **≥ 22.12** — na 22.9 `npm ci` pomija natywny binding
+i testy nie startują („Cannot find native binding”).
+
+## Panel gminy / województwa (plan 07)
+
+Panel urzędnika: `http://localhost:5173/urzednik/logowanie` (osobna powłoka, poza nawigacją rodzica).
+
+| Konto | Jednostka | Zasięg świadczeń |
+|---|---|---|
+| `urzednik.krakow@mrodzina.local` | Gmina Miejska Kraków (`unit-krakow`) | `municipal` — widzą mieszkańcy Krakowa |
+| `urzednik.malopolska@mrodzina.local` | Województwo Małopolskie (`unit-malopolskie`) | `regional` — widzą wszystkie gminy województwa |
+
+Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wpis w `backend/app/seed/officials.py`
+(+ jednostka w `seed/units.py`); samorejestracji nie ma.
+
+- API: `/api/official/*` (tylko token urzędnika; świadczenia innej jednostki → 404). `scope` i `unit_id` ustawia
+  serwer z jednostki urzędnika. Status: `draft` → „Wyodrębnij warunki” (`awaiting_approval`) → „Zatwierdź warunki”
+  → `published`. Każda edycja wraca do `draft`; publikacja z niezatwierdzonymi warunkami → 409.
+- AI (za `ai_guard`): `benefit_conditions` (warunki z „Dodatkowych wymogów”) i `resolution_prefill` („Wklej
+  uchwałę → wypełnij”). Warunek `auto` tylko dla kluczy z `PROFILE_KEYS` (`services/conditions.py`), reszta
+  to pytania tak/nie. W trybie demo działają reguły słów kluczowych (`seed/demo_conditions.py`).
+- Przykładowe świadczenia lokalne (z dopiskiem „(przykład)”): `backend/app/data/benefits_local_sample.json`.
+  Seed ich nie nadpisuje, jeśli urzędnik je zmienił.
+- **Tymczasowo** model `Benefit` i zasięg `covers` pochodzą z mocków planu 03 (`backend/app/mocks/`). Patrz
+  `docs/superpowers/plans/NOTES-MOCKS.md`.
+
+## Poczta, statusy wniosków, kalendarz i powiadomienia (plan 09)
+
+- **Poczta symulowana, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
+  Skrzynka rodziny ma też 6 maili niezwiązanych (sklep, szkoła, przychodnia…), które filtr pomija.
+- **Filtr** (`services/mail_filter.py`): czytamy wątek wniosku, dokładny adres odbiorcy oraz domenę tylko dla
+  instytucji (`zus.pl`, `gov.pl`, domeny z katalogu, `um.krakow.pl`) — nigdy całych domen publicznych
+  (`gmail.com`, `onet.pl`, `wp.pl`, `outlook.com`…). Maile sprzed wysyłki wniosku są ignorowane.
+- **Klasyfikacja** (`services/mail_classify.py`, LLM `mail_classify`): `received|more_info|accepted|rejected|other`.
+  Pewność ≥ 0,8 → status wniosku zmienia się sam + powiadomienie; poniżej → „Nowa wiadomość w sprawie wniosku X —
+  sprawdź” bez zmiany statusu. Błąd modelu → „do sprawdzenia”. Synchronizacja jest idempotentna.
+  W trybie demo klasyfikują słowa kluczowe (`seed/demo_mail.py`).
+- **Odpowiedzi urzędów** (`mail/sim_inbox.py`): pracodawca → „otrzymaliśmy”, potem „zatwierdzony”; ZUS → „wezwanie
+  do uzupełnienia”; gmina → „decyzja pozytywna”. Przychodzą po `MAIL_SIM_REPLY_DELAY_S` (20 s) przy kolejnym
+  sprawdzeniu poczty albo od razu przyciskiem „Symuluj odpowiedzi” (`POST /api/mail/simulate-replies`).
+- **Sprawdzanie w tle:** pętla w `lifespan` co `MAIL_POLL_S` s (0 = wyłączona; testy ustawiają 0 w `conftest.py`);
+  tokeny z dziennego budżetu AI. Ręcznie: „Sprawdź pocztę” (`POST /api/mail/sync`, za `ai_guard`).
+- **Kalendarz** (`/kalendarz`, widżet „Najbliższe terminy”, narzędzie MCP `kalendarz`): terminy świadczeń względem
+  porodu/urodzenia, złożone wnioski („kto złożył”, do kogo, status), termin porodu i ostrzeżenia z ryzyk (plan 04).
+  Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
+  oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
+  „Wkrótce”.
+- **Demo bez planu 08:** na pustej stronie `/poczta` jest przycisk „Wyślij przykładowy wniosek (demo)” —
+  `POST /api/mock/applications` (tylko `ENV=dev`). Scenariusz: Anna zakłada rodzinę → `/poczta` → wyślij przykładowy
+  wniosek → „Symuluj odpowiedzi” → status „Zaakceptowany”, powiadomienia, wpis w kalendarzu.
+- **Tymczasowo** `Application`, wysyłka (`MailProvider`/`SimMailProvider`) i katalog świadczeń do kalendarza to mocki
+  planów 08/03 (`backend/app/mocks/`) — patrz `docs/superpowers/plans/NOTES-MOCKS.md`.
