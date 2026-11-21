@@ -52,6 +52,10 @@ class Application(BaseModel):
     signed_digest: str | None = None  # odcisk danych w chwili podpisu (zmiana danych unieważnia podpis)
     sent_at: datetime | None = None
     created_at: datetime
+    # tryb jaskółki (plan 10): ustawiane przez `services/situations`
+    child_loss_note: str | None = None
+    cancelled_reason: str | None = None
+    cancelled_at: datetime | None = None
 
 
 class ApplicationCreate(BaseModel):

@@ -509,7 +509,9 @@ def test_loss_blocks_new_and_pending_applications(client):
     blocked = client.post(f"/api/applications/{app['id']}/submit", headers=h)
     assert blocked.status_code == 409
     assert client.get(f"/api/applications/{app['id']}", headers=h).json()["status"] == "cancelled"
-    _create(client, h, "ZAM", child, expect=409)
+    _create(client, h, "URLOP-MAC-ROD", child, expect=409)
+    # wyjątek: zasiłek macierzyński po stracie (wsparcie z trybu jaskółki) można złożyć także o to dziecko
+    _create(client, h, "ZAM", child)
 
 
 # ---------- współbieżność ----------

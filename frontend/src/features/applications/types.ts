@@ -60,6 +60,8 @@ export interface FormEntry {
   default_channel: Channel
   only_electronic: boolean
   requires_child: boolean
+  /** wolno złożyć także o dziecko w sytuacji straty (wsparcie po stracie, np. zasiłek macierzyński) */
+  loss_ok?: boolean
   portal_id: string | null
 }
 

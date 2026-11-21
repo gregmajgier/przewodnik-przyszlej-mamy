@@ -23,7 +23,7 @@ export default function EventCard({
         <span className="row" style={{ gap: '0.5rem' }}>
           <span className="event-tag">{KIND_LABEL[event.kind]}</span>
           {event.overdue && !event.done && <span className="event-tag event-tag-risk">po terminie</span>}
-          {event.kind === 'warning' && event.severity === 'high' && !event.done && (
+          {event.kind === 'warning' && event.severity === 'high' && !event.done && !event.muted && (
             <span className="event-tag event-tag-risk">pilne</span>
           )}
         </span>

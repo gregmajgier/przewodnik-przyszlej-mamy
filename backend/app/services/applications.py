@@ -49,6 +49,14 @@ MSG_LOSS = "Dla tego dziecka nie składamy już wniosków. Jeśli to pomyłka, z
 # ---------- katalog i kanały ----------
 
 
+def loss_forms() -> frozenset[str]:
+    """Formularze z świadczeń wsparcia po stracie (np. zasiłek macierzyński po martwym urodzeniu): wolno je
+    złożyć także o dziecko w sytuacji straty."""
+    from ..seed.benefits import load_loss_benefits
+
+    return frozenset(code for b in load_loss_benefits() for code in b.form_codes)
+
+
 def _catalog() -> dict[str, dict]:
     return {w["kod"]: w for w in pf._read_json(pf.DATA / "katalog_wnioskow_pdf.json")["wnioski"]}
 
@@ -196,7 +204,7 @@ class ApplicationService:
 
     async def _guard_loss(self, app: Application, view: FamilyView) -> None:
         child = self._child(view, app.child_id)
-        if child is not None and child.situation == "loss":
+        if child is not None and child.situation == "loss" and app.form_code not in loss_forms():
             await cancel_drafts_for_child(self.store, child.id)
             raise DomainError(409, MSG_LOSS)
 
@@ -221,6 +229,7 @@ class ApplicationService:
                     "default_channel": channels[0],
                     "only_electronic": bool(entry.get("tylko_elektronicznie")),
                     "requires_child": pf.requires_child(code),
+                    "loss_ok": code in loss_forms(),
                     "portal_id": pf.CODE_TO_PORTAL.get(code),
                 }
             )
@@ -240,7 +249,7 @@ class ApplicationService:
 
         view, profiles = await self._context(user_id)
         child = pf._select_child(view, data.child_id)  # cudze/nieistniejące dziecko → 404
-        if child is not None and child.situation == "loss":
+        if child is not None and child.situation == "loss" and data.form_code not in loss_forms():
             raise DomainError(409, MSG_LOSS)
         app = Application(
             id=f"app-{uuid.uuid4().hex[:12]}",

@@ -52,7 +52,12 @@ class _ChildFields(BaseModel):
 
 
 class ChildIn(_ChildFields):
-    """Dane dziecka przyjmowane z API."""
+    """Dane dziecka przyjmowane z API. Sytuację (tryb jaskółki) ustawia wyłącznie serwis sytuacji."""
+
+    @model_validator(mode="after")
+    def _no_situation_from_client(self):
+        self.situation = self.situation_kind = self.situation_at = self.situation_exited_at = None
+        return self
 
 
 class Child(_ChildFields):

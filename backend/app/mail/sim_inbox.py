@@ -106,6 +106,7 @@ class SimInbox(SimMailProvider):
                 thread_id=app.thread_id if t["in_thread"] else None,
                 message_id=f"<{mid}@sim.reply>",
                 received_at=now + timedelta(seconds=i),
+                related_application_id=app.id,  # odpowiedź ZUS/urzędu nie ma wątku — wiązanie wprost
             )
             if await self.store.get("mail_messages", msg.id) is None:
                 await self.store.put("mail_messages", msg.model_dump(mode="json"))

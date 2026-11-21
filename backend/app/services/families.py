@@ -204,7 +204,10 @@ class FamilyService:
         return child
 
     async def delete_child(self, user_id: str, child_id: str) -> None:
-        await self._own_child(user_id, child_id)
+        child = await self._own_child(user_id, child_id)
+        from .applications import cancel_drafts_for_child  # import lokalny: applications zależy od families
+
+        await cancel_drafts_for_child(self.store, child_id)  # szkice o usunięte dziecko nie zostają „martwe”
         await self.store.delete("children", child_id)
 
 

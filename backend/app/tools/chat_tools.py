@@ -27,6 +27,12 @@ def _child_info(child: dict) -> dict:
     return out
 
 
+def _safe_answers(answers: dict) -> dict:
+    """Do modelu trafiają tylko odpowiedzi tak/nie o warunkach świadczeń (`benefit:*`). Dane z kreatora wniosków
+    (numer konta, telefon, adres, e-mail pracodawcy) zostają w aplikacji."""
+    return {k: v for k, v in answers.items() if str(k).startswith("benefit:") and isinstance(v, bool)}
+
+
 @tool(
     "profil_rodziny",
     "Zwraca dane rodziny zalogowanego rodzica: dzieci (imię, daty, sytuacja), rodziców (miasto, gmina, rodzaj "
@@ -62,7 +68,7 @@ async def profil_rodziny(ctx: ToolContext, args: dict) -> dict:
                 "sick_leave": [
                     {"code": e["code"], "from": e["from_date"], "to": e["to_date"]} for e in profile.get("ezla", [])
                 ],
-                "answers": profile.get("answers", {}),
+                "answers": _safe_answers(profile.get("answers", {})),
             }
         )
     ordered = sorted(children, key=lambda c: (c.get("birth_date") or c.get("due_date") or "", c["id"]))

@@ -59,6 +59,13 @@ async def sync_family_mail(
     if not apps:
         return report
     members = await _members(store, family_id)
+    # tryb jaskółki: o sprawach dziecka w sytuacji straty nie wysyłamy powiadomień (status i tak się aktualizuje)
+    loss_children = {c["id"] for c in await store.find("children", family_id=family_id) if c.get("situation") == "loss"}
+
+    async def emit(store_: Store, n: Notification) -> None:
+        if app.child_id not in loss_children:
+            await notify(store_, n)
+
     msgs: list[MailMessage] = await mail.list_messages(family_id)
     pending = [m for m in msgs if m.folder == "inbox" and not m.classified]
     for msg in sorted(pending, key=lambda m: (m.received_at, m.id)):
@@ -86,7 +93,7 @@ async def sync_family_mail(
                 app.status = result.status
                 await store.put("applications", app.model_dump(mode="json"))
                 report.status_changes += 1
-                await notify(
+                await emit(
                     store,
                     Notification(
                         id=f"notif-{msg.id}",
@@ -102,7 +109,7 @@ async def sync_family_mail(
         else:
             msg.needs_review = True
             report.to_review += 1
-            await notify(
+            await emit(
                 store,
                 Notification(
                     id=f"notif-{msg.id}",

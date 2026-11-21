@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { headerSlots, navItems } from '../features/registry'
 import JaskolkaHome from '../features/situations/JaskolkaHome'
@@ -8,10 +8,17 @@ import { Logo } from './Logo'
 
 // Powłoka aplikacji: nagłówek + nawigacja z plików nav.ts funkcji + <Outlet/>. Wymaga sesji.
 export function AppShell() {
-  const { user, family, loading, logout } = useSession()
+  const { user, family, loading, logout, refresh: refreshSession } = useSession()
   const location = useLocation()
   // Tryb jaskółki (plan 10): motyw monochromatyczny i jedna lista „Dla Was” zamiast dashboardu.
-  const familyMode = useFamilyModeState(user?.role === 'parent' && family !== null)
+  const modeState = useFamilyModeState(user?.role === 'parent' && family !== null)
+  // po zgłoszeniu/cofnięciu/wyjściu odświeżamy też sesję: lista dzieci (np. w kreatorze wniosków) musi być aktualna
+  const refreshMode = modeState.refresh
+  const refreshAll = useCallback(async () => {
+    await refreshMode()
+    await refreshSession()
+  }, [refreshMode, refreshSession])
+  const familyMode = useMemo(() => ({ mode: modeState.mode, refresh: refreshAll }), [modeState.mode, refreshAll])
   const inJaskolkaMode = familyMode.mode.mode === 'jaskolka'
 
   useEffect(() => {

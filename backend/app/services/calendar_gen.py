@@ -140,7 +140,10 @@ def generate_events(
     for bm in benefits_with_match:
         events.extend(_benefit_events(fid, bm, active_children, today))
 
+    skip_children = {cid for cid, mode in event_policy(children).items() if mode == "skip"}
     for a in applications:
+        if a.child_id in skip_children:  # wnioski o dziecko w sytuacji straty nie wracają w kalendarzu
+            continue
         src = f"application:{a.id}"
         who = names.get(a.applicant_id, "Rodzic")
         when = (a.sent_at.date() if a.sent_at else a.created_at.date())

@@ -39,8 +39,8 @@ export default function NewApplicationPage() {
   const forms = data?.forms ?? []
   const form: FormEntry | undefined = forms.find((f) => f.code === code)
   const recommended = new Set(data?.recommended_flow ?? [])
-  // wnioski nie dotyczą dzieci w trybie straty
-  const children = family.children.filter((c) => c.situation !== 'loss')
+  // wnioski nie dotyczą dzieci w sytuacji straty — poza wsparciem po stracie (`loss_ok`)
+  const children = family.children.filter((c) => c.situation !== 'loss' || form?.loss_ok === true)
   const unsupported = data !== null && requested !== '' && !forms.some((f) => f.code === requested)
   const needsChild = form?.requires_child === true
   const effectiveChild = childId || (needsChild && children.length === 1 ? children[0].id : '')

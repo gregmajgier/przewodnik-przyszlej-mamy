@@ -8,6 +8,7 @@ Zasady:
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import io
 import logging
@@ -223,7 +224,7 @@ def _messages(filename: str, ftype: FileType, content: bytes) -> list[LLMMessage
 async def extract_contract(llm: LLM, filename: str, content: bytes, content_type: str) -> ContractDraft:
     """Plik -> `ContractDraft` z listą `missing`. Rzuca `ContractUnreadable` (422) bez zapisu."""
     ftype = check_declared_type(content_type, detect_type(content))
-    messages = _messages(safe_filename(filename), ftype, content)
+    messages = await asyncio.to_thread(_messages, safe_filename(filename), ftype, content)  # parsowanie PDF poza pętlą
     try:
         result = await llm.structured(messages, ExtractionResult, feature=FEATURE)
     except LLMError:

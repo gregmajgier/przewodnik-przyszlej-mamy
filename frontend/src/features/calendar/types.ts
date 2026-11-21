@@ -27,5 +27,5 @@ export const KIND_LABEL: Record<CalendarEvent['kind'], string> = {
 }
 
 export function isAtRisk(e: CalendarEvent): boolean {
-  return !e.done && (e.overdue || e.kind === 'warning')
+  return !e.done && !e.muted && (e.overdue || e.kind === 'warning')
 }

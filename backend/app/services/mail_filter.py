@@ -67,6 +67,8 @@ def matches_application(msg: MailMessage, app: Application) -> bool:
         return False
     if msg.received_at < app.sent_at:
         return False
+    if msg.related_application_id:  # powiązanie ustalone przy dostarczeniu/klasyfikacji: tylko ten wniosek
+        return msg.related_application_id == app.id
     if app.thread_id and msg.thread_id == app.thread_id:
         return True
     sender = _email(msg.from_addr)
@@ -80,6 +82,8 @@ def matches_application(msg: MailMessage, app: Application) -> bool:
 def find_application(msg: MailMessage, apps: list[Application]) -> Application | None:
     """Najlepsze dopasowanie: wątek > dokładny adres > domena instytucjonalna; przy remisie najnowszy wniosek."""
     def rank(a: Application) -> int:
+        if msg.related_application_id == a.id:
+            return 4
         if a.thread_id and msg.thread_id == a.thread_id:
             return 3
         if a.recipient_email and _email(msg.from_addr) == _email(a.recipient_email):
