@@ -16,6 +16,7 @@ export interface CalendarEvent {
   recipient: string | null
   status: string | null
   severity: 'info' | 'medium' | 'high' | null
+  muted?: boolean
 }
 
 export const KIND_LABEL: Record<CalendarEvent['kind'], string> = {

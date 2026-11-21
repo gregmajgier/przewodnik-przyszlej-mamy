@@ -1,16 +1,17 @@
 """Scenariusz end-to-end rodziny Nowaków — czytaj jak dokumentację produktu.
 
-Pokrywa wszystko, co jest dziś w tej gałęzi: logowanie personą, rodzina i dzieci z danych ZUS, dołączenie
-drugiego rodzica, czat z cytatem artykułu oraz tryb jaskółki (zgłoszenie, drugi rodzic bez powiadomienia,
-anulowane szkice, cofnięcie). Kroki zależne od planów 03/04/08/09 (analiza, umowy, wnioski, poczta, kalendarz,
-panel urzędnika) opisuje `test_e2e_steps_blocked_on_other_plans` — do włączenia po scaleniu tych planów.
+Pokrywa cały produkt: logowanie personą, rodzina i dzieci z danych ZUS, dołączenie drugiego rodzica, analiza
+świadczeń (pytanie zmienia status), skan i zatwierdzenie umowy z ostrzeżeniami o ryzyku, wniosek urlopowy do
+pracodawcy z symulowanymi odpowiedziami (status, kalendarz, powiadomienia), świadczenie opublikowane przez
+urzędnika Krakowa, czat z cytatem artykułu oraz tryb jaskółki (zgłoszenie, drugi rodzic bez powiadomienia,
+anulowane szkice, wyciszony kalendarz, cofnięcie).
 """
 
 import asyncio
 import json
+from pathlib import Path
 
-import pytest
-from conftest import login, login_official
+from conftest import login, login_official, send_application
 
 from app.ai.llm import FakeLLM, LLMResult, ToolCall, get_llm
 
@@ -52,6 +53,51 @@ def test_nowak_family_journey(client, store):
     assert [m["name"] for m in accepted.json()["members"]] == ["Anna Nowak", "Piotr Nowak"]
     assert len(client.get("/api/families/me/children", headers=piotr).json()) == 3  # oboje widzą dzieci
 
+    # 3a. Analiza: dopasowania z pytaniem „może”; odpowiedź zmienia status na „przysługuje”
+    analysis = client.get("/api/analysis", headers=anna).json()
+    assert analysis["totals"]["fits"] > 0 and analysis["steps"]
+    matches = client.get("/api/benefits", headers=piotr).json()  # partner widzi to samo
+    maybe = next(m for m in matches if m["match"]["status"] == "maybe" and m["match"]["questions"])
+    answer = client.post(
+        f"/api/benefits/{maybe['benefit']['id']}/answers",
+        json={"condition_id": maybe["match"]["questions"][0]["condition_id"], "answer": True},
+        headers=anna,
+    )
+    assert answer.status_code == 200 and answer.json()["match"]["status"] != "maybe"
+
+    # 3b. Umowa: Anna wgrywa przykładową umowę (tryb demo), zatwierdza odczyt; ostrzeżenia są wspólne dla rodziny
+    sample = Path(__file__).parents[1] / "app" / "seed" / "sample_umowa_anna_nowak.pdf"
+    scan = client.post(
+        "/api/contracts/scan", files={"file": ("umowa.pdf", sample.read_bytes(), "application/pdf")}, headers=anna
+    )
+    assert scan.status_code == 200, scan.text
+    confirmed = client.post(f"/api/contracts/{scan.json()['draft_id']}/confirm", json=scan.json()["draft"], headers=anna)
+    assert confirmed.status_code == 200, confirmed.text
+    assert client.get("/api/risks", headers=anna).json() == client.get("/api/risks", headers=piotr).json()
+
+    # 3c. Wniosek o urlop: kreator → podpis → wysyłka do pracodawcy; odpowiedzi symulowane zmieniają status
+    sent = send_application(client, anna)
+    assert sent["status"] == "sent" and sent["thread_id"]
+    replies = client.post("/api/mail/simulate-replies", headers=piotr).json()  # robi to któreś z rodziców
+    assert replies["status_changes"] >= 1
+    assert client.get(f"/api/applications/{sent['id']}", headers=piotr).json()["status"] == "accepted"
+    calendar = client.get("/api/calendar", headers=piotr).json()
+    entry = next(e for e in calendar if e["source_ref"] == f"application:{sent['id']}")
+    assert entry["status"] == "accepted" and entry["actor_name"] == "Anna Nowak"
+    notifications_before_loss = len(client.get("/api/notifications", headers=piotr).json())
+    assert notifications_before_loss >= 1
+
+    # 3d. Urzędnik Krakowa publikuje świadczenie; rodzina z Krakowa je widzi, wcześniej nie
+    official = login_official(client, "urzednik.krakow@mrodzina.local")
+    local = client.post(
+        "/api/official/benefits",
+        json={"name": "Dopłata do żłobka w Krakowie", "description": "Dopłata dla rodziców.", "amount_text": "500 zł / mies."},
+        headers=official,
+    ).json()
+    assert local["id"] not in {m["benefit"]["id"] for m in client.get("/api/benefits", headers=anna).json()}
+    assert client.post(f"/api/official/benefits/{local['id']}/publish", headers=official).status_code == 200
+    assert local["id"] in {m["benefit"]["id"] for m in client.get("/api/benefits", headers=anna).json()}
+
     # 4. Czat: model woła narzędzie przepisów i odpowiada z cytatem artykułu; źródło jest linkiem do aktu
     llm = FakeLLM().script(
         LLMResult(tool_calls=[ToolCall(id="t1", name="szukaj_w_przepisach", arguments={"query": "urlop macierzyński wymiar tygodni"})]),
@@ -68,13 +114,14 @@ def test_nowak_family_journey(client, store):
     sources = next(d for k, d in events if k == "sources")["sources"]
     assert sources[0]["title"] == "Kodeks pracy, Art. 180" and sources[0]["url"].startswith("https://isap.sejm.gov.pl/")
 
-    # 5. Anna ma w toku szkic wniosku o dziecko w drodze (tworzy go plan 08; tu wstawiony wprost do bazy)
+    # 5. Anna ma w toku dwa szkice: o dziecko w drodze (ZAM) i o Maję (KDR)
     drafted = children["Dziecko w drodze"]["id"]
-    for doc in (
-        {"id": "app-draft", "family_id": family["id"], "child_id": drafted, "status": "draft", "form_code": "ZAM"},
-        {"id": "app-maja", "family_id": family["id"], "child_id": children["Maja"]["id"], "status": "draft", "form_code": "KDR"},
-    ):
-        asyncio.run(store.put("applications", doc))
+    zam = client.post("/api/applications", json={"form_code": "ZAM", "child_id": drafted}, headers=anna)
+    kdr = client.post("/api/applications", json={"form_code": "KDR", "child_id": children["Maja"]["id"]}, headers=anna)
+    assert zam.status_code == 201 and kdr.status_code == 201, (zam.text, kdr.text)
+    zam_id, kdr_id = zam.json()["id"], kdr.json()["id"]
+    calendar_before = client.get("/api/calendar", headers=piotr).json()
+    assert any(e["child_id"] == drafted for e in calendar_before)
 
     # 6. Zdarzyła się strata ciąży. Anna jedną spokojną opcją zgłasza poronienie — bez pól i potwierdzeń
     assert client.get("/api/me/mode", headers=piotr).json()["mode"] == "normal"
@@ -84,11 +131,18 @@ def test_nowak_family_journey(client, store):
     # 7. Piotr przy następnym wejściu widzi ten sam tryb — bez żadnego powiadomienia
     mode = client.get("/api/me/mode", headers=piotr).json()
     assert mode["mode"] == "jaskolka" and mode["child_id"] == drafted and mode["undo_until"]
-    assert store._data.get("notifications", {}) == {}
+    assert len(client.get("/api/notifications", headers=piotr).json()) == notifications_before_loss
 
     # 8. Szkic o to dziecko anulowano po cichu; szkic dla Mai został
     apps = {a["id"]: a for a in asyncio.run(store.find("applications", family_id=family["id"]))}
-    assert apps["app-draft"]["status"] == "cancelled" and apps["app-maja"]["status"] == "draft"
+    assert apps[zam_id]["status"] == "cancelled" and apps[kdr_id]["status"] != "cancelled"
+    assert apps[sent["id"]]["status"] == "accepted"  # wysłanych nie ruszamy
+
+    # 8a. Kalendarz: terminy o utracone dziecko znikają; świadczenia o stracie są na liście „Dla Was”
+    calendar = client.get("/api/calendar", headers=piotr).json()
+    assert not [e for e in calendar if e["child_id"] == drafted and e["kind"] in ("deadline", "child")]
+    benefits = client.get("/api/benefits", headers=piotr).json()
+    assert any("loss_support" in m["benefit"]["tags"] for m in benefits)
 
     # 9. Czat zna sytuację rodziny (narzędzie profil_rodziny), ale nie wymyśla świadczeń o utraconym dziecku
     llm = FakeLLM().script(
@@ -108,7 +162,8 @@ def test_nowak_family_journey(client, store):
     assert undone.status_code == 200 and undone.json()["situation"] is None
     assert client.get("/api/me/mode", headers=anna).json()["mode"] == "normal"
     apps = {a["id"]: a for a in asyncio.run(store.find("applications", family_id=family["id"]))}
-    assert apps["app-draft"]["status"] == "cancelled"
+    assert apps[zam_id]["status"] == "cancelled"
+    assert [e for e in client.get("/api/calendar", headers=anna).json() if e["child_id"] == drafted]  # terminy wracają
 
 
 def test_nowak_ciezka_choroba_does_not_enter_mode(client, store):
@@ -125,16 +180,3 @@ def test_official_cannot_use_family_endpoints(client):
     official = login_official(client, "urzednik.krakow@mrodzina.local")
     assert client.get("/api/me/mode", headers=official).status_code == 403
     assert client.post("/api/chat", json={"message": "cześć"}, headers=official).status_code == 403
-
-
-@pytest.mark.skip(
-    reason=(
-        "Czeka na plany 03 (analiza/świadczenia/panel), 04 (umowy, ryzyka), 08 (wnioski), 09 (poczta, kalendarz) i 07 "
-        "(panel urzędnika). Kroki do dopisania w test_nowak_family_journey: /api/analysis (maybe + pytanie), wgranie i "
-        "zatwierdzenie umowy (DemoLLM), /api/risks, wniosek urlopowy → submit → symulowane odpowiedzi → status i "
-        "kalendarz, publikacja świadczenia przez urzędnika Krakowa widoczna dla Nowaków, a w kroku straty — "
-        "ukrycie świadczeń o dziecku i wyciszenie terminów w /api/calendar."
-    )
-)
-def test_e2e_steps_blocked_on_other_plans():
-    raise AssertionError("do uzupełnienia po scaleniu planów 03/04/07/08/09")

@@ -15,7 +15,7 @@ export default function EventCard({
   const risk = isAtRisk(event)
   return (
     <article
-      className={`event-card stack${event.done ? ' is-done' : ''}${risk ? ' is-risk' : ''}`}
+      className={`event-card stack${event.done ? ' is-done' : ''}${risk ? ' is-risk' : ''}${event.muted ? ' is-muted' : ''}`}
       style={{ gap: '0.4rem' }}
       aria-label={event.title}
     >

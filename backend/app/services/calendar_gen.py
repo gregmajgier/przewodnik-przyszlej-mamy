@@ -19,6 +19,7 @@ from ..models.benefit import Benefit
 from ..models.calendar import CalendarEvent
 from ..models.contract import Risk
 from ..models.family import Child, FamilyView
+from .situations import event_policy, family_mode
 
 class BenefitWithMatch(BaseModel):
     """Świadczenie + wynik dopasowania dla rodziny (z `BenefitService.list_matches`)."""
@@ -170,8 +171,12 @@ def generate_events(
             )
         )
 
+    # tryb jaskółki: wpisy innych dzieci i ostrzeżenia są wyciszone — widoczne, ale bez alarmów o terminie
+    policy = event_policy(children)
+    jaskolka = family_mode(children) == "jaskolka"
     for e in events:
-        e.overdue = bool(e.due_date and e.due_date < today and e.kind in ("deadline", "warning"))
+        e.muted = policy.get(e.child_id or "") == "mute" or (jaskolka and e.kind == "warning")
+        e.overdue = bool(e.due_date and e.due_date < today and e.kind in ("deadline", "warning")) and not e.muted
     events.sort(key=lambda e: (e.due_date or date.max, e.kind, e.id))
     return events
 

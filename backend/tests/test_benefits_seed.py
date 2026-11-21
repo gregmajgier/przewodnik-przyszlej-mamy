@@ -66,7 +66,7 @@ def test_seed_is_idempotent(store):
 
     asyncio.run(seed_all(store))
     docs = asyncio.run(store.find("benefits", scope="national"))
-    assert len(docs) == len(load_national_benefits())
+    assert len(docs) == len(load_national_benefits()) + len(load_loss_benefits())  # + wsparcie po stracie (plan 10)
 
 
 TODAY = date(2026, 11, 21)

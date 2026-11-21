@@ -23,3 +23,5 @@ class CalendarEvent(BaseModel):
     recipient: str | None = None
     status: str | None = None
     severity: Literal["info", "medium", "high"] | None = None
+    # tryb jaskółki: terminy innych dzieci są wyciszone (pokazywane spokojnie, bez przypominania)
+    muted: bool = False

@@ -39,6 +39,10 @@
 .event-card.is-risk {
   border-left: 6px solid var(--danger);
 }
+.event-card.is-muted {
+  opacity: 0.7;
+  border-left: 0;
+}
 .event-meta {
   font-size: 0.9rem;
   color: var(--muted);

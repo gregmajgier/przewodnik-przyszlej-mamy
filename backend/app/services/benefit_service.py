@@ -14,6 +14,7 @@ from ..models.benefit import Benefit
 from ..models.profile import Address, ParentProfile
 from ..storage import Store
 from .families import FamilyService
+from .situations import loss_support_applies
 from .units import units_for
 from .matching import FamilyContext, MatchResult, build_context, match_benefit, next_deadline
 
@@ -95,7 +96,12 @@ class BenefitService:
         docs = await self.store.find("benefits", status="published")
         benefits = [Benefit.model_validate(d) for d in docs]
         return sorted(
-            (b for b in benefits if b.scope == "national" or (b.unit_id and b.unit_id in ctx.unit_ids)),
+            (
+                b
+                for b in benefits
+                if (b.scope == "national" or (b.unit_id and b.unit_id in ctx.unit_ids))
+                and loss_support_applies(b.tags, ctx.children)  # wsparcie po stracie tylko w trybie jaskółki
+            ),
             key=lambda b: (b.scope != "national", b.name),
         )
 
