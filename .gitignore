@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 .env
 .impeccable/
+
+# Claude Code worktrees
+.claude/worktrees/
