@@ -132,6 +132,9 @@ def test_create_draft_prefills(client):
     assert app["status"] == "needs_input"
     assert {m["field_id"] for m in app["missing"]} == {"street", "house_no"}
     assert "signed_digest" not in app  # wewnętrzny odcisk nie wychodzi do klienta
+    labels = {f["id"]: f["label"] for f in app["fields"]}  # etykiety do podglądu i edycji pól
+    assert labels["street"] == "Ulica" and set(app["values"]) <= set(labels)
+    assert all("source_key" not in f and "pdf_field" not in f for f in app["fields"])
 
 
 def test_answers_complete_the_application_and_are_remembered(client):

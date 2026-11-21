@@ -10,13 +10,27 @@ metadane załączników (nazwa, rozmiar), nie ich zawartość.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 from fastapi import Depends
 from pydantic import BaseModel, Field
 
 from ..storage import Store, get_store
+
+
+_last_stamp = datetime.min.replace(tzinfo=timezone.utc)
+
+
+def _now() -> datetime:
+    """Znacznik czasu ściśle rosnący w obrębie procesu — zegar systemowy bywa zgrubny (np. ~15 ms na Windows),
+    a skrzynka sortuje wiadomości po czasie, więc dwie wiadomości nie mogą dostać tego samego."""
+    global _last_stamp
+    now = datetime.now(timezone.utc)
+    if now <= _last_stamp:
+        now = _last_stamp + timedelta(microseconds=1)
+    _last_stamp = now
+    return now
 
 
 class SentMessage(BaseModel):
@@ -80,7 +94,7 @@ class SimMailProvider:
             subject=subject,
             body=body,
             attachments=[AttachmentInfo(filename=name, size=len(data)) for name, data in attachments],
-            created_at=datetime.now(timezone.utc),
+            created_at=_now(),
         )
         await self._store.put("mail_messages", msg.model_dump(mode="json"))
         return SentMessage(thread_id=thread_id, message_id=message_id)

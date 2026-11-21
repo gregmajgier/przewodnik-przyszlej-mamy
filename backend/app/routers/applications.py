@@ -12,7 +12,7 @@ from ..models.application import AnswersIn, Application, ApplicationCreate, Appl
 from ..security import Principal, require_parent
 from ..services.agent_plan import build_plan
 from ..services.applications import ApplicationService, cancel_drafts_for_child  # noqa: F401  (API dla planu 10)
-from ..services.prefill import portal_meta, portal_schema
+from ..services.prefill import form_schema, portal_meta, portal_schema
 from ..storage import Store, get_store
 
 router = APIRouter(prefix="/api/applications", tags=["applications"])
@@ -24,8 +24,13 @@ def get_service(store: Store = Depends(get_store), mail: MailProvider = Depends(
     return ApplicationService(store, mail)
 
 
+def _field_info(fields) -> list[dict]:
+    return [f.model_dump(include={"id", "label", "type", "required", "choices"}) for f in fields]
+
+
 def _out(app: Application) -> dict:
-    return app.model_dump(mode="json", exclude=_HIDDEN)
+    """Wniosek dla klienta: bez odcisku podpisu, z opisem pól (etykiety do podglądu i edycji)."""
+    return {**app.model_dump(mode="json", exclude=_HIDDEN), "fields": _field_info(form_schema(app.form_code))}
 
 
 @router.get("/forms")
