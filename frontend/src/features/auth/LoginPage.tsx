@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { Doodles } from '../../brand/Doodles'
-import { Wordmark } from '../../brand/Splash'
+import { BrandMark, Wordmark } from '../../brand/Splash'
 import { Logo } from '../../components/Logo'
 import { api } from '../../lib/api'
 import { useSession } from '../../lib/session'
@@ -110,7 +110,7 @@ export default function LoginPage() {
     return (
       <div className="flow flow-pink">
         <div className="flow-body flow-center">
-          <Logo className="splash-logo" color="#fff" duration={1200} />
+          <BrandMark duration={1200} />
           <h1 className="flow-title" style={{ marginTop: '1.5rem' }}>
             Łączę z mObywatelem
           </h1>
