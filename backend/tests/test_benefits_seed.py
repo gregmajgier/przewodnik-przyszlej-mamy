@@ -3,7 +3,7 @@ from datetime import date, timedelta
 
 from app.models.benefit import Benefit
 from app.models.family import Child, Family, FamilyView
-from app.seed.benefits import DATA_FILE, load_national_benefits
+from app.seed.benefits import DATA_FILE, load_loss_benefits, load_national_benefits
 from app.services.matching import build_context, match_benefit
 from app.services.zus_sim import fetch_zus_data
 
