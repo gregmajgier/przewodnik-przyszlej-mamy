@@ -16,6 +16,8 @@ class Criteria(BaseModel):
     max_income_per_person: float | None = None
     min_children: int | None = None
     requires_pregnancy: bool | None = None
+    # ciąża (dziecko w drodze) spełnia też kryterium wieku dziecka (np. zasiłek macierzyński, urlopy)
+    allow_pregnancy: bool | None = None
     requires_disability: bool | None = None
     requires_foster: bool | None = None
     employment_kinds: list[Literal["employment", "mandate", "jdg"]] | None = None

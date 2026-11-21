@@ -47,6 +47,7 @@ class MatchResult(BaseModel):
     reasons: list[str] = Field(default_factory=list)
     unmet: list[str] = Field(default_factory=list)
     questions: list[Question] = Field(default_factory=list)
+    eligible_children: int = 0  # ile dzieci spełnia kryterium wieku (dla świadczeń „na dziecko”)
 
 
 # ---------- pomocnicze ----------
@@ -95,7 +96,23 @@ def _has_ezla_b(ctx: FamilyContext) -> bool:
 
 
 def _pregnant(ctx: FamilyContext) -> bool:
-    return bool(_expected(ctx)) or _has_ezla_b(ctx)
+    """Dziecko w drodze albo aktywne e-ZLA kod B (chyba że dziecko urodziło się niedawno — ciąża już się skończyła)."""
+    if _expected(ctx):
+        return True
+    recently_born = any((ctx.today - c.birth_date).days <= 270 for c in _born(ctx))  # type: ignore[operator]
+    return _has_ezla_b(ctx) and not recently_born
+
+
+def _sickness_insurance(ctx: FamilyContext) -> bool | None:
+    """Czy ktoś z rodziców ma ubezpieczenie chorobowe (etat: obowiązkowe; zlecenie/JDG: dobrowolne)."""
+    unknown = False
+    for p in ctx.parents:
+        for i in p.insurance:
+            if i.kind == "employment" or i.voluntary_sickness is True:
+                return True
+            if i.voluntary_sickness is None:
+                unknown = True
+    return None if unknown else False
 
 
 def _answer_key(benefit: Benefit, condition_id: str) -> str:
@@ -108,6 +125,8 @@ def _fact(ctx: FamilyContext, key: str) -> bool | None:
         return _pregnant(ctx)
     if key == "family.has_ezla_b":
         return _has_ezla_b(ctx)
+    if key == "family.sickness_insurance":
+        return _sickness_insurance(ctx)
     if key == "family.child_serious_illness":
         return any(c.serious_illness for c in ctx.children if c.situation != "loss")
     value = ctx.answers.get(key)
@@ -162,6 +181,7 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
     unmet: list[str] = []
     questions: list[Question] = []
     cr = benefit.criteria
+    eligible = len([c for c in _born(ctx)])
 
     # --- zasięg terytorialny ---
     if benefit.scope != "national":
@@ -182,8 +202,11 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
             months = age_in_months(c.birth_date, ctx.today)  # type: ignore[arg-type]
             if months >= lo and (hi is None or months <= hi):
                 in_range.append((c, months))
+        eligible = len(in_range)
         if in_range:
             reasons.extend(f"{c.name} ma {age_phrase(m)}" for c, m in in_range)
+        elif cr.allow_pregnancy and _pregnant(ctx):
+            reasons.append("w rodzinie jest dziecko w drodze (ciąża)")
         else:
             if _expected(ctx) and not _born(ctx):
                 unmet.append("Dostępne po urodzeniu dziecka — dziecko w drodze liczy się dopiero po porodzie.")
@@ -269,10 +292,10 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
         _check_condition(ctx, benefit, cond, reasons, unmet, questions)
 
     if unmet:
-        return MatchResult(status="no", reasons=reasons, unmet=unmet, questions=[])
+        return MatchResult(status="no", reasons=reasons, unmet=unmet, questions=[], eligible_children=eligible)
     if questions:
-        return MatchResult(status="maybe", reasons=reasons, unmet=[], questions=questions)
-    return MatchResult(status="fits", reasons=reasons)
+        return MatchResult(status="maybe", reasons=reasons, questions=questions, eligible_children=eligible)
+    return MatchResult(status="fits", reasons=reasons, eligible_children=eligible)
 
 
 def _check_condition(

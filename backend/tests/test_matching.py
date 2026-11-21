@@ -396,3 +396,35 @@ def test_next_deadline_child_age_and_fixed():
     assert next_deadline(b, ctx([])) == date(2026, 12, 31)
     b.deadline = None
     assert next_deadline(b, ctx([])) is None
+
+
+# ---------- rozszerzenia: ciąża jako alternatywa dla wieku, liczba uprawnionych dzieci, ubezp. chorobowe ----------
+
+
+def test_allow_pregnancy_makes_expected_child_satisfy_age_criterion():
+    b = benefit(child_age_min_months=0, child_age_max_months=11, allow_pregnancy=True)
+    assert match_benefit(ctx([child("W drodze", due=date(2027, 1, 20))]), b).status == "fits"
+    assert match_benefit(ctx([born_months_ago(5)]), b).status == "fits"
+    assert match_benefit(ctx([born_months_ago(40)]), b).status == "no"
+
+
+def test_eligible_children_counts_children_in_age_range():
+    b = benefit(child_age_max_months=215)
+    kids = [born_months_ago(90, name="Maja"), born_months_ago(40, name="Antek"), child("W drodze", due=date(2027, 1, 20))]
+    assert match_benefit(ctx(kids), b).eligible_children == 2
+
+
+def test_sickness_insurance_fact():
+    cond = Condition(id="ch", text="Masz ubezpieczenie chorobowe", kind="auto", profile_key="family.sickness_insurance")
+    b = benefit(conditions=[cond])
+    assert match_benefit(ctx([], parents=[parent(kinds=("employment",))]), b).status == "fits"
+
+    def jdg(vs):
+        p = parent(kinds=("jdg",))
+        p.insurance[0].voluntary_sickness = vs
+        return p
+
+    assert match_benefit(ctx([], parents=[jdg(True)]), b).status == "fits"
+    assert match_benefit(ctx([], parents=[jdg(False)]), b).status == "no"
+    unknown = match_benefit(ctx([], parents=[jdg(None)]), b)
+    assert unknown.status == "maybe" and unknown.questions[0].condition_id == "ch"
