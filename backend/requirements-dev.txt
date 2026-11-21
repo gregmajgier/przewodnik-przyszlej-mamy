@@ -2,3 +2,4 @@
 pytest
 pytest-asyncio
 httpx
+pdfplumber==0.11.11
