@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 DEFAULT_SESSION_SECRET = "dev-secret-change-me"
 DEFAULT_OFFICIAL_PASSWORD = "demo1234"
 MIN_SESSION_SECRET_LENGTH = 32
+MIN_OFFICIAL_PASSWORD_LENGTH = 12
 
 
 class Settings(BaseSettings):

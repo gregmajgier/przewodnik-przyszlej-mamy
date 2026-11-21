@@ -124,7 +124,7 @@ async def current_principal(
     except AuthError:
         raise _unauthorized("Sesja jest nieprawidłowa lub wygasła. Zaloguj się ponownie.") from None
     user = await store.get("users", claims.user_id)
-    if user is None:
+    if user is None or user.get("disabled"):
         raise _unauthorized("Konto nie istnieje. Zaloguj się ponownie.")
     return Principal(user["id"], user["role"], user.get("family_id"), user.get("unit_id"))
 

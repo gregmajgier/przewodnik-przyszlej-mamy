@@ -53,7 +53,11 @@ async def login_mobywatel(body: PersonaLogin, store: Store = Depends(get_store))
 async def login_official(body: OfficialLogin, store: Store = Depends(get_store)):
     candidates = await store.find("users", role="official", email=body.email.strip().lower())
     user_doc = candidates[0] if candidates else None
-    if user_doc is None or not verify_password(body.password, user_doc.get("password_hash")):
+    if (
+        user_doc is None
+        or user_doc.get("disabled")
+        or not verify_password(body.password, user_doc.get("password_hash"))
+    ):
         raise HTTPException(401, "Nieprawidłowy e-mail lub hasło.")
     return _session(user_doc)
 
