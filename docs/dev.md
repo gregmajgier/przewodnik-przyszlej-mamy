@@ -264,8 +264,8 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   to pytania tak/nie. W trybie demo działają reguły słów kluczowych (`seed/demo_conditions.py`).
 - Przykładowe świadczenia lokalne (z dopiskiem „(przykład)”): `backend/app/data/benefits_local_sample.json`.
   Seed ich nie nadpisuje, jeśli urzędnik je zmienił.
-- **Tymczasowo** model `Benefit` i zasięg `covers` pochodzą z mocków planu 03 (`backend/app/mocks/`). Patrz
-  `docs/superpowers/plans/NOTES-MOCKS.md`.
+- Edytor urzędnika używa wspólnego modelu `Benefit` (plan 03) rozszerzonego o `awaiting_approval`, `deadline_text`
+  i `apply_url`; widoczność świadczeń po adresie: `services/benefit_service.visible_benefits`.
 
 ## Poczta, statusy wniosków, kalendarz i powiadomienia (plan 09)
 
@@ -288,11 +288,12 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
   oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
   „Wkrótce”.
-- **Demo bez planu 08:** na pustej stronie `/poczta` jest przycisk „Wyślij przykładowy wniosek (demo)” —
-  `POST /api/mock/applications` (tylko `ENV=dev`). Scenariusz: Anna zakłada rodzinę → `/poczta` → wyślij przykładowy
-  wniosek → „Symuluj odpowiedzi” → status „Zaakceptowany”, powiadomienia, wpis w kalendarzu.
-- **Tymczasowo** `Application`, wysyłka (`MailProvider`/`SimMailProvider`) i katalog świadczeń do kalendarza to mocki
-  planów 08/03 (`backend/app/mocks/`) — patrz `docs/superpowers/plans/NOTES-MOCKS.md`.
+- **Wysyłka wniosku uruchamia symulację odpowiedzi:** `ApplicationService.submit` (e-mail do pracodawcy) i
+  `portal_submitted` (eZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
+  `mail.sim_inbox.schedule_reply`. Scenariusz: Anna składa wniosek w `/wnioski` → `/poczta` → „Symuluj odpowiedzi” →
+  status „Zaakceptowany”, powiadomienia, wpis w kalendarzu. Wiadomości (wysłane i odebrane) to jeden model
+  `models/mail.MailMessage`; `SimMailProvider` (plan 08) zapisuje folder `sent`, `SimInbox` (plan 09) dokłada `inbox`.
+
 ## /jaskolka — ścieżka publiczna (plan 05)
 
 Spokojna, monochromatyczna ścieżka **bez logowania**, ciasteczek i analityki: wybór sytuacji → checklista

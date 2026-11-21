@@ -11,11 +11,11 @@ Dlatego zrobiono **wszystko, co niezależne**, a miejsca styku zostawiono jako c
 | Anulowanie szkiców / `child_loss_note` | gotowe na kolekcji `applications` (statusy `draft|needs_input|ready` → `cancelled`); po scaleniu planu 08 można zastąpić własnym `cancel_drafts_for_child` — ten sam kontrakt |
 | Brak powiadomień dla drugiego rodzica | gotowe (nic nie zapisujemy w `notifications`), test |
 | API + `GET /api/me/mode` | gotowe |
-| Filtr dopasowania (`matching.py`) i `loss_support` | **do podpięcia:** silnik z gałęzi Piotrka już pomija dzieci z `situation == "loss"` i zna `family.child_serious_illness`; brakuje tylko filtra `loss_support_applies(benefit.tags, children)` oraz wczytania `data/benefits_loss.json` do seedu świadczeń (`Benefit` z `tags`) |
-| Wyciszanie terminów (`calendar_gen.py`) | **do podpięcia:** `event_policy(children)` zwraca `skip`/`mute` per dziecko |
+| Filtr dopasowania (`matching.py`) i `loss_support` | **podpięte po scaleniu:** `BenefitService._visible` stosuje `loss_support_applies`, `benefits_loss.json` jest w seedzie (wcześniej: silnik z gałęzi Piotrka już pomija dzieci z `situation == "loss"` i zna `family.child_serious_illness`; brakowało filtra i seedu) |
+| Wyciszanie terminów (`calendar_gen.py`) | **podpięte po scaleniu:** `CalendarEvent.muted` dla innych dzieci i ostrzeżeń w trybie jaskółki |
 | `profil_rodziny` z `situation` | gotowe (w planie 06) + test |
 | Frontend: `SituationMenu`, `JaskolkaHome`, `useFamilyMode`, zmiany w `AppShell` i `FamilyPage` | gotowe; sekcje zależne od planów 03/09 (`/api/benefits`, `/api/calendar`) znikają same, gdy endpoint nie istnieje |
-| Task 4 — test całości | **częściowy:** `tests/test_e2e_nowak.py` pokrywa logowanie, rodzinę, czat, tryb jaskółki; kroki 03/04/07/08/09 opisuje test oznaczony `skip` z listą do dopisania |
+| Task 4 — test całości | **pełny po scaleniu:** `tests/test_e2e_nowak.py` przechodzi całą ścieżkę (analiza, umowa, wniosek, poczta, kalendarz, urzędnik, tryb jaskółki) |
 | Task 5 — README, weryfikacja końcowa | README gotowe; `docker build` niewykonany (Docker niedostępny w środowisku) |
 
 ## Decyzje
