@@ -22,6 +22,29 @@ npm test -- --run && npm run lint && npm run build
 
 Wymagania: Python 3.12+, Node 22+.
 
+## Persony i konta
+
+- **Rodzice (symulowany mObywatel)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży, e-ZLA kod B)
+  i `persona-nowak-piotr` (tata). Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
+  uruchomienia. Nowe persony = nowy wpis w `backend/app/seed/personas.py`.
+- **Urzędnicy** (`POST /api/auth/official`): `urzednik.krakow@mrodzina.local` (gmina Kraków) i
+  `urzednik.malopolska@mrodzina.local` (województwo). W trybie `dev` hasło to `demo1234`
+  (`OFFICIAL_DEFAULT_PASSWORD`).
+- Dołączanie drugiego rodzica: Anna zakłada rodzinę (`/start`), kopiuje kod z `/rodzina`; Piotr loguje się,
+  wybiera „Dołącz do rodziny” (`/dolacz`), a Anna akceptuje prośbę w `/rodzina`.
+
+## Punkty rozszerzeń (dla kolejnych funkcji)
+
+- Backend: nowy plik `backend/app/routers/<nazwa>.py` z `router = APIRouter(prefix="/api/...")` jest
+  dołączany automatycznie. Zależności: `require_parent`, `require_official`, `current_principal`
+  (`app/security.py`), `get_store` (`app/storage.py`). Błędy domenowe: `raise DomainError(status, "po polsku")`.
+- Dane startowe: `seed_all` w `backend/app/seed/__init__.py` (idempotentne, stałe `id`).
+- Frontend: `frontend/src/features/<nazwa>/` z `routes.tsx` (trasy publiczne oznacz
+  `handle: { public: true }`), opcjonalnie `nav.ts`, `widget.tsx` (kafelek dashboardu) oraz
+  `profile-section.tsx` (sekcja w „Moje dane”) — wszystko wykrywane automatycznie.
+- Testy backendu: fixtury `store`, `client` i funkcje `login(client, persona_id)`,
+  `login_official(client, email)` w `backend/tests/conftest.py` (`from conftest import login`).
+
 ## Konfiguracja (zmienne środowiskowe, `backend/.env`)
 
 | Zmienna | Domyślnie | Znaczenie |
