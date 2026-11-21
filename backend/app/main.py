@@ -21,6 +21,9 @@ def _include_routers(app: FastAPI) -> None:
         router = getattr(module, "router", None)
         if router is not None:
             app.include_router(router)
+        install = getattr(module, "install", None)  # opcjonalny hak: handlery wyjątków itp.
+        if callable(install):
+            install(app)
 
 
 def create_app(store: Store | None = None) -> FastAPI:

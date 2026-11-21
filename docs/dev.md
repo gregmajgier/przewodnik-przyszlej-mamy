@@ -60,3 +60,52 @@ Losowy sekret: `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
 
 **Wdrożenie:** ustaw `ENV=prod`, własny `SESSION_SECRET` i `OFFICIAL_DEFAULT_PASSWORD`
 (jako sekrety Container App, nigdy w repo).
+
+## AI i limity (plan 02)
+
+Cała komunikacja z modelami idzie przez `backend/app/ai`:
+
+- `get_llm()` (zależność FastAPI) — `FoundryLLM` gdy ustawione `AZURE_OPENAI_ENDPOINT` i `AZURE_OPENAI_API_KEY`,
+  inaczej `DemoLLM`. Funkcje rejestrują odpowiedzi demo: `register_demo_handler("czat", fn)`.
+  W testach: `app.dependency_overrides[get_llm] = lambda: FakeLLM().script(LLMResult(text="..."))`.
+  `llm.chat(messages, feature=..., tools=...)`, `llm.structured(messages, Model, feature=...)`
+  (jedna ponowna próba przy niepoprawnym JSON, potem `LLMError`).
+- `ai_guard("nazwa-funkcji")` — zależność endpointu AI: limit równoległych żądań, **rezerwacja** tokenów
+  z dziennego budżetu (atomowa: check+increment), limity użytkownika i IP; zwraca `GuardContext`. Po wywołaniu
+  modelu: `record_usage(ctx, usage)` (rozlicza rezerwację do rzeczywistego zużycia); gdy model nie został
+  wywołany/zawiódł: `await ctx.release()` (zwrot rezerwacji). Dla `structured()` użyj
+  `with track_usage() as usage: ...` i przekaż `usage` do `record_usage`. Długość wejścia:
+  `enforce_max_input(tekst, ...)` (422 powyżej `AI_MAX_INPUT_CHARS`).
+- Przekroczenie limitu: HTTP 429 + `Retry-After` + polski `detail`. Błąd wewnątrz limitera/budżetu: HTTP 503
+  (fail-closed — nigdy nie przepuszcza bez limitu). `GET /api/ai/status` zwraca `{mode: demo|live}`.
+- Narzędzia MCP: nowy plik `backend/app/tools/<nazwa>.py` z `@tool(nazwa, opis, json_schema)`
+  (`async def fn(ctx: ToolContext, args: dict)`); `load_all_tools()` importuje je automatycznie,
+  `call_tool(name, args, ctx)` waliduje argumenty (JSON Schema) i rzuca tylko `ToolError`.
+
+| Zmienna | Domyślnie | Znaczenie |
+|---|---|---|
+| `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY` | puste | Puste = `DemoLLM`. |
+| `AZURE_OPENAI_DEPLOYMENT` | `gpt-4o-mini` | Nazwa wdrożenia modelu w Foundry. |
+| `AZURE_OPENAI_API_VERSION` | `2024-10-21` | Wersja API. |
+| `AI_MAX_OUTPUT_TOKENS` | `1500` | Maks. tokenów odpowiedzi. |
+| `AI_USER_RPM` / `AI_USER_DAILY` | `20` / `300` | Zapytania AI na użytkownika: na minutę / na dobę (okno przesuwne). |
+| `AI_IP_RPM` / `AI_IP_DAILY` | `60` / `1000` | To samo na adres IP. |
+| `AI_DAILY_TOKENS` | `500000` | Dzienny budżet tokenów aplikacji (reset o północy Europe/Warsaw). |
+| `AI_MAX_INPUT_CHARS` | `8000` | Maks. długość wejścia. |
+| `AI_RESERVE_TOKENS` | `4000` | Tokeny rezerwowane z budżetu na żądanie AI (rozliczane po odpowiedzi). |
+| `AI_MAX_INFLIGHT` | `20` | Maks. równoległych żądań AI w procesie (powyżej: 429 „obciążony”). |
+| `TRUST_PROXY_HOPS` | `0` | `0` = ignoruj `X-Forwarded-For`. `N` = IP to N-ty wpis od **prawej** (Azure Container Apps ingress: `1`). Za mało wpisów/niepoprawny adres = adres połączenia. |
+
+**Poziom 3 (twardy limit TPM) — konfiguracja poza kodem:** w Azure AI Foundry na wdrożeniu modelu ustaw
+„Tokens per Minute Rate Limit” na wartość odpowiadającą budżetowi (np. `AI_DAILY_TOKENS` / 1440 × kilka),
+jako ostatnią barierę kosztów, gdyby limity aplikacji zawiodły. Dodatkowo ustaw alert budżetowy na subskrypcji.
+
+**Za proxy:** w Azure Container Apps ustaw `TRUST_PROXY_HOPS=1` — bez tego wszyscy użytkownicy dzieliby adres
+proxy i limit IP byłby wspólny. Wpisy `X-Forwarded-For` z lewej strony kontroluje klient, więc nigdy z nich nie
+korzystamy.
+
+**Ograniczenia:** limiter okien jest w pamięci procesu — przy kilku replikach limit efektywny rośnie
+proporcjonalnie (dla demo: jedna replika lub sticky ingress). Budżet tokenów jest w Store (Cosmos), więc jest
+wspólny, ale rezerwacja jest atomowa tylko w obrębie procesu (`asyncio.Lock`; `Store` nie ma atomowego inkrementu).
+Przy wielu replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — inaczej możliwe przekroczenie
+budżetu rzędu liczby replik × rezerwacja. Limit równoległych żądań (`AI_MAX_INFLIGHT`) też jest per proces.
