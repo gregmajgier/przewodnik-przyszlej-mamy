@@ -166,10 +166,10 @@ export default function OnboardingPage() {
             <p className="muted">Kod zaproszenia znajdziesz w zakładce „Rodzina”.</p>
           )}
           <div className="row">
-            <button type="button" className="btn" onClick={() => navigate('/')}>
+            <button type="button" className="btn" onClick={() => navigate('/analiza')}>
               Gotowe, przejdź dalej
             </button>
-            <button type="button" className="btn btn-secondary" onClick={() => navigate('/')}>
+            <button type="button" className="btn btn-secondary" onClick={() => navigate('/analiza')}>
               Wychowuję dziecko samodzielnie
             </button>
           </div>
