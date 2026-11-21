@@ -522,3 +522,17 @@ def test_inflight_released_when_guard_denies(app_and_client, monkeypatch):
     monkeypatch.setattr(settings, "ai_user_rpm", 0)
     c.post("/api/_t/ai", headers=login(c, "persona-nowak-anna"))
     assert app.state.ai_inflight.current == 0
+
+
+async def test_settle_and_release_hit_the_day_of_reservation_across_midnight():
+    """Rezerwacja z dnia D rozliczana po północy koryguje licznik dnia D, nie D+1."""
+    store = MemoryStore()
+    day = {"now": date(2026, 11, 21)}
+    budget = TokenBudget(store, 10_000, lambda: day["now"])
+    settled = await budget.reserve(4000)
+    released = await budget.reserve(1000)
+    day["now"] = date(2026, 11, 22)  # północ minęła w trakcie wywołań modelu
+    await settled.settle(1500)
+    await released.release()
+    assert (await store.get("ai_usage", "2026-11-21"))["tokens"] == 1500
+    assert await store.get("ai_usage", "2026-11-22") is None
