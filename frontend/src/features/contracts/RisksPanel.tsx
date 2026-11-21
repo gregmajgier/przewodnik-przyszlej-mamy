@@ -4,9 +4,35 @@ import { formatDate } from '../../lib/format'
 import './contracts.css'
 import type { Risk } from './types'
 
-const LABEL: Record<Risk['severity'], string> = { high: 'Ważne', medium: 'Uwaga', info: 'Informacja' }
+const SEVERITY_LABEL: Record<Risk['severity'], string> = {
+  high: 'Pilne',
+  medium: 'Ważne',
+  info: 'Dobrze wiedzieć',
+}
 
-export default function RisksPanel() {
+export function RiskList({ risks }: { risks: Risk[] }) {
+  if (risks.length === 0) return <p className="muted">Brak ostrzeżeń. Wszystko wygląda dobrze.</p>
+  return (
+    <ul className="contract-list stack" aria-label="Ostrzeżenia">
+      {risks.map((r) => (
+        <li key={r.id} className={`risk risk-${r.severity}`}>
+          <span className="risk-severity">{SEVERITY_LABEL[r.severity]}</span>
+          <h3>{r.title}</h3>
+          <p>{r.explanation}</p>
+          {r.action && (
+            <p>
+              <strong>Co zrobić:</strong> {r.action}
+              {r.deadline && <> — najlepiej do {formatDate(r.deadline)}</>}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/** Ostrzeżenia o ryzyku utraty świadczeń dla całej rodziny (`GET /api/risks`). */
+export default function RisksPanel({ title = 'Na co uważać' }: { title?: string }) {
   const [risks, setRisks] = useState<Risk[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -20,34 +46,23 @@ export default function RisksPanel() {
     }
   }, [])
 
-  if (error)
-    return (
-      <p role="alert" className="alert">
-        {error}
-      </p>
-    )
-  if (!risks) return <p role="status">Ładowanie…</p>
-  if (risks.length === 0) return <p className="muted">Brak ostrzeżeń. Dajemy znać, gdyby coś się zmieniło.</p>
-
   return (
-    <ul className="risk-list">
-      {risks.map((r) => (
-        <li key={r.id} className="risk" data-severity={r.severity}>
-          <span className="risk-label">{LABEL[r.severity]}</span>
-          <h3>{r.title}</h3>
-          <p>{r.explanation}</p>
-          {r.action && (
-            <p>
-              <strong>Co zrobić:</strong> {r.action}
-            </p>
-          )}
-          {r.deadline && (
-            <p>
-              <strong>Do kiedy:</strong> {formatDate(r.deadline)}
-            </p>
-          )}
-        </li>
-      ))}
-    </ul>
+    <section className="card stack" aria-labelledby="risks-h">
+      <h2 id="risks-h">{title}</h2>
+      {error ? (
+        <p role="alert" className="alert">
+          {error}
+        </p>
+      ) : risks === null ? (
+        <p role="status">Ładowanie…</p>
+      ) : (
+        <RiskList risks={risks} />
+      )}
+    </section>
   )
+}
+
+/** Kafelek dashboardu. */
+export function RisksWidget() {
+  return <RisksPanel title="Ostrzeżenia" />
 }

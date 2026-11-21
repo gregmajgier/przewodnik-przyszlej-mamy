@@ -1,6 +1,6 @@
 import type { ProfileSection } from '../registry'
-import ContractsSection from './ContractsSection'
+import ContractsOfParent from './ContractsOfParent'
 
-const section: ProfileSection = { order: 10, title: 'Umowy o pracę', Component: ContractsSection }
+const section: ProfileSection = { order: 10, title: 'Umowy o pracę i zlecenia', Component: ContractsOfParent }
 
 export default section

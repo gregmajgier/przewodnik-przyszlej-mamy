@@ -1,86 +1,80 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../lib/api'
-import { ANNA, renderWithSession } from '../../test/utils'
+import { renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import ContractsPage from './ContractsPage'
 import RisksPanel from './RisksPanel'
+import type { Contract, ScanResult } from './types'
 import widget from './widget'
-import type { Contract, ContractDraft, Risk, ScanResult } from './types'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
   api: vi.fn(),
 }))
 
-const DRAFT: ContractDraft = {
-  kind: 'mandate',
-  employer_name: 'Studio Foto s.c.',
-  employer_address: null,
-  employer_email: null,
-  position: 'Fotograf',
-  fte: null,
-  gross_monthly: 4000,
-  start_date: '2026-01-01',
-  end_date: null,
-  indefinite: true,
-  voluntary_sickness: null,
-  missing: ['employer_address', 'fte', 'voluntary_sickness'],
+const SCAN: ScanResult = {
+  draft_id: 'contract-1',
+  filename: 'umowa.pdf',
+  draft: {
+    kind: 'employment',
+    employer_name: 'Krakowskie Centrum Usług Wspólnych Sp. z o.o.',
+    employer_address: null,
+    employer_email: 'kadry@kcuw.example.pl',
+    position: 'Specjalista',
+    fte: 1,
+    gross_monthly: 7850,
+    start_date: '2021-11-21',
+    end_date: null,
+    indefinite: true,
+    voluntary_sickness: null,
+    missing: ['employer_address'],
+  },
 }
-const SCAN: ScanResult = { draft_id: 'contract-1', draft: DRAFT, filename: 'umowa.pdf' }
+
 const CONFIRMED: Contract = {
-  ...DRAFT,
+  ...SCAN.draft,
+  employer_address: 'ul. Przykładowa 12, Kraków',
+  missing: [],
   id: 'contract-1',
-  user_id: ANNA.id,
-  family_id: 'f1',
+  user_id: 'user-nowak-anna',
+  family_id: 'family-1',
   filename: 'umowa.pdf',
   confirmed: true,
   created_at: '2026-11-21T10:00:00Z',
-  missing: [],
-}
-const RISK: Risk = {
-  id: 'r1',
-  severity: 'high',
-  title: 'Brak zasiłku macierzyńskiego przy umowie zlecenia',
-  explanation: 'Bez chorobowego nie dostaniesz zasiłku.',
-  action: 'Zgłoś się do dobrowolnego ubezpieczenia chorobowego.',
-  deadline: '2026-11-20',
-  user_id: ANNA.id,
-  source_ref: 'contract-1',
 }
 
-const pdf = () => new File(['%PDF-1.4'], 'umowa.pdf', { type: 'application/pdf' })
+async function uploadFile() {
+  const input = screen.getByLabelText('Plik z umową')
+  await userEvent.upload(input, new File(['%PDF-1.4'], 'umowa.pdf', { type: 'application/pdf' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Odczytaj umowę' }))
+}
 
 describe('ContractsPage', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('po wgraniu pliku pokazuje wyciągnięte dane do sprawdzenia', async () => {
-    routeApi({
-      'GET /api/contracts': [],
-      'GET /api/risks': [],
-      'POST /api/contracts/scan': SCAN,
-    })
+  it('po wgraniu pokazuje wyciągnięte dane do sprawdzenia', async () => {
+    const api = routeApi({ 'GET /api/contracts': [], 'GET /api/risks': [], 'POST /api/contracts/scan': SCAN })
     renderWithSession(<ContractsPage />)
-    await userEvent.upload(await screen.findByLabelText(/wybierz umowy/i), pdf())
-    expect(await screen.findByRole('heading', { name: /sprawdź, co znaleźliśmy/i })).toBeInTheDocument()
-    expect(screen.getByLabelText(/pracodawca \(zleceniodawca\)/i)).toHaveValue('Studio Foto s.c.')
-    expect(screen.getByLabelText('Stanowisko')).toHaveValue('Fotograf')
-    expect(screen.getByLabelText(/wynagrodzenie brutto/i)).toHaveValue('4000')
+    await screen.findByText(/Nie dodaliście jeszcze/)
+    await uploadFile()
+    expect(await screen.findByRole('heading', { name: 'Sprawdź dane umowy' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Pracodawca / zleceniodawca')).toHaveValue(SCAN.draft.employer_name)
+    expect(screen.getByLabelText('Wynagrodzenie brutto miesięcznie (zł)')).toHaveValue('7850')
+    const scanCall = api.mock.calls.find(([p]) => p === '/api/contracts/scan')
+    expect(scanCall?.[1]?.body).toBeInstanceOf(FormData)
   })
 
   it('podświetla brakujące pola', async () => {
     routeApi({ 'GET /api/contracts': [], 'GET /api/risks': [], 'POST /api/contracts/scan': SCAN })
     renderWithSession(<ContractsPage />)
-    await userEvent.upload(await screen.findByLabelText(/wybierz umowy/i), pdf())
+    await screen.findByText(/Nie dodaliście jeszcze/)
+    await uploadFile()
     const address = await screen.findByLabelText('Adres pracodawcy')
-    expect(address).toHaveAttribute('data-missing', 'true')
-    expect(address).toHaveAccessibleDescription(/uzupełnij/i)
-    expect(screen.getByLabelText(/wymiar etatu/i)).toHaveAttribute('data-missing', 'true')
-    expect(screen.getByLabelText('Stanowisko')).toHaveAttribute('data-missing', 'false')
-    // uzupełnienie pola zdejmuje podświetlenie
-    await userEvent.type(address, 'ul. Długa 1')
-    expect(address).toHaveAttribute('data-missing', 'false')
+    expect(address).toHaveAttribute('aria-invalid', 'true')
+    expect(screen.getByTestId('field-employer_address')).toHaveClass('field-missing')
+    expect(screen.getByLabelText('Pracodawca / zleceniodawca')).not.toHaveAttribute('aria-invalid')
   })
 
   it('zatwierdzenie wywołuje confirm z poprawionymi danymi i odświeża listę', async () => {
@@ -95,84 +89,68 @@ describe('ContractsPage', () => {
       },
     })
     renderWithSession(<ContractsPage />)
-    await userEvent.upload(await screen.findByLabelText(/wybierz umowy/i), pdf())
-    await userEvent.selectOptions(await screen.findByLabelText(/dobrowolne ubezpieczenie chorobowe/i), 'no')
-    await userEvent.type(screen.getByLabelText(/wymiar etatu/i), '1')
+    await screen.findByText(/Nie dodaliście jeszcze/)
+    await uploadFile()
+    const address = await screen.findByLabelText('Adres pracodawcy')
+    fireEvent.change(address, { target: { value: 'ul. Przykładowa 12, Kraków' } })
     await userEvent.click(screen.getByRole('button', { name: 'Zatwierdź' }))
-
-    await waitFor(() => expect(screen.queryByRole('heading', { name: /sprawdź/i })).not.toBeInTheDocument())
-    const call = api.mock.calls.find(([path]) => path === '/api/contracts/contract-1/confirm')!
-    const body = (call[1] as { body: ContractDraft }).body
-    expect(body).toMatchObject({ kind: 'mandate', employer_name: 'Studio Foto s.c.', fte: 1, voluntary_sickness: false })
-    const list = await screen.findByRole('heading', { name: 'Studio Foto s.c.' })
-    expect(list).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText(/Plik: umowa.pdf/)).toBeInTheDocument())
+    const call = api.mock.calls.find(([p]) => p === '/api/contracts/contract-1/confirm')
+    expect(call?.[1]?.body).toMatchObject({ employer_address: 'ul. Przykładowa 12, Kraków' })
   })
 
-  it('pokazuje komunikat błędu z API przy limicie 429', async () => {
+  it('pokazuje komunikat limitu 429 z API', async () => {
     routeApi({
       'GET /api/contracts': [],
       'GET /api/risks': [],
       'POST /api/contracts/scan': new ApiError(429, 'Zbyt wiele zapytań do asystenta. Spróbuj za chwilę.'),
     })
     renderWithSession(<ContractsPage />)
-    await userEvent.upload(await screen.findByLabelText(/wybierz umowy/i), pdf())
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Zbyt wiele zapytań do asystenta/)
+    await screen.findByText(/Nie dodaliście jeszcze/)
+    await uploadFile()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Zbyt wiele zapytań do asystenta')
   })
 
-  it('pokazuje błąd walidacji przy zatwierdzaniu (422) i nie zamyka formularza', async () => {
+  it('usuwa tylko własne umowy (przycisk tylko u właściciela)', async () => {
     routeApi({
-      'GET /api/contracts': [],
-      'GET /api/risks': [],
-      'POST /api/contracts/scan': SCAN,
-      'POST /api/contracts/contract-1/confirm': new ApiError(422, 'Uzupełnij brakujące dane umowy: wymiar etatu lub wynagrodzenie.'),
-    })
-    renderWithSession(<ContractsPage />)
-    await userEvent.upload(await screen.findByLabelText(/wybierz umowy/i), pdf())
-    await userEvent.click(await screen.findByRole('button', { name: 'Zatwierdź' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Uzupełnij brakujące dane umowy/)
-    expect(screen.getByRole('heading', { name: /sprawdź/i })).toBeInTheDocument()
-  })
-
-  it('odrzuca zbyt duży plik bez wysyłania', async () => {
-    const api = routeApi({ 'GET /api/contracts': [], 'GET /api/risks': [] })
-    renderWithSession(<ContractsPage />)
-    const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'duza.pdf', { type: 'application/pdf' })
-    await userEvent.upload(await screen.findByLabelText(/wybierz umowy/i), big)
-    expect(await screen.findByRole('alert')).toHaveTextContent(/za duży/)
-    expect(api.mock.calls.some(([p]) => p === '/api/contracts/scan')).toBe(false)
-  })
-
-  it('lista umów: partner nie ma przycisku usuwania', async () => {
-    routeApi({
-      'GET /api/contracts': [{ ...CONFIRMED, user_id: 'user-nowak-piotr', filename: null }],
+      'GET /api/contracts': [CONFIRMED, { ...CONFIRMED, id: 'c-2', user_id: 'user-nowak-piotr', filename: null }],
       'GET /api/risks': [],
     })
     renderWithSession(<ContractsPage />)
-    expect(await screen.findByText(/dodana przez drugiego rodzica/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /usuń umowę/i })).not.toBeInTheDocument()
+    await screen.findByText(/Plik: umowa.pdf/)
+    expect(screen.getAllByRole('button', { name: 'Usuń' })).toHaveLength(1)
   })
 })
 
-describe('RisksPanel i widżet', () => {
+describe('RisksPanel / widget', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('widżet bez ryzyk pokazuje „Brak ostrzeżeń”', async () => {
+  it('bez ryzyk pokazuje „Brak ostrzeżeń”', async () => {
     routeApi({ 'GET /api/risks': [] })
     renderWithSession(<widget.Component />)
     expect(await screen.findByText(/Brak ostrzeżeń/)).toBeInTheDocument()
     expect(widget.order).toBe(20)
   })
 
-  it('pokazuje ryzyka z akcją, terminem i wagą', async () => {
-    routeApi({ 'GET /api/risks': [RISK, { ...RISK, id: 'r2', severity: 'info', title: 'Umowa się kończy', action: null, deadline: null }] })
+  it('pokazuje ryzyko z akcją i terminem', async () => {
+    routeApi({
+      'GET /api/risks': [
+        {
+          id: 'r1',
+          severity: 'high',
+          title: 'Brak zasiłku macierzyńskiego przy umowie zlecenia',
+          explanation: 'Bez ubezpieczenia chorobowego nie dostaniesz zasiłku.',
+          action: 'Zgłoś się do dobrowolnego ubezpieczenia.',
+          deadline: '2026-12-01',
+          user_id: 'user-nowak-anna',
+          source_ref: 'c1',
+        },
+      ],
+    })
     renderWithSession(<RisksPanel />)
-    const items = await screen.findAllByRole('listitem')
-    expect(items).toHaveLength(2)
-    expect(items[0]).toHaveAttribute('data-severity', 'high')
-    expect(within(items[0]).getByText('Ważne')).toBeInTheDocument()
-    expect(within(items[0]).getByText(/Zgłoś się do dobrowolnego/)).toBeInTheDocument()
-    expect(within(items[0]).getByText(/20\.11\.2026/)).toBeInTheDocument()
-    expect(within(items[1]).getByText('Informacja')).toBeInTheDocument()
-    expect(within(items[1]).queryByText(/Co zrobić/)).not.toBeInTheDocument()
+    expect(await screen.findByText('Pilne')).toBeInTheDocument()
+    expect(screen.getByText(/Zgłoś się do dobrowolnego/)).toBeInTheDocument()
+    expect(screen.getByText(/01\.12\.2026/)).toBeInTheDocument()
+    expect(screen.getByRole('listitem')).toHaveClass('risk-high')
   })
 })

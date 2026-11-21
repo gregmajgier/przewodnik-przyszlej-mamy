@@ -1,4 +1,4 @@
-// Typy odpowiadające backend/app/models/contract.py.
+// Typy odpowiadające backend/app/models/contract.py (plan 04).
 
 export type ContractKind = 'employment' | 'mandate' | 'jdg'
 
@@ -48,7 +48,3 @@ export const KIND_LABEL: Record<ContractKind, string> = {
   mandate: 'Umowa zlecenie',
   jdg: 'Działalność gospodarcza',
 }
-
-export const MAX_FILES = 5
-export const MAX_FILE_BYTES = 5 * 1024 * 1024
-export const ACCEPTED_TYPES = 'application/pdf,image/png,image/jpeg,text/plain'

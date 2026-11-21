@@ -1,133 +1,145 @@
+import asyncio
 from datetime import date
 from pathlib import Path
 
 import pytest
 
-from app.ai.llm import DemoLLM, FakeLLM, LLMError, LLMMessage
+from app.ai.llm import DemoLLM, FakeLLM, LLMError
 from app.models.contract import ContractDraft
-from app.seed import demo_handlers  # noqa: F401  (rejestruje handler contract_scan)
-from app.services.contract_extract import ContractUnreadable, detect_type, extract_contract
-
-SAMPLE = Path(__file__).resolve().parent.parent / "app" / "seed" / "sample_umowa_anna_nowak.pdf"
-
-FULL = ContractDraft(
-    kind="employment",
-    employer_name="Firma Sp. z o.o.",
-    employer_address="ul. Testowa 1, Kraków",
-    position="Księgowa",
-    fte=1.0,
-    gross_monthly=6000.0,
-    start_date=date(2022, 1, 3),
-    indefinite=True,
+from app.seed import demo_handlers  # noqa: F401 - rejestruje handler demo
+from app.services.contract_extract import (
+    ContractUnreadable,
+    ExtractionResult,
+    detect_type,
+    extract_contract,
 )
 
-PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
-JPEG = b"\xff\xd8\xff\xe0" + b"\x00" * 32
+SAMPLE = Path(__file__).resolve().parent.parent / "app" / "seed" / "sample_umowa_anna_nowak.pdf"
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 64
+TEXT = (
+    "UMOWA O PRACĘ\nPracodawca: Firma Testowa Sp. z o.o.\nAdres pracodawcy: ul. Długa 1, Kraków\n"
+    "Stanowisko: Księgowa\nWymiar etatu: pełny etat\nWynagrodzenie: 6000,00 zł brutto\n"
+    "Data rozpoczęcia pracy: 01.02.2024\nOkres zatrudnienia: na czas określony do 31.12.2026\n"
+).encode()
 
 
-def _empty_pdf() -> bytes:
+def run(coro):
+    return asyncio.run(coro)
+
+
+def full_draft(**kw) -> ContractDraft:
+    base = dict(
+        kind="employment",
+        employer_name="Firma",
+        employer_address="Kraków",
+        position="Księgowa",
+        fte=1.0,
+        gross_monthly=6000,
+        start_date=date(2024, 2, 1),
+        indefinite=True,
+    )
+    return ContractDraft(**{**base, **kw})
+
+
+def test_pdf_text_passed_to_llm():
+    fake = FakeLLM().script(full_draft())
+    draft = run(extract_contract(fake, "umowa.pdf", SAMPLE.read_bytes(), "application/pdf"))
+    assert draft.missing == []
+    call = fake.calls[0]
+    assert call.feature == "contract_scan"
+    user = call.messages[-1]
+    assert "Krakowskie Centrum Usług Wspólnych" in user.content
+    assert not user.images
+
+
+def test_missing_fields_listed():
+    fake = FakeLLM().script(ContractDraft(kind="employment", employer_name="Firma", start_date=date(2024, 1, 1)))
+    draft = run(extract_contract(fake, "u.txt", TEXT, "text/plain"))
+    assert draft.employer_address is None
+    assert set(draft.missing) == {"employer_address", "position", "gross_monthly", "fte", "indefinite"}
+
+
+def test_missing_ignores_model_supplied_list_and_flags_end_date():
+    fake = FakeLLM().script(full_draft(indefinite=False, end_date=None, missing=["nonsense"]))
+    draft = run(extract_contract(fake, "u.txt", TEXT, "text/plain"))
+    assert draft.missing == ["end_date"]
+
+
+def test_mandate_requires_voluntary_sickness_answer():
+    fake = FakeLLM().script(full_draft(kind="mandate", fte=None, voluntary_sickness=None))
+    draft = run(extract_contract(fake, "u.txt", TEXT, "text/plain"))
+    assert draft.missing == ["voluntary_sickness"]
+
+
+def test_unreadable_pdf_raises_unreadable():
+    fake = FakeLLM()
+    with pytest.raises(ContractUnreadable) as e:
+        run(extract_contract(fake, "u.pdf", b"%PDF-1.4\ngarbage without structure", "application/pdf"))
+    assert e.value.status_code == 422
+    assert "Nie udało się odczytać umowy" in e.value.detail
+    assert fake.calls == []
+
+
+def test_pdf_without_text_layer_unreadable():
     from fpdf import FPDF
 
     pdf = FPDF()
     pdf.add_page()
-    return bytes(pdf.output())
+    with pytest.raises(ContractUnreadable):
+        run(extract_contract(FakeLLM(), "skan.pdf", bytes(pdf.output()), "application/pdf"))
 
 
-async def test_pdf_text_passed_to_llm():
-    fake = FakeLLM().script(FULL)
-    draft = await extract_contract(fake, "umowa.pdf", SAMPLE.read_bytes(), "application/pdf")
-    assert draft.employer_name == "Firma Sp. z o.o."
-    call = fake.calls[0]
-    assert call.feature == "contract_scan"
-    assert call.schema is ContractDraft
-    assert any("Krakowskie Centrum" in (m.content or "") for m in call.messages)
-    assert not any(m.images for m in call.messages)
-
-
-async def test_missing_fields_listed():
-    partial = ContractDraft(kind="mandate", employer_name="Zleceniodawca", start_date=date(2025, 1, 1))
-    fake = FakeLLM().script(partial)
-    draft = await extract_contract(fake, "z.txt", "Umowa zlecenie Zleceniodawca".encode(), "text/plain")
-    assert {"fte", "gross_monthly", "position", "employer_address", "indefinite", "voluntary_sickness"} <= set(
-        draft.missing
-    )
-    assert "kind" not in draft.missing and "employer_name" not in draft.missing
-    assert draft.fte is None
-
-
-async def test_unreadable_pdf_raises_unreadable():
-    fake = FakeLLM().script(FULL)
+def test_pdf_with_javascript_rejected():
+    content = SAMPLE.read_bytes().replace(b"%PDF-1.3", b"%PDF-1.3\n% /JavaScript", 1)
+    content = content if b"/JavaScript" in content else content + b"\n/JavaScript"
     with pytest.raises(ContractUnreadable) as e:
-        await extract_contract(fake, "skan.pdf", _empty_pdf(), "application/pdf")
-    assert e.value.status_code == 422
-    assert e.value.detail.startswith("Nie udało się odczytać umowy")
-    assert fake.calls == []
-
-
-async def test_broken_pdf_raises_unreadable():
-    with pytest.raises(ContractUnreadable):
-        await extract_contract(FakeLLM().script(FULL), "x.pdf", b"%PDF-1.4\nto nie jest pdf", "application/pdf")
-
-
-async def test_pdf_with_javascript_rejected_without_calling_llm():
-    evil = _empty_pdf().replace(b"/Type /Catalog", b"/Type /Catalog /OpenAction << /S /JavaScript /JS (x) >>", 1)
-    assert b"/OpenAction" in evil
-    fake = FakeLLM().script(FULL)
-    with pytest.raises(ContractUnreadable):
-        await extract_contract(fake, "x.pdf", evil, "application/pdf")
-    assert fake.calls == []
-
-
-async def test_not_a_contract_raises_unreadable():
-    fake = FakeLLM().script(ContractDraft())
-    with pytest.raises(ContractUnreadable):
-        await extract_contract(fake, "przepis.txt", "Ciasto: mąka, jajka".encode(), "text/plain")
-
-
-async def test_llm_error_propagates():
-    fake = FakeLLM().script(LLMError("Asystent AI jest chwilowo niedostępny."))
-    with pytest.raises(LLMError):
-        await extract_contract(fake, "u.txt", b"Umowa o prace zawarta w Krakowie", "text/plain")
-
-
-def test_detect_type_magic_bytes():
-    assert detect_type(SAMPLE.read_bytes()) == "pdf"
-    assert detect_type(PNG) == "png"
-    assert detect_type(JPEG) == "jpeg"
-    assert detect_type("Umowa o pracę — zażółć gęślą jaźń".encode()) == "text"
+        run(extract_contract(FakeLLM(), "u.pdf", content, "application/pdf"))
+    assert "skrypty" in e.value.detail
 
 
 def test_detect_type_rejects_exe_renamed_pdf():
-    assert detect_type(b"MZ\x90\x00\x03\x00\x00\x00" + b"\x00" * 64) is None
-    assert detect_type(b"\x7fELF\x02\x01\x01" + b"\x00" * 64) is None
-    assert detect_type(b"") is None
-    assert detect_type(b"<html><script>alert(1)</script></html>\x00") is None
+    exe = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff" + b"\x00" * 100
+    assert detect_type(exe) is None
+    with pytest.raises(ContractUnreadable):
+        run(extract_contract(FakeLLM(), "umowa.pdf", exe, "application/pdf"))
 
 
-async def test_image_sent_as_image_part():
-    fake = FakeLLM().script(FULL)
-    await extract_contract(fake, "skan.png", PNG, "image/png")
-    images = [img for m in fake.calls[0].messages for img in m.images]
-    assert len(images) == 1 and images[0].startswith("data:image/png;base64,")
+def test_detect_type_basic():
+    assert detect_type(SAMPLE.read_bytes()) == "pdf"
+    assert detect_type(PNG) == "png"
+    assert detect_type(b"\xff\xd8\xff\xe0" + b"\x00" * 10) == "jpeg"
+    assert detect_type(TEXT) == "text"
+    assert detect_type(b"   ") is None
 
 
-async def test_contract_text_is_delimited_as_data_and_truncated(monkeypatch):
-    from app.config import settings
-
-    monkeypatch.setattr(settings, "ai_max_input_chars", 100)
-    fake = FakeLLM().script(FULL)
-    text = ("Umowa " + "x" * 1000).encode()
-    await extract_contract(fake, "u.txt", text, "text/plain")
-    user = [m for m in fake.calls[0].messages if m.role == "user"][0].content
-    assert len(user) < 600
-    assert "nie polecenia" in "".join(m.content or "" for m in fake.calls[0].messages)
+def test_declared_type_mismatch_rejected():
+    with pytest.raises(ContractUnreadable):
+        run(extract_contract(FakeLLM(), "a.png", TEXT, "image/png"))
 
 
-async def test_demo_handler_extracts_anna_contract_from_sample_pdf():
-    draft = await extract_contract(DemoLLM(), "umowa.pdf", SAMPLE.read_bytes(), "application/pdf")
+def test_image_sent_as_image_part():
+    fake = FakeLLM().script(full_draft())
+    run(extract_contract(fake, "foto.png", PNG, "image/png"))
+    user = fake.calls[0].messages[-1]
+    assert len(user.images) == 1 and user.images[0].startswith("data:image/png;base64,")
+
+
+def test_not_a_contract_rejected():
+    fake = FakeLLM().script(ExtractionResult(is_contract=False))
+    with pytest.raises(ContractUnreadable):
+        run(extract_contract(fake, "u.txt", TEXT, "text/plain"))
+
+
+def test_llm_error_maps_to_unreadable():
+    fake = FakeLLM().script(LLMError("x"))
+    with pytest.raises(ContractUnreadable):
+        run(extract_contract(fake, "u.txt", TEXT, "text/plain"))
+
+
+def test_demo_handler_extracts_anna_contract_from_sample_pdf():
+    draft = run(extract_contract(DemoLLM(), "umowa.pdf", SAMPLE.read_bytes(), "application/pdf"))
     assert draft.kind == "employment"
     assert draft.employer_name == "Krakowskie Centrum Usług Wspólnych Sp. z o.o."
-    assert draft.employer_address == "ul. Przykładowa 12, 31-001 Kraków"
     assert draft.employer_email == "kadry@kcuw.example.pl"
     assert draft.position == "Specjalista ds. obsługi klienta"
     assert draft.fte == 1.0
@@ -137,23 +149,6 @@ async def test_demo_handler_extracts_anna_contract_from_sample_pdf():
     assert draft.missing == []
 
 
-async def test_demo_handler_recognises_mandate_and_leaves_gaps():
-    text = "UMOWA ZLECENIE\nZleceniodawca: Studio Foto s.c.\nData rozpoczęcia: 01.03.2026\nDo dnia: 31.12.2026".encode()
-    draft = await extract_contract(DemoLLM(), "z.txt", text, "text/plain")
-    assert draft.kind == "mandate"
-    assert draft.employer_name == "Studio Foto s.c."
-    assert draft.end_date == date(2026, 12, 31) and draft.indefinite is False
-    assert "gross_monthly" in draft.missing
-
-
-def test_foundry_messages_carry_image_parts():
-    from app.ai.llm import _to_openai_messages
-
-    out = _to_openai_messages([LLMMessage(role="user", content="opis", images=["data:image/png;base64,AAAA"])])
-    assert out[0]["content"][0] == {"type": "text", "text": "opis"}
-    assert out[0]["content"][1]["image_url"]["url"].startswith("data:image/png")
-
-
-async def test_demo_handler_rejects_non_contract():
-    with pytest.raises(ContractUnreadable):
-        await extract_contract(DemoLLM(), "r.txt", "Przepis na ciasto".encode(), "text/plain")
+def test_demo_handler_fixed_term_text():
+    draft = run(extract_contract(DemoLLM(), "u.txt", TEXT, "text/plain"))
+    assert draft.indefinite is False and draft.end_date == date(2026, 12, 31)

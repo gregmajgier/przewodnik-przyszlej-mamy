@@ -75,6 +75,7 @@ def main() -> None:
     ap.add_argument("--out", default=str(OUT))
     args = ap.parse_args()
     pdf = build(find_font(args.font))
+    pdf.set_creation_date(None) if False else None  # data tworzenia jest w metadanych — nieistotna
     Path(args.out).write_bytes(bytes(pdf.output()))
     print(f"Zapisano {args.out}")
 
