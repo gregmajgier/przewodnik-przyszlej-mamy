@@ -1,0 +1,194 @@
+.shell {
+  min-height: 100dvh;
+  background:
+    radial-gradient(60rem 28rem at 85% -10%, rgb(239 67 99 / 0.09), transparent 70%),
+    radial-gradient(40rem 22rem at -10% 10%, rgb(255 179 138 / 0.12), transparent 70%),
+    var(--paper);
+}
+.shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: 0.6rem var(--gutter);
+  background: rgb(251 247 245 / 0.78);
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+}
+.shell-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 68rem;
+  margin: 0 auto;
+  min-height: 3rem;
+}
+.shell-brand {
+  text-decoration: none;
+  padding: 0.25rem 0;
+}
+.shell-brand .wordmark {
+  font-size: 1.75rem;
+}
+.shell-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.shell-main {
+  padding-top: 0.25rem;
+}
+
+/* dzwonek powiadomień w nowym stylu */
+.shell .bell-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+.shell .bell-count {
+  background: var(--pink);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.shell .bell-panel {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--line);
+  padding: 0.9rem 1rem;
+  animation: rise 0.35s var(--ease) both;
+}
+
+/* ---------- menu konta ---------- */
+.user-menu {
+  position: relative;
+}
+.user-menu-trigger {
+  display: grid;
+  place-items: center;
+  padding: 0.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.3s var(--ease);
+}
+.user-menu-trigger:active {
+  transform: scale(0.95);
+}
+.user-menu-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  z-index: 50;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 0.5rem;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--line);
+  transform-origin: top right;
+  animation: menu-in 0.4s var(--ease) both;
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.user-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.75rem 0.9rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--line);
+}
+.user-menu-head div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.6rem 0.75rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+}
+.user-menu-item:hover,
+.user-menu-item.active {
+  background: var(--paper);
+}
+.user-menu-item svg {
+  color: var(--ink-2);
+}
+
+/* ---------- FAB „Zapytaj” ---------- */
+.ask-fab {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(1.1rem + env(safe-area-inset-bottom));
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 3.75rem;
+  padding: 0 1.4rem 0 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pink);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+  text-decoration: none;
+  box-shadow: var(--shadow-pink);
+  transition:
+    transform 0.45s var(--ease),
+    box-shadow 0.45s var(--ease);
+  animation: rise 0.8s var(--ease) 0.4s both;
+}
+.ask-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -14px rgb(239 67 99 / 0.65);
+}
+.ask-fab:active {
+  transform: scale(0.96);
+}
+.ask-fab-icon {
+  display: grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.2);
+}
+@media (max-width: 520px) {
+  .ask-fab {
+    padding: 0;
+    width: 3.75rem;
+    justify-content: center;
+  }
+  .ask-fab-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+  .ask-fab-icon {
+    background: transparent;
+  }
+}

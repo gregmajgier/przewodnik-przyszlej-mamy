@@ -1,15 +1,16 @@
 import { useEffect, useRef } from 'react'
 
-// Placeholder stages; real content/examples will be added later.
+// Real examples from the benefit catalog (backend/app/data/benefits_national.json).
 const STAGES = [
-  { age: 'Przed narodzinami', title: 'Ciąża', text: 'Badania, formalności, przygotowania.' },
-  { age: 'Narodziny', title: 'Urlop macierzyński', text: 'Wniosek, zasiłek, dokumenty.' },
-  { age: 'Pierwsze miesiące', title: 'Urlop tacierzyński i rodzicielski', text: 'Podział urlopu między rodziców.' },
-  { age: '1–3 lata', title: 'Żłobek', text: 'Zapisy, dofinansowanie.' },
-  { age: '3–6 lat', title: 'Przedszkole', text: 'Rekrutacja i opłaty.' },
-  { age: '7 lat', title: 'Szkoła podstawowa', text: 'Rekrutacja do szkół, zerówka.' },
-  { age: '15 lat', title: 'Szkoła średnia', text: 'Wybór szkoły i rekrutacja.' },
-  { age: '18 lat', title: 'Pełnoletność', text: 'Nowy etap: prawa i obowiązki.' },
+  { age: 'Przed narodzinami', title: 'Ciąża', text: 'L4 w ciąży, bezpłatne badania prenatalne i wniosek o urlop macierzyński przygotowany z wyprzedzeniem.' },
+  { age: 'Narodziny', title: 'Witaj na świecie!', text: 'Akt urodzenia, becikowe i 800+. Złożone w 3 miesiące daje wyrównanie od dnia narodzin.' },
+  { age: 'Pierwszy rok', title: 'Urlop macierzyński, ojcowski i rodzicielski', text: 'Jeden wniosek w 21 dni po porodzie zamiast kilku. Tata ma 2 tygodnie ojcowskiego do 12. miesiąca.' },
+  { age: '1–3 lata', title: 'Żłobek albo opieka w domu', text: 'Aktywny rodzic: wsparcie na żłobek, nianię albo opiekę w domu. Podpowiemy, który wariant wam się opłaca.' },
+  { age: '3–6 lat', title: 'Przedszkole', text: 'Terminy rekrutacji w twojej gminie i dokumenty, które trzeba przygotować.' },
+  { age: '7 lat', title: 'Szkoła podstawowa', text: 'Rekrutacja do szkoły i co roku Dobry Start na wyprawkę. Przypomnimy przed 30 listopada.' },
+  { age: 'Gdy rodzina rośnie', title: 'Karta Dużej Rodziny', text: 'Przy trzecim dziecku od razu pokażemy nowe uprawnienia, m.in. zniżki z Karty Dużej Rodziny.' },
+  { age: '15 lat', title: 'Szkoła średnia', text: 'Wybór szkoły, rekrutacja i stypendia szkolne.' },
+  { age: '18 lat', title: 'Pełnoletność', text: 'Koniec 800+. Uprzedzimy cię wcześniej i podpowiemy, co dalej.' },
 ]
 
 // Vertical scroll drives a horizontal translation of the track while the

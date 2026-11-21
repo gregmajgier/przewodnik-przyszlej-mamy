@@ -89,12 +89,12 @@ function setup(plans: AgentPlan[] = [PLAN], extra: Record<string, unknown> = {})
 const callsTo = (mocked: ReturnType<typeof routeApi>, path: string) => mocked.mock.calls.filter((c) => c[0] === path)
 
 describe('AgentFrame', () => {
-  it('osadza makietę portalu w ramce z oznaczeniem AI/SYMULACJA', async () => {
+  it('osadza formularz online w ramce, z nagłówkiem agenta', async () => {
     setup()
     const frame = await screen.findByTitle('eZUS — 800+')
     expect(frame).toHaveAttribute('src', '/sim/ezus/ezus_800plus')
     expect(frame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'))
-    expect(screen.getByText('AI · SYMULACJA')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /agent wypełnia formularz online/i })).toBeInTheDocument()
   })
 
   it('nie rusza makiety, dopóki ta nie zgłosi gotowości', async () => {
@@ -137,7 +137,7 @@ describe('AgentFrame', () => {
     await screen.findByTitle('eZUS — 800+')
     emit({ type: 'ready' })
 
-    expect(await screen.findByRole('heading', { name: /brakuje jeszcze danych/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /brakuje jeszcze/i })).toBeInTheDocument()
     expect(screen.getByLabelText('PESEL dziecka')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /zatwierdzam i wysyłam/i })).not.toBeInTheDocument()
     expect(fills()).toEqual(['applicant_first_name', 'street']) // nie zgadujemy brakującego pola
@@ -167,7 +167,7 @@ describe('AgentFrame', () => {
     await waitFor(() => expect(onSubmitted).toHaveBeenCalledWith(SENT))
     expect(callsTo(mocked, '/api/applications/app-1/portal-submitted')).toHaveLength(1)
     expect(mocked).toHaveBeenCalledWith('/api/applications/app-1/portal-submitted', { method: 'POST' })
-    expect(screen.getByText(/wniosek złożony w makiecie portalu/i)).toBeInTheDocument()
+    expect(screen.getByText(/wniosek złożony/i)).toBeInTheDocument()
   })
 
   it('ignoruje `submitted`, zanim rodzic zatwierdzi (agent jeszcze pracuje)', async () => {
@@ -208,7 +208,7 @@ describe('AgentFrame', () => {
     setup()
     await screen.findByTitle('eZUS — 800+')
     emit({ type: 'ready' })
-    expect(await screen.findByRole('note')).toHaveTextContent(/nie przyjęła pól: Ulica/i)
+    expect(await screen.findByRole('note')).toHaveTextContent(/nie przyjął pól: Ulica/i)
   })
 
   it('błąd planu (np. model niedostępny) pokazuje komunikat z API', async () => {

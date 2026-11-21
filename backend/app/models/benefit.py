@@ -61,6 +61,9 @@ class Benefit(BaseModel):
     status: Literal["draft", "awaiting_approval", "published"] = "published"
     verify: bool = False
     tags: list[str] = Field(default_factory=list)
+    # Świadczenie „na dziecko”: silnik wskazuje, których dzieci dotyczy (`MatchResult.child_ids`),
+    # a szacunek roczny liczy się osobno dla każdego z nich.
+    per_child: bool = False
     # pola edytora urzędnika (plan 07)
     deadline_text: str | None = None
     apply_url: str | None = None

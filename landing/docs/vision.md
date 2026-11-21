@@ -81,24 +81,29 @@ Brand tokens (from `brand/colors_and_fonts.md`):
 
 ### 2.0 Header
 
-- Logo only at the top-left (draw-in animation), three placeholder nav items
-  on the right (Nunito, white). Absolutely positioned over the hero.
+- Logo only at the top-left (draw-in animation), three nav items on the right
+  (Film · Jak to działa · Zacznij; Nunito, white). Absolutely positioned over the hero.
 - The browser tab favicon is the "m" logo on the brand background
   (`public/favicon.svg`, from `brand/logo-rodzina.svg`).
 
 ### 2.2 Sections below the hero
 
-In order (all placeholders, content to be decided later):
+Audience: parents. Spec: `docs/superpowers/specs/2026-11-21-landing-content-design.md`.
 
-1. **Video**: 16:9 placeholder for a YouTube embed.
-2. **"Pomożemy ci z:"**: auto-scrolling carousel (pauses on hover) of topics
-   (ZUS with its logo, school recruitment, ...).
-3. **Features**: placeholder cards.
-4. **Timeline**: figure pinned to the viewport; vertical scroll moves it
-   horizontally, from before the child is born (maternity/paternity leave)
-   to adulthood (18). Examples to be filled in later.
-5. **Final CTA**: "Sprawdź, co możemy dla ciebie zrobić." in a rounded box
+1. **Video**: 16:9 placeholder for a YouTube embed (to be filled later).
+2. **"Pomożemy ci z:"**: auto-scrolling carousel (pauses on hover) of real
+   topics from the benefit catalog (ZUS, 800+, becikowe, Aktywny rodzic, ...).
+3. **"Jak to działa?"** (`#jak-to-dziala`): 4 alternating steps, each with a
+   desktop screenshot in a CSS browser frame.
+4. **"A do tego…"**: chat, SMS/e-mail notifications, shared family account,
+   local benefits; then the "mRodzina także w telefonie" band with a phone shot.
+5. **Timeline**: figure pinned to the viewport; vertical scroll moves it
+   horizontally, from pregnancy to adulthood (18), with real examples.
+6. **Final CTA**: "Sprawdź, co możemy dla ciebie zrobić." in a rounded box
    with margin, linking to the same URL as the hero CTA.
+
+Screenshots live in `public/screens/` and are regenerated from the running
+app with `npm run screenshots` (see `scripts/screenshots.mjs`).
 
 ### 2.3 Background ribbons
 

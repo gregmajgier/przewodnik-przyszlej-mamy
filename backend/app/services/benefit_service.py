@@ -16,7 +16,7 @@ from ..storage import Store
 from .families import FamilyService
 from .situations import loss_support_applies
 from .units import units_for
-from .matching import FamilyContext, MatchResult, build_context, match_benefit, next_deadline
+from .matching import FamilyContext, MatchResult, build_context, income_answer_key, match_benefit, next_deadline
 
 PARAMETERS_LABEL = "Parametry ZUS 2026 – aktywne"
 INCOME_CONDITION = "income"
@@ -67,6 +67,11 @@ async def visible_benefits(store: Store, address: Address) -> list[Benefit]:
         (b for b in benefits if b.scope == "national" or (b.unit_id and b.unit_id in unit_ids)),
         key=lambda b: (b.scope != "national", b.name),
     )
+
+
+def annual_value(m: BenefitMatch) -> int:
+    per = m.benefit.annual_value_estimate or 0
+    return per * max(1, len(m.match.child_ids)) if m.benefit.per_child else per
 
 
 def answer_key(benefit_id: str, condition_id: str) -> str:
@@ -134,7 +139,12 @@ class BenefitService:
         if doc is None:
             raise DomainError(404, "Nie znaleziono profilu. Zaloguj się ponownie przez mObywatela.")
         profile = ParentProfile.model_validate({**doc, "user_id": user_id})
-        profile.answers = {**profile.answers, answer_key(benefit_id, condition_id): value}
+        updates = {answer_key(benefit_id, condition_id): value}
+        limit = current.benefit.criteria.max_income_per_person
+        if condition_id == INCOME_CONDITION and limit is not None:
+            # odpowiedź o dochód przyda się też innym świadczeniom (np. dodatkom do zasiłku rodzinnego)
+            updates[income_answer_key(limit)] = value
+        profile.answers = {**profile.answers, **updates}
         await self.store.put("profiles", {**profile.model_dump(mode="json"), "id": user_id})
         return await self.get_match(user_id, benefit_id, today)
 
@@ -151,8 +161,9 @@ class BenefitService:
             maybe=len(maybe),
             no=len(matches) - len(fits) - len(maybe),
         )
-        # Szacunek liczymy tylko dla pozycji, które na pewno pasują (konserwatywnie), i tylko świadczeń pieniężnych.
-        estimated = sum(m.benefit.annual_value_estimate or 0 for m in fits if m.benefit.category == "benefit")
+        # Szacunek liczymy tylko dla pozycji, które na pewno pasują (konserwatywnie), i tylko świadczeń pieniężnych;
+        # świadczenie „na dziecko” liczy się tyle razy, ilu dzieci dotyczy.
+        estimated = sum(annual_value(m) for m in fits if m.benefit.category == "benefit")
         deadlines = [
             (d, m.benefit)
             for m in fits + maybe

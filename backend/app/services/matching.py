@@ -47,6 +47,8 @@ class MatchResult(BaseModel):
     reasons: list[str] = Field(default_factory=list)
     unmet: list[str] = Field(default_factory=list)
     questions: list[Question] = Field(default_factory=list)
+    # Dzieci, których dotyczy świadczenie `per_child` (puste dla świadczeń rodzinnych i przy `no`).
+    child_ids: list[str] = Field(default_factory=list)
 
 
 # ---------- pomocnicze ----------
@@ -112,6 +114,35 @@ def _fact(ctx: FamilyContext, key: str) -> bool | None:
         return any(c.serious_illness for c in ctx.children if c.situation != "loss")
     value = ctx.answers.get(key)
     return value if isinstance(value, bool) else None
+
+
+INCOME_PREFIX = "income_le:"
+
+
+def income_answer_key(limit: float) -> str:
+    """Odpowiedź „dochód na osobę nie przekracza `limit` zł” — wspólna dla świadczeń z tym samym progiem."""
+    return f"{INCOME_PREFIX}{_fmt_zl(limit).replace(' ', '')}"
+
+
+def _income_answer(ctx: FamilyContext, benefit: Benefit, limit: float) -> bool | None:
+    """Odpowiedź o dochód: najpierw dla tego świadczenia, potem wywnioskowana z odpowiedzi przy innych progach.
+
+    „Tak” przy niższym progu oznacza „tak” przy wyższym; „nie” przy wyższym oznacza „nie” przy niższym.
+    """
+    own = ctx.answers.get(_answer_key(benefit, "income"))
+    if isinstance(own, bool):
+        return own
+    for key, value in ctx.answers.items():
+        if not key.startswith(INCOME_PREFIX) or not isinstance(value, bool):
+            continue
+        other = _parse_money(key[len(INCOME_PREFIX):])
+        if other is None:
+            continue
+        if value and other <= limit:
+            return True
+        if not value and other >= limit:
+            return False
+    return None
 
 
 def _parse_money(value) -> float | None:
@@ -263,7 +294,7 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
         limit = cr.max_income_per_person
         limit_txt = _fmt_zl(limit)
         known = _parse_money(ctx.answers.get("income_per_person"))
-        answered = ctx.answers.get(_answer_key(benefit, "income"))
+        answered = _income_answer(ctx, benefit, limit)
         if known is not None:
             if known <= limit:
                 reasons.append(f"dochód na osobę ({_fmt_zl(known)} zł) nie przekracza {limit_txt} zł")
@@ -285,11 +316,47 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
     for cond in benefit.extra_conditions:
         _check_condition(ctx, benefit, cond, reasons, unmet, questions)
 
+    child_ids: list[str] = []
+    if benefit.per_child and not unmet:
+        child_ids = [c.id for c in _concerned_children(ctx, benefit)]
+        if not child_ids:
+            unmet.append("Żadne dziecko nie spełnia wszystkich warunków tego świadczenia jednocześnie.")
+
     if unmet:
         return MatchResult(status="no", reasons=reasons, unmet=unmet, questions=[])
     if questions:
-        return MatchResult(status="maybe", reasons=reasons, unmet=[], questions=questions)
-    return MatchResult(status="fits", reasons=reasons)
+        return MatchResult(status="maybe", reasons=reasons, unmet=[], questions=questions, child_ids=child_ids)
+    return MatchResult(status="fits", reasons=reasons, child_ids=child_ids)
+
+
+def _concerned_children(ctx: FamilyContext, benefit: Benefit) -> list[Child]:
+    """Dzieci, które jednocześnie spełniają kryteria „dziecięce” świadczenia (wiek, orzeczenie, ciężka choroba)."""
+    cr = benefit.criteria
+    born = _born(ctx)
+    if cr.pregnant_or_child_max_months is not None:
+        hi = cr.pregnant_or_child_max_months
+        pool = [c for c in born if age_in_months(c.birth_date, ctx.today) <= hi]  # type: ignore[arg-type]
+        if _pregnant(ctx):
+            pool += _expected(ctx)
+    else:
+        pool = born
+    if cr.child_age_min_months is not None or cr.child_age_max_months is not None:
+        lo = cr.child_age_min_months or 0
+        hi_age = cr.child_age_max_months
+        pool = [
+            c
+            for c in pool
+            if c.birth_date
+            and age_in_months(c.birth_date, ctx.today) >= lo
+            and (hi_age is None or age_in_months(c.birth_date, ctx.today) <= hi_age)
+        ]
+    if cr.requires_disability:
+        pool = [c for c in pool if c.has_disability]
+    if cr.requires_foster:
+        pool = [c for c in pool if c.foster]
+    if any(c.profile_key == "family.child_serious_illness" for c in benefit.extra_conditions):
+        pool = [c for c in pool if c.serious_illness]
+    return pool
 
 
 def _check_condition(

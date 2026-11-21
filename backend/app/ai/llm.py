@@ -217,6 +217,8 @@ class FoundryLLM(_BaseLLM):
             "messages": _to_openai_messages(messages),
             "max_completion_tokens": settings.ai_max_output_tokens,
         }
+        if settings.azure_openai_reasoning_effort:
+            kwargs["reasoning_effort"] = settings.azure_openai_reasoning_effort
         if tools:
             kwargs["tools"] = [
                 {

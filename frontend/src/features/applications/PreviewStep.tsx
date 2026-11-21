@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { apiBlob, ApiError } from '../../lib/api'
 import '../../components/a11y.css'
 import { formatDate } from '../../lib/format'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { Select } from '../../ui/controls'
 import type { AnswerValue, Application, Channel, FieldInfo, FormEntry } from './types'
 import { CHANNEL_LABEL } from './types'
 
@@ -42,16 +45,21 @@ function FieldRow({ field, value, disabled, onEdit }: { field: FieldInfo; value:
               {field.label}
             </label>
             {field.type === 'choice' ? (
-              <select id={inputId} value={draft} onChange={(e) => setDraft(e.target.value)}>
-                <option value="">— wybierz —</option>
-                {(field.choices ?? []).map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+              <Select
+                id={inputId}
+                label={field.label}
+                value={draft}
+                onChange={setDraft}
+                options={(field.choices ?? []).map((c) => ({ value: c, label: c }))}
+              />
             ) : (
-              <input id={inputId} type={field.type === 'date' ? 'date' : 'text'} value={draft} onChange={(e) => setDraft(e.target.value)} />
+              <input
+                id={inputId}
+                className="input"
+                type={field.type === 'date' ? 'date' : 'text'}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+              />
             )}
             <button type="button" className="btn" disabled={disabled || draft.trim() === ''} onClick={() => void save()}>
               Zapisz
@@ -107,8 +115,24 @@ function PdfPreview({ appId, version }: { appId: string; version: string }) {
   }, [appId, version])
 
   if (error) return <p role="alert" className="alert">{error}</p>
-  if (!url) return <p role="status" className="muted">Przygotowuję podgląd PDF…</p>
-  return <iframe className="pdf-frame" title="Podgląd wniosku (PDF)" src={url} />
+  if (!url)
+    return (
+      <div className="paper">
+        <div className="skeleton" style={{ height: '28rem' }} role="status" aria-label="Przygotowuję podgląd PDF" />
+      </div>
+    )
+  return (
+    <div className="paper">
+      <div className="paper-bar">
+        <Icon name="doc" size={18} />
+        <span>{appId ? 'Wniosek.pdf' : ''}</span>
+        <a href={url} download="wniosek.pdf" className="paper-dl" aria-label="Pobierz PDF">
+          <Icon name="download" size={18} />
+        </a>
+      </div>
+      <iframe className="pdf-frame" title="Podgląd wniosku (PDF)" src={url} />
+    </div>
+  )
 }
 
 export default function PreviewStep({ app, form, busy, error, onEdit, onChannel, onNext }: Props) {
@@ -118,39 +142,58 @@ export default function PreviewStep({ app, form, busy, error, onEdit, onChannel,
   const hasPdf = app.channel !== 'portal_agent'
 
   return (
-    <section className="card stack" aria-labelledby="preview-h">
-      <h2 id="preview-h">Sprawdź wniosek</h2>
-      <p className="muted">Tak wypełniliśmy wniosek na podstawie Waszych danych. Popraw, co trzeba — nic nie poszło jeszcze do urzędu.</p>
+    <section className="stack" aria-labelledby="preview-h">
+      <div className="autofill-banner">
+        <span className="autofill-icon">
+          <Icon name="sparkle" size={22} />
+        </span>
+        <div>
+          <h2 id="preview-h">Sprawdź wniosek</h2>
+          <p>
+            Wypełniliśmy automatycznie <strong>{shown.length} {shown.length === 1 ? 'pole' : shown.length % 10 >= 2 && shown.length % 10 <= 4 && (shown.length % 100 < 12 || shown.length % 100 > 14) ? 'pola' : 'pól'}</strong> na
+            podstawie danych z ZUS, mObywatela i Waszych odpowiedzi. Popraw, co trzeba — nic nie poszło jeszcze do urzędu.
+          </p>
+        </div>
+      </div>
       {error && (
         <p role="alert" className="alert">
           {error}
         </p>
       )}
 
-      <dl className="facts preview-list">
+      <dl className="card preview-list">
         {shown.map((f) => (
           <FieldRow key={f.id} field={f} value={app.values[f.id]} disabled={busy} onEdit={onEdit} />
         ))}
       </dl>
 
       {channels.length > 1 && (
-        <fieldset className="stack channel-picker" disabled={busy}>
-          <legend>Jak złożyć wniosek?</legend>
+        <div className="channel-picker" role="radiogroup" aria-label="Jak złożyć wniosek?">
+          <h3>Jak złożyć wniosek?</h3>
           {channels.map((c) => (
-            <label key={c} className="row">
-              <input type="radio" name="channel" checked={app.channel === c} onChange={() => void onChannel(c)} />
+            <button
+              key={c}
+              type="button"
+              role="radio"
+              aria-checked={app.channel === c}
+              className="channel-option"
+              disabled={busy}
+              onClick={() => void onChannel(c)}
+            >
+              <Icon name={c === 'portal_agent' ? 'globe' : c === 'employer_email' ? 'mail' : 'download'} size={20} />
               <span>{CHANNEL_LABEL[c]}</span>
-            </label>
+              <span className="channel-radio" aria-hidden="true" />
+            </button>
           ))}
-        </fieldset>
+        </div>
       )}
 
       {hasPdf && <PdfPreview appId={app.id} version={version} />}
 
-      <div className="row">
-        <button type="button" className="btn" disabled={busy} onClick={onNext}>
-          Dalej
-        </button>
+      <div className="wizard-actions">
+        <Button block disabled={busy} onClick={onNext} icon="arrowRight">
+          Wszystko się zgadza
+        </Button>
       </div>
     </section>
   )

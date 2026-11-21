@@ -67,7 +67,7 @@ def channels_for(code: str) -> list[Channel]:
     entry = _catalog().get(code)
     if code in pf.EMPLOYER_KINDS:
         return ["employer_email", "pdf_download"]
-    if entry is None or entry.get("rola"):
+    if entry is None or entry.get("rola") == "dokument_zrodlowy_do_parsera":
         return []
     channels: list[Channel] = []
     if code in pf.CODE_TO_PORTAL:

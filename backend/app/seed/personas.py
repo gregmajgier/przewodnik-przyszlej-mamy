@@ -1,6 +1,7 @@
 """Persony mObywatela (dane wymyślone). Dodanie persony = dodanie wpisu, bez zmian w kodzie logiki.
 
 Klucz `zus` opisuje dane „z ZUS” względem dnia uruchomienia (przesunięcia w dniach).
+Klucz `employment_docs` to umowy „z e-teczki pracodawcy”: z nich generujemy PDF-y, które rodzic dodaje w onboardingu.
 """
 
 _NOWAK_ADDRESS = {
@@ -43,6 +44,32 @@ PERSONAS: dict[str, dict] = {
             "contribution_debt": None,
             "known_children": _NOWAK_CHILDREN,
         },
+        "employment_docs": [
+            {
+                "id": "umowa-o-prace-kcuw",
+                "kind": "employment",
+                "employer_name": "Krakowskie Centrum Usług Wspólnych Sp. z o.o.",
+                "employer_address": "ul. Lubicz 23, 31-503 Kraków",
+                "employer_email": "kadry@kcuw.example.pl",
+                "position": "Specjalistka ds. kadr i płac",
+                "fte": 1.0,
+                "gross_monthly": 7850.0,
+                "start_days_ago": 5 * 365,
+                "end_in_days": None,
+            },
+            {
+                "id": "umowa-zlecenia-fundacja",
+                "kind": "mandate",
+                "employer_name": "Fundacja Rodzinny Kraków",
+                "employer_address": "ul. Józefa 14, 31-056 Kraków",
+                "employer_email": "biuro@rodzinnykrakow.example.pl",
+                "position": "Prowadzenie warsztatów dla przyszłych rodziców",
+                "gross_monthly": 1200.0,
+                "start_days_ago": 240,
+                "end_in_days": 120,
+                "voluntary_sickness": True,
+            },
+        ],
     },
     "persona-nowak-piotr": {
         "id": "persona-nowak-piotr",
@@ -68,6 +95,32 @@ PERSONAS: dict[str, dict] = {
             "contribution_debt": None,
             "known_children": _NOWAK_CHILDREN,
         },
+        "employment_docs": [
+            {
+                "id": "umowa-o-prace-mhb",
+                "kind": "employment",
+                "employer_name": "Małopolska Hurtownia Budowlana S.A.",
+                "employer_address": "ul. Półłanki 18, 30-740 Kraków",
+                "employer_email": "kadry@mhb.example.pl",
+                "position": "Kierownik magazynu",
+                "fte": 1.0,
+                "gross_monthly": 6400.0,
+                "start_days_ago": 8 * 365,
+                "end_in_days": None,
+            },
+            {
+                "id": "umowa-zlecenia-bhp",
+                "kind": "mandate",
+                "employer_name": "Akademia BHP Partner Sp. z o.o.",
+                "employer_address": "ul. Zakopiańska 62, 30-418 Kraków",
+                "employer_email": "zlecenia@bhppartner.example.pl",
+                "position": "Prowadzenie szkoleń BHP dla magazynierów",
+                "gross_monthly": 1500.0,
+                "start_days_ago": 150,
+                "end_in_days": 210,
+                "voluntary_sickness": True,
+            },
+        ],
     },
 }
 

@@ -1,180 +1,440 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
-import { describeChild } from '../../lib/format'
+import { markOnboarded } from '../../lib/onboarding'
 import { useSession } from '../../lib/session'
 import type { KnownChild, ParentProfile } from '../../lib/types'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import type { IconName } from '../../ui/Icon'
+import { Avatar, Progress } from '../../ui/controls'
+import { childTone, describeAge } from '../matters/model'
+import ContractsAttachStep from '../contracts/ContractsAttachStep'
+import { listDocuments } from '../contracts/documents'
+import type { EmploymentDocument } from '../contracts/types'
+import { AddChildSheet } from './AddChildSheet'
+import { connectGmail } from './gmail'
+import '../../ui/ui.css'
+import '../onboarding/flow.css'
 
-type Step = 'family' | 'children' | 'parent'
+type Step = 'family' | 'children' | 'partner' | 'contracts' | 'mail'
+const ORDER: Step[] = ['family', 'children', 'partner', 'contracts', 'mail']
 
-function ChildrenStep({ onDone }: { onDone: () => void }) {
-  const { family, refresh } = useSession()
+function Choice({
+  icon,
+  title,
+  sub,
+  pressed,
+  onClick,
+}: {
+  icon: IconName
+  title: string
+  sub: string
+  pressed: boolean
+  onClick: () => void
+}) {
+  return (
+    <button type="button" className="choice" aria-pressed={pressed} onClick={onClick}>
+      <span className="icon-tile">
+        <Icon name={icon} size={24} />
+      </span>
+      <span className="choice-main">
+        <span className="choice-title">{title}</span>
+        <span className="choice-sub">{sub}</span>
+      </span>
+      <span className="choice-check" aria-hidden="true">
+        <Icon name="check" size={16} stroke={2.6} />
+      </span>
+    </button>
+  )
+}
+
+function asChild(k: KnownChild) {
+  const expected = !!k.due_date && !k.birth_date
+  return {
+    id: k.name,
+    family_id: '',
+    name: k.name,
+    birth_date: k.birth_date,
+    due_date: k.due_date,
+    status: expected ? ('expected' as const) : ('born' as const),
+    pesel: null,
+    has_disability: false,
+    foster: false,
+    situation: null,
+    situation_kind: null,
+    situation_at: null,
+    serious_illness: false,
+  }
+}
+
+export default function OnboardingPage() {
+  const { user, family, refresh } = useSession()
+  const navigate = useNavigate()
+  const location = useLocation()
+  // Onboarding zawsze od początku (demo: każdy ma zobaczyć cały proces). Wyjątek: po dołączeniu kodem (JoinPage).
+  const startAt = (location.state as { step?: Step } | null)?.step
+  const [step, setStep] = useState<Step>(startAt && ORDER.includes(startAt) ? startAt : 'family')
+  const [mode, setMode] = useState<'create' | 'join'>('create')
   const [known, setKnown] = useState<KnownChild[] | null>(null)
   const [selected, setSelected] = useState<Set<number>>(new Set())
-  const [error, setError] = useState<string | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
+  const [solo, setSolo] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [docs, setDocs] = useState<EmploymentDocument[] | null>(null)
+  const [attaching, setAttaching] = useState(false)
+  const [gmail, setGmail] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const firstName = user?.name.split(' ')[0] ?? ''
 
   useEffect(() => {
+    if (step !== 'children' || known) return
     let cancelled = false
     api<ParentProfile>('/api/profile/me')
       .then((p) => {
         if (cancelled) return
         const existing = new Set((family?.children ?? []).map((c) => c.name))
         const fresh = p.known_children.filter((k) => !existing.has(k.name))
-        if (fresh.length === 0) {
-          onDone()
-          return
-        }
         setKnown(fresh)
         setSelected(new Set(fresh.map((_, i) => i)))
       })
-      .catch(() => !cancelled && onDone()) // brak danych z ZUS: można dodać dzieci później w „Rodzina”
+      .catch(() => !cancelled && setKnown([]))
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [step, known, family])
 
-  function toggle(i: number) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(i)) next.delete(i)
-      else next.add(i)
-      return next
-    })
-  }
-
-  async function approve() {
-    if (!known) return
-    setBusy(true)
-    setError(null)
-    try {
-      for (const [i, k] of known.entries()) {
-        if (!selected.has(i)) continue
-        await api('/api/families/me/children', {
-          method: 'POST',
-          body: { name: k.name, birth_date: k.birth_date, due_date: k.due_date },
-        })
-      }
-      await refresh()
-      onDone()
-    } catch (e) {
-      setError(e instanceof ApiError ? e.detail : 'Nie udało się zapisać dzieci.')
-      setBusy(false)
+  useEffect(() => {
+    if (step !== 'contracts' || docs) return
+    let cancelled = false
+    listDocuments()
+      .then((list) => !cancelled && setDocs(list))
+      .catch(() => !cancelled && setDocs([]))
+    return () => {
+      cancelled = true
     }
+  }, [step, docs])
+
+  const index = ORDER.indexOf(step)
+
+  function back() {
+    if (index === 0) navigate('/logowanie')
+    else setStep(ORDER[index - 1])
   }
 
-  if (!known) return <p role="status">Ładowanie…</p>
-
-  return (
-    <section className="card stack" aria-labelledby="kids-h">
-      <h2 id="kids-h">Dzieci w rodzinie</h2>
-      <p className="muted">
-        Znamy już te dzieci z danych ZUS. Zaznacz te, które mają trafić do Waszej rodziny — resztę
-        możesz dodać później.
-      </p>
-      <ul style={{ listStyle: 'none', padding: 0 }} className="stack">
-        {known.map((k, i) => (
-          <li key={`${k.name}-${i}`}>
-            <label className="row">
-              <input type="checkbox" checked={selected.has(i)} onChange={() => toggle(i)} />
-              <span>
-                {k.name} <span className="muted">— {describeChild({ status: k.due_date && !k.birth_date ? 'expected' : 'born', birth_date: k.birth_date, due_date: k.due_date })}</span>
-              </span>
-            </label>
-          </li>
-        ))}
-      </ul>
-      {error && (
-        <p role="alert" className="alert">
-          {error}
-        </p>
-      )}
-      <div className="row">
-        <button type="button" className="btn" disabled={busy} onClick={approve}>
-          Zatwierdź dzieci
-        </button>
-        <button type="button" className="btn btn-secondary" disabled={busy} onClick={onDone}>
-          Pomiń
-        </button>
-      </div>
-    </section>
-  )
-}
-
-export default function OnboardingPage() {
-  const { family, refresh } = useSession()
-  const navigate = useNavigate()
-  const [step, setStep] = useState<Step>(family ? 'children' : 'family')
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  async function createFamily() {
+  async function run(action: () => Promise<void>, fallback: string) {
     setBusy(true)
     setError(null)
     try {
-      await api('/api/families', { method: 'POST', body: {} })
-      await refresh()
-      setStep('children')
+      await action()
     } catch (e) {
-      setError(e instanceof ApiError ? e.detail : 'Nie udało się założyć rodziny.')
+      setError(e instanceof ApiError ? e.detail : fallback)
     } finally {
       setBusy(false)
     }
   }
 
+  async function next() {
+    if (step === 'family') {
+      if (mode === 'join') {
+        if (family) setStep('children') // już jesteś w rodzinie — dołączanie nie jest potrzebne
+        else navigate('/dolacz')
+        return
+      }
+      await run(async () => {
+        if (!family) {
+          await api('/api/families', { method: 'POST', body: {} })
+          await refresh()
+        }
+        setStep('children')
+      }, 'Nie udało się założyć rodziny.')
+    } else if (step === 'children') {
+      await run(async () => {
+        for (const [i, k] of (known ?? []).entries()) {
+          if (!selected.has(i)) continue
+          await api('/api/families/me/children', {
+            method: 'POST',
+            body: { name: k.name, birth_date: k.birth_date, due_date: k.due_date },
+          })
+        }
+        setKnown([])
+        await refresh()
+        setStep('partner')
+      }, 'Nie udało się zapisać dzieci.')
+    } else if (step === 'partner') {
+      setStep('contracts')
+    } else if (step === 'contracts') {
+      setStep('mail') // umowy zapisuje już sam krok (ContractsAttachStep)
+    } else {
+      if (user) markOnboarded(user.id)
+      navigate('/analiza')
+    }
+  }
+
+  async function copyCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1800)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  async function share(code: string) {
+    const text = `Dołącz do naszej rodziny w mRodzinie. Kod zaproszenia: ${code}`
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: 'mRodzina', text })
+      } catch {
+        // użytkownik zamknął okno udostępniania
+      }
+    } else {
+      await copyCode(code)
+    }
+  }
+
+  const code = family?.family.invite_code ?? ''
+  const existingKids = family?.children ?? []
+  const nextLabel =
+    step === 'children'
+      ? selected.size > 0
+        ? `Dodaj dzieci (${selected.size})`
+        : 'Dalej'
+      : step === 'contracts'
+        ? attaching
+          ? 'Czytam umowy…'
+          : docs?.some((d) => d.contract_id)
+            ? 'Dalej'
+            : 'Pomiń na razie'
+      : step === 'mail'
+        ? gmail
+          ? 'Sprawdź, co Wam przysługuje'
+          : 'Pomiń na razie'
+        : 'Dalej'
+
   return (
-    <div className="stack" style={{ maxWidth: '40rem' }}>
-      <h1>Zaczynamy</h1>
+    <div className="flow">
+      <div className="flow-top">
+        <button type="button" className="icon-btn icon-btn-solid" aria-label="Wróć" onClick={back}>
+          <Icon name="arrowLeft" size={20} />
+        </button>
+        <Progress value={(index + 1) / (ORDER.length + 1)} label="Konfiguracja rodziny" />
+      </div>
 
-      {step === 'family' && (
-        <section className="card stack" aria-labelledby="fam-h">
-          <h2 id="fam-h">Twoja rodzina</h2>
-          <p className="muted">
-            Załóż rodzinę — wszystkie dane (Twoje, drugiego rodzica i dzieci) będą w jednym miejscu.
-          </p>
-          {error && (
-            <p role="alert" className="alert">
-              {error}
+      <div className="flow-body" key={step}>
+        {step === 'family' && (
+          <>
+            <h1 className="flow-title rise">Cześć{firstName ? `, ${firstName}` : ''}! Zacznijmy od rodziny</h1>
+            <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
+              W jednym miejscu zbierzemy sprawy Twoje, drugiego rodzica i dzieci.
             </p>
-          )}
-          <div className="row">
-            <button type="button" className="btn" disabled={busy} onClick={createFamily}>
-              Załóż rodzinę
-            </button>
-            <Link to="/dolacz">Dołącz do rodziny</Link>
-          </div>
-        </section>
-      )}
+            <div className="choices rise" style={{ ['--i' as string]: 2 }}>
+              <Choice
+                icon="home"
+                title="Zakładam rodzinę"
+                sub="Zaprosisz drugiego rodzica kodem"
+                pressed={mode === 'create'}
+                onClick={() => setMode('create')}
+              />
+              <Choice
+                icon="link"
+                title="Dołączam do rodziny"
+                sub="Mam kod od partnera lub partnerki"
+                pressed={mode === 'join'}
+                onClick={() => setMode('join')}
+              />
+            </div>
+          </>
+        )}
 
-      {step === 'children' && <ChildrenStep onDone={() => setStep('parent')} />}
+        {step === 'children' && (
+          <>
+            <h1 className="flow-title rise">Wasze dzieci</h1>
+            <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
+              {known && known.length > 0
+                ? 'Znaleźliśmy je w rejestrach. Zaznacz, kto należy do Waszej rodziny.'
+                : 'Dodaj dzieci — także to, które jest w drodze.'}
+            </p>
+            {!known && <div className="skeleton" style={{ height: '5rem' }} role="status" aria-label="Szukam dzieci w rejestrach" />}
+            <div className="choices rise" style={{ ['--i' as string]: 2 }}>
+              {existingKids.map((c, i) => (
+                <div key={c.id} className="choice" aria-checked="true" role="checkbox" aria-disabled="true">
+                  <Avatar name={c.name} tone={childTone(i)} icon={c.status === 'expected' ? 'baby' : undefined} size={46} />
+                  <span className="choice-main">
+                    <span className="choice-title">{c.name}</span>
+                    <span className="choice-sub">{describeAge(c)}</span>
+                  </span>
+                  <span className="choice-check" aria-hidden="true">
+                    <Icon name="check" size={16} stroke={2.6} />
+                  </span>
+                </div>
+              ))}
+              {known?.map((k, i) => {
+                const c = asChild(k)
+                const on = selected.has(i)
+                return (
+                  <button
+                    key={`${k.name}-${i}`}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={on}
+                    className="choice"
+                    onClick={() =>
+                      setSelected((prev) => {
+                        const n = new Set(prev)
+                        if (n.has(i)) n.delete(i)
+                        else n.add(i)
+                        return n
+                      })
+                    }
+                  >
+                    <Avatar
+                      name={k.name}
+                      tone={childTone(existingKids.length + i)}
+                      icon={c.status === 'expected' ? 'baby' : undefined}
+                      size={46}
+                    />
+                    <span className="choice-main">
+                      <span className="choice-title">{k.name}</span>
+                      <span className="choice-sub">{describeAge(c)}</span>
+                    </span>
+                    <span className="choice-check" aria-hidden="true">
+                      <Icon name="check" size={16} stroke={2.6} />
+                    </span>
+                  </button>
+                )
+              })}
+              <button type="button" className="choice choice-add" onClick={() => setAddOpen(true)}>
+                <Icon name="plus" size={20} /> Dodaj dziecko
+              </button>
+            </div>
+            <AddChildSheet open={addOpen} onClose={() => setAddOpen(false)} onAdded={refresh} />
+          </>
+        )}
 
-      {step === 'parent' && (
-        <section className="card stack" aria-labelledby="par-h">
-          <h2 id="par-h">Drugi rodzic</h2>
-          {family?.family.invite_code ? (
-            <>
-              <p className="muted">
-                Przekaż ten kod drugiemu rodzicowi. Wpisze go po zalogowaniu w „Dołącz do rodziny”, a Ty
-                zaakceptujesz prośbę.
-              </p>
-              <p className="invite-code" aria-label="Kod zaproszenia">
-                {family.family.invite_code}
-              </p>
-            </>
-          ) : (
-            <p className="muted">Kod zaproszenia znajdziesz w zakładce „Rodzina”.</p>
-          )}
-          <div className="row">
-            <button type="button" className="btn" onClick={() => navigate('/analiza')}>
-              Gotowe, przejdź dalej
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={() => navigate('/analiza')}>
-              Wychowuję dziecko samodzielnie
-            </button>
-          </div>
-        </section>
-      )}
+        {step === 'partner' && (
+          <>
+            <div className="flow-art rise">
+              <Icon name="family" size={40} />
+            </div>
+            <h1 className="flow-title rise" style={{ ['--i' as string]: 1 }}>
+              Zaproś drugiego rodzica
+            </h1>
+            <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
+              Wpisze ten kod po zalogowaniu, a Ty zaakceptujesz prośbę. Oboje będziecie widzieć sprawy dzieci.
+            </p>
+            {!solo && code && (
+              <div className="rise" style={{ ['--i' as string]: 3 }}>
+                <div className="code-boxes" aria-label={`Kod zaproszenia: ${code}`} role="img">
+                  {code.split('').map((ch, i) => (
+                    <span key={i} className="code-box">
+                      {ch}
+                    </span>
+                  ))}
+                </div>
+                <p className="sr-only">Kod zaproszenia: {code}</p>
+                <div className="share-row">
+                  <Button variant="secondary" leading={copied ? 'check' : 'copy'} onClick={() => void copyCode(code)}>
+                    {copied ? 'Skopiowano' : 'Kopiuj kod'}
+                  </Button>
+                  <Button variant="secondary" leading="share" onClick={() => void share(code)}>
+                    Wyślij
+                  </Button>
+                </div>
+              </div>
+            )}
+            <div className="choices" style={{ marginTop: '1.25rem' }}>
+              <button type="button" className="choice" aria-pressed={solo} onClick={() => setSolo((s) => !s)}>
+                <span className="icon-tile tone-lilac">
+                  <Icon name="heart" size={22} />
+                </span>
+                <span className="choice-main">
+                  <span className="choice-title">Wychowuję dzieci samodzielnie</span>
+                  <span className="choice-sub">Zaproszenie możesz wysłać później w zakładce Rodzina</span>
+                </span>
+                <span className="choice-check" aria-hidden="true">
+                  <Icon name="check" size={16} stroke={2.6} />
+                </span>
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'contracts' && (
+          <>
+            <div className="flow-art rise">
+              <Icon name="briefcase" size={40} />
+            </div>
+            <h1 className="flow-title rise" style={{ ['--i' as string]: 1 }}>
+              Twoje umowy o pracę
+            </h1>
+            <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
+              {docs && docs.length === 0
+                ? 'Nie znaleźliśmy umów w e-teczce Twojego pracodawcy. Możesz dodać je później w zakładce Umowy.'
+                : 'Załącz umowy, a sprawdzimy, jakie urlopy i zasiłki Ci przysługują. Asystent mRodziny będzie znał Twoje warunki zatrudnienia.'}
+            </p>
+            {!docs ? (
+              <div className="skeleton" style={{ height: '5rem' }} role="status" aria-label="Szukam umów u pracodawcy" />
+            ) : (
+              <ContractsAttachStep docs={docs} onImported={setDocs} onBusyChange={setAttaching} />
+            )}
+          </>
+        )}
+
+        {step === 'mail' && (
+          <>
+            <div className="flow-art rise">
+              <Icon name="mail" size={40} />
+            </div>
+            <h1 className="flow-title rise" style={{ ['--i' as string]: 1 }}>
+              Połącz skrzynkę Gmail
+            </h1>
+            <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
+              Odpowiedzi z ZUS, urzędu i od pracodawcy same zaktualizują status Waszych wniosków. Nie musisz niczego
+              przepisywać.
+            </p>
+            <div className="card stack rise" style={{ ['--i' as string]: 3 }}>
+              <div className="flow-note" style={{ marginTop: 0 }}>
+                <Icon name="eye" size={18} />
+                <span>Czytamy wyłącznie wiadomości w sprawie Waszych wniosków. Prywatna poczta zostaje prywatna.</span>
+              </div>
+              {gmail ? (
+                <p className="row" style={{ margin: 0, fontWeight: 800, color: 'var(--green)' }}>
+                  <Icon name="checkCircle" size={22} /> Połączono: {gmail}
+                </p>
+              ) : (
+                <Button
+                  variant="secondary"
+                  leading="mail"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(async () => {
+                      setGmail(await connectGmail())
+                    }, 'Nie udało się połączyć ze skrzynką.')
+                  }
+                >
+                  {busy ? 'Łączę…' : 'Połącz z Gmail'}
+                </Button>
+              )}
+            </div>
+          </>
+        )}
+
+        {error && (
+          <p role="alert" className="alert" style={{ marginTop: '1rem' }}>
+            <Icon name="alert" size={20} />
+            {error}
+          </p>
+        )}
+      </div>
+
+      <div className="flow-foot">
+        <Button block icon="arrowRight" disabled={busy || (step === 'children' && !known) || (step === 'contracts' && (!docs || attaching))} onClick={() => void next()}>
+          {nextLabel}
+        </Button>
+      </div>
     </div>
   )
 }

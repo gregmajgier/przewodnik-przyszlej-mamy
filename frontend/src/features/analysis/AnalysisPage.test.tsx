@@ -72,31 +72,30 @@ describe('AnalysisPage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('ujawnia kroki po kolei, co ~700 ms, a ostatni ⟳ zamienia się w ✓', async () => {
+  it('ujawnia kroki po kolei, co ~700 ms; bieżący jest „w toku”, ukończone „gotowe”', async () => {
     renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
     await advance(0)
 
     const steps = () => screen.getAllByRole('listitem')
     expect(steps()).toHaveLength(1)
     expect(steps()[0]).toHaveTextContent('Czytam twoje dane')
-    expect(steps()[0]).toHaveTextContent('⟳')
+    expect(steps()[0]).toHaveTextContent('w toku')
     expect(screen.queryByText('Rodzice: 1.')).not.toBeInTheDocument() // szczegóły dopiero po ukończeniu kroku
 
     await advance(STEP_MS)
     expect(steps()).toHaveLength(2)
-    expect(steps()[0]).toHaveTextContent('✓')
+    expect(steps()[0]).toHaveTextContent('gotowe')
     expect(screen.getByText('Rodzice: 1.')).toBeInTheDocument()
     expect(steps()[1]).toHaveTextContent('Sprawdzam skład rodziny')
-    expect(steps()[1]).toHaveTextContent('⟳')
+    expect(steps()[1]).toHaveTextContent('w toku')
 
     await advance(STEP_MS)
     expect(steps()).toHaveLength(3)
-    expect(steps()[2]).toHaveTextContent('⟳')
+    expect(steps()[2]).toHaveTextContent('w toku')
     expect(screen.queryByRole('button', { name: /przejdź do panelu/i })).not.toBeInTheDocument()
 
-    await advance(STEP_MS) // ostatni krok kończy się
-    expect(steps().map((li) => li.textContent?.includes('✓'))).toEqual([true, true, true])
-    expect(screen.queryByText('⟳')).not.toBeInTheDocument()
+    await advance(STEP_MS) // ostatni krok kończy się — lista ustępuje wynikowi
+    expect(screen.getByRole('region', { name: /wynik analizy/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /przejdź do panelu/i })).toBeInTheDocument()
   })
 
@@ -104,9 +103,9 @@ describe('AnalysisPage', () => {
     renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
     await finishAnalysis()
     const result = screen.getByRole('region', { name: /wynik analizy/i })
+    expect(result).toHaveTextContent('12świadczeń i ulg dla Was')
     expect(result).toHaveTextContent('7 pasuje')
-    expect(result).toHaveTextContent('5 może ci przysługiwać')
-    expect(result).toHaveTextContent('10 nie pasuje')
+    expect(result).toHaveTextContent('5 do sprawdzenia')
   })
 
   it('przycisk prowadzi do panelu', async () => {
@@ -120,8 +119,7 @@ describe('AnalysisPage', () => {
     stubReducedMotion(true)
     renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
     await advance(0)
-    expect(screen.getAllByRole('listitem')).toHaveLength(3)
-    expect(screen.getByText('Pasuje: 7.')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: /wynik analizy/i })).toHaveTextContent('7 pasuje')
     expect(screen.getByRole('button', { name: /przejdź do panelu/i })).toBeInTheDocument()
   })
 

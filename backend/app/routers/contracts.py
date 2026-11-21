@@ -8,9 +8,10 @@ from starlette.datastructures import UploadFile
 from ..ai.limits import GuardContext, ai_guard, record_usage
 from ..ai.llm import LLM, Usage, get_llm, track_usage
 from ..errors import DomainError
-from ..models.contract import Contract, ContractDraft, Risk
+from ..models.contract import Contract, ContractDraft, EmploymentDocument, Risk
 from ..security import Principal, require_parent
 from ..services import contracts as svc
+from ..services import employment_docs
 from ..services.contract_extract import extract_contract, safe_filename
 from ..storage import Store, get_store
 
@@ -73,6 +74,34 @@ async def scan(
     await record_usage(ctx, usage)
     saved = await svc.save_draft(store, p.user_id, p.family_id, filename, draft)
     return {"draft_id": saved.id, "draft": draft.model_dump(mode="json"), "filename": saved.filename}
+
+
+@router.get("/contracts/documents")
+async def list_documents(
+    p: Principal = Depends(require_parent), store: Store = Depends(get_store)
+) -> list[EmploymentDocument]:
+    """Umowy zalogowanego rodzica z e-teczki pracodawcy (do dodania np. w onboardingu)."""
+    return await employment_docs.list_documents(store, p.user_id, date.today())
+
+
+@router.get("/contracts/documents/{doc_id}/pdf")
+async def document_pdf(
+    doc_id: str, p: Principal = Depends(require_parent), store: Store = Depends(get_store)
+) -> Response:
+    doc = await employment_docs.get_source_doc(store, p.user_id, doc_id, date.today())
+    return Response(
+        content=employment_docs.render_pdf(doc),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{doc.filename}"', "Cache-Control": "no-store"},
+    )
+
+
+@router.post("/contracts/documents/{doc_id}/import")
+async def import_document(
+    doc_id: str, p: Principal = Depends(require_parent), store: Store = Depends(get_store)
+) -> Contract:
+    doc = await employment_docs.get_source_doc(store, p.user_id, doc_id, date.today())
+    return await svc.import_document(store, p.user_id, p.family_id, doc.id, doc.filename, doc.draft)
 
 
 @router.post("/contracts/{contract_id}/confirm")

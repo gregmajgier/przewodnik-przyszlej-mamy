@@ -78,9 +78,48 @@ describe('ProfilePage', () => {
     expect(screen.getByText(/•+2345/)).toBeInTheDocument()
   })
 
-  it('oznacza dane jako symulowane', async () => {
+  it('podpisuje źródło danych (ZUS i mObywatel), bez etykiet „symulacja”', async () => {
     routeApi({ 'GET /api/profile': { members: [ANNA_PROFILE] } })
     renderWithSession(<ProfilePage />)
-    expect(await screen.findByText(/symulacja/i)).toBeInTheDocument()
+    expect(await screen.findByText(/dane z ZUS i mObywatela/i)).toBeInTheDocument()
+    expect(screen.queryByText(/symulacja/i)).not.toBeInTheDocument()
+  })
+
+  it('podpisuje odpowiedzi po polsku i maskuje numer konta', async () => {
+    routeApi({
+      'GET /api/profile': {
+        members: [
+          {
+            ...ANNA_PROFILE,
+            answers: {
+              street: 'Floriańska',
+              house_no: '12',
+              account_number: '12102028920000540201234567',
+              employer_email: 'kadry@kcuw.pl',
+              'income_le:1922': true,
+            },
+          },
+        ],
+      },
+    })
+    renderWithSession(<ProfilePage />)
+    await screen.findByRole('heading', { name: 'Anna Nowak' })
+    expect(screen.getByText('Ulica i numer')).toBeInTheDocument()
+    expect(screen.getByText('Floriańska 12')).toBeInTheDocument()
+    expect(screen.getByText('E-mail do kadr')).toBeInTheDocument()
+    expect(screen.getByText('•••• 4567')).toBeInTheDocument()
+    expect(screen.queryByText(/12102028920000540201234567/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/account_number|employer_email|house_no/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Dochód na osobę do 1\s?922 zł/)).toBeInTheDocument()
+  })
+
+  it('dziecko w drodze: termin porodu bez powtórzonego „w drodze”', async () => {
+    routeApi({
+      'GET /api/profile': {
+        members: [{ ...ANNA_PROFILE, known_children: [{ name: 'Dziecko w drodze', birth_date: null, due_date: '2027-01-20' }] }],
+      },
+    })
+    renderWithSession(<ProfilePage />)
+    expect(await screen.findByText('termin porodu 20.01.2027')).toBeInTheDocument()
   })
 })

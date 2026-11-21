@@ -1,0 +1,202 @@
+/* Krok onboardingu „Umowy”: załączanie i (symulowany) odczyt przez AI. */
+.attach-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.75rem 1.25rem;
+  border: 2px dashed var(--line-2);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  text-align: center;
+}
+.attach-drop-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1.1rem;
+  background: var(--pink-50);
+  color: var(--pink);
+}
+.attach-drop-text {
+  margin: 0;
+  color: var(--ink-2);
+  max-width: 24rem;
+}
+.attach-sim {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+
+.attach-files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.attach-files li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink-2);
+}
+.attach-files li.is-done,
+.attach-files li.is-active {
+  color: var(--ink);
+}
+.attach-file-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.attach-file-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.attach-bar {
+  display: block;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--paper-2);
+  overflow: hidden;
+}
+.attach-bar-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  background: var(--pink);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.attach-files li.is-active .attach-bar-fill {
+  transform: scaleX(0.92);
+  transition: transform 0.85s var(--ease);
+}
+.attach-files li.is-done .attach-bar-fill {
+  transform: scaleX(1);
+  background: var(--green);
+}
+.attach-file-state {
+  flex: none;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.attach-files li.is-done .attach-file-state {
+  color: var(--green);
+}
+
+.attach-ai {
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+.attach-ai-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+  font-weight: 800;
+  color: var(--ai);
+}
+.attach-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.attach-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+}
+.attach-steps li.is-done,
+.attach-steps li.is-active {
+  color: var(--ink);
+  font-weight: 700;
+}
+.attach-step-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--paper-2);
+  color: var(--ai);
+}
+.attach-steps li.is-active .attach-step-mark {
+  background: var(--violet-50);
+}
+.attach-steps li.is-done .attach-step-mark {
+  background: var(--ai);
+  color: var(--white);
+}
+
+.attach-done {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 800;
+  color: var(--green);
+}
+.attach-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+.attach-result-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.attach-result-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.attach-result-title .muted {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+.attach-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.95rem;
+}
+.attach-fact {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.75rem;
+}
+.attach-result .doc-preview {
+  align-self: flex-start;
+  min-height: 44px;
+  padding-left: 0;
+}
+@media (max-width: 380px) {
+  .attach-fact {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

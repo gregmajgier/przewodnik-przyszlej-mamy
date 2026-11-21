@@ -416,3 +416,86 @@ def test_pregnant_or_newborn_no_without_either():
     b = benefit(pregnant_or_child_max_months=5)
     r = match_benefit(ctx([born_months_ago(40)]), b)
     assert r.status == "no" and r.unmet
+
+
+# ---------- przypisanie do dzieci (per_child) ----------
+
+
+def per_child(id="pc", conditions=None, **criteria) -> Benefit:
+    b = benefit(id=id, conditions=conditions or [], **criteria)
+    return b.model_copy(update={"per_child": True})
+
+
+def test_family_level_benefit_has_no_child_ids():
+    r = match_benefit(ctx([born_months_ago(30)]), benefit(child_age_max_months=215))
+    assert r.status == "fits" and r.child_ids == []
+
+
+def test_per_child_lists_only_children_in_age_range():
+    kids = [born_months_ago(30, "Antek"), born_months_ago(100, "Zosia"), born_months_ago(230, "Kuba")]
+    r = match_benefit(ctx(kids), per_child(child_age_min_months=72, child_age_max_months=215))
+    assert r.status == "fits" and r.child_ids == ["c-Zosia"]
+
+
+def test_per_child_without_age_criteria_covers_all_born_children():
+    kids = [born_months_ago(30, "Antek"), born_months_ago(100, "Zosia"), child("Maleństwo", due=date(2027, 3, 1))]
+    r = match_benefit(ctx(kids), per_child())
+    assert r.child_ids == ["c-Antek", "c-Zosia"]
+
+
+def test_per_child_disability_intersects_with_age():
+    kids = [born_months_ago(30, "Antek", has_disability=True), born_months_ago(100, "Zosia")]
+    r = match_benefit(ctx(kids), per_child(child_age_max_months=287, requires_disability=True))
+    assert r.status == "fits" and r.child_ids == ["c-Antek"]
+
+
+def test_per_child_no_single_child_meets_all_criteria():
+    # niepełnosprawne dziecko jest za starsze, a dziecko w wieku nie ma orzeczenia
+    kids = [born_months_ago(300, "Kuba", has_disability=True), born_months_ago(100, "Zosia")]
+    r = match_benefit(ctx(kids), per_child(child_age_max_months=215, requires_disability=True))
+    assert r.status == "no" and r.child_ids == []
+    assert any("Żadne dziecko" in u for u in r.unmet)
+
+
+def test_per_child_serious_illness_condition_targets_that_child():
+    kids = [born_months_ago(2, "Antek", serious_illness=True), born_months_ago(100, "Zosia")]
+    cond = Condition(id="ciezka", text="Ciężka choroba", kind="auto", profile_key="family.child_serious_illness")
+    r = match_benefit(ctx(kids), per_child(conditions=[cond]))
+    assert r.status == "fits" and r.child_ids == ["c-Antek"]
+
+
+def test_per_child_pregnancy_or_newborn_points_at_expected_child():
+    kids = [born_months_ago(100, "Zosia"), child("Maleństwo", due=date(2027, 3, 1))]
+    r = match_benefit(ctx(kids), per_child(pregnant_or_child_max_months=11))
+    assert r.status == "fits" and r.child_ids == ["c-Maleństwo"]
+
+
+def test_per_child_maybe_still_lists_children():
+    kids = [born_months_ago(100, "Zosia")]
+    r = match_benefit(ctx(kids), per_child(child_age_min_months=72, max_income_per_person=823))
+    assert r.status == "maybe" and r.child_ids == ["c-Zosia"]
+
+
+# ---------- wspólna odpowiedź o dochód ----------
+
+
+def test_income_yes_for_lower_limit_answers_higher_limit():
+    r = match_benefit(ctx([born_months_ago(100)], answers={"income_le:674": True}), benefit(max_income_per_person=823))
+    assert r.status == "fits"
+
+
+def test_income_no_for_higher_limit_answers_lower_limit():
+    r = match_benefit(ctx([born_months_ago(100)], answers={"income_le:823": False}), benefit(max_income_per_person=674))
+    assert r.status == "no"
+
+
+def test_income_answer_does_not_leak_in_the_wrong_direction():
+    yes_low = match_benefit(ctx([born_months_ago(100)], answers={"income_le:823": True}), benefit(max_income_per_person=674))
+    no_high = match_benefit(ctx([born_months_ago(100)], answers={"income_le:674": False}), benefit(max_income_per_person=823))
+    assert yes_low.status == "maybe" and no_high.status == "maybe"
+
+
+def test_benefit_specific_income_answer_wins():
+    answers = {"income_le:674": True, "benefit:b1:income": False}
+    r = match_benefit(ctx([born_months_ago(100)], answers=answers), benefit(max_income_per_person=823))
+    assert r.status == "no"

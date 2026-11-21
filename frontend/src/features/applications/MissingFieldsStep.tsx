@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { DateField, Select } from '../../ui/controls'
 import type { AnswerValue, Question } from './types'
 
 interface Props {
@@ -16,8 +19,8 @@ function QuestionForm({ q, onAnswer, busy }: { q: Question; onAnswer: Props['onA
   const inputId = `q-${q.field_id}`
   const empty = value.trim() === ''
 
-  async function submit(e: FormEvent) {
-    e.preventDefault()
+  async function submit(e?: FormEvent) {
+    e?.preventDefault()
     if (empty || busy) return
     await onAnswer(q.field_id, value.trim())
   }
@@ -25,12 +28,14 @@ function QuestionForm({ q, onAnswer, busy }: { q: Question; onAnswer: Props['onA
   if (q.type === 'bool') {
     return (
       <div className="stack">
-        <p id={inputId}>{q.label}</p>
-        <div className="row" role="group" aria-labelledby={inputId}>
-          <button type="button" className="btn" disabled={busy} onClick={() => void onAnswer(q.field_id, true)}>
+        <p id={inputId} className="question-text">
+          {q.label}
+        </p>
+        <div className="bsheet-q-actions" role="group" aria-labelledby={inputId}>
+          <button type="button" className="answer-btn" disabled={busy} onClick={() => void onAnswer(q.field_id, true)}>
             Tak
           </button>
-          <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => void onAnswer(q.field_id, false)}>
+          <button type="button" className="answer-btn" disabled={busy} onClick={() => void onAnswer(q.field_id, false)}>
             Nie
           </button>
         </div>
@@ -40,32 +45,25 @@ function QuestionForm({ q, onAnswer, busy }: { q: Question; onAnswer: Props['onA
 
   return (
     <form className="stack" onSubmit={submit} noValidate>
-      <div className="field">
-        <label htmlFor={inputId}>{q.label}</label>
-        {q.type === 'choice' ? (
-          <select id={inputId} value={value} onChange={(e) => setValue(e.target.value)}>
-            <option value="">— wybierz —</option>
-            {(q.choices ?? []).map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <input
-            id={inputId}
-            type={q.type === 'date' ? 'date' : 'text'}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            autoComplete="off"
-          />
-        )}
-      </div>
-      <div className="row">
-        <button type="submit" className="btn" disabled={empty || busy}>
-          Dalej
-        </button>
-      </div>
+      {q.type === 'choice' ? (
+        <Select
+          id={inputId}
+          label={q.label}
+          value={value}
+          onChange={setValue}
+          options={(q.choices ?? []).map((c) => ({ value: c, label: c }))}
+        />
+      ) : q.type === 'date' ? (
+        <DateField id={inputId} label={q.label} value={value} onChange={setValue} />
+      ) : (
+        <label className="field" htmlFor={inputId}>
+          {q.label}
+          <input id={inputId} value={value} onChange={(e) => setValue(e.target.value)} autoComplete="off" />
+        </label>
+      )}
+      <Button type="submit" block disabled={empty || busy} icon="arrowRight">
+        Dalej
+      </Button>
     </form>
   )
 }
@@ -74,11 +72,18 @@ export default function MissingFieldsStep({ questions, onAnswer, busy = false, e
   const q = questions[0]
   if (!q) return null
   return (
-    <section className="card stack" aria-labelledby="missing-h">
-      <h2 id="missing-h">Brakuje jeszcze danych</h2>
-      <p className="muted">
-        Pytanie 1 z {questions.length}. Zapamiętamy odpowiedź, więc przy następnym wniosku już o to nie zapytamy.
-      </p>
+    <section className="card question-card stack" aria-labelledby="missing-h">
+      <div className="question-head">
+        <span className="icon-tile tone-butter">
+          <Icon name="pen" size={22} />
+        </span>
+        <div>
+          <h2 id="missing-h">Brakuje jeszcze {questions.length === 1 ? 'jednej informacji' : `${questions.length} informacji`}</h2>
+          <p className="muted small">
+            Pytanie 1 z {questions.length}. Zapamiętamy odpowiedź — przy kolejnym wniosku już o to nie zapytamy.
+          </p>
+        </div>
+      </div>
       {error && (
         <p role="alert" className="alert">
           {error}

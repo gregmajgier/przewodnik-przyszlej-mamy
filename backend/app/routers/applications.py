@@ -10,6 +10,7 @@ from ..ai.llm import LLM, LLMError, get_llm, track_usage
 from ..mail import MailProvider, get_mail
 from ..models.application import AnswersIn, Application, ApplicationCreate, ApplicationPatch
 from ..security import Principal, require_parent
+from ..seed.demo_applications import ensure_demo_applications
 from ..services.agent_plan import build_plan
 from ..services.applications import ApplicationService, cancel_drafts_for_child  # noqa: F401  (API dla planu 10)
 from ..services.prefill import form_schema, portal_meta, portal_schema
@@ -52,6 +53,7 @@ async def list_applications(
     p: Principal = Depends(require_parent), svc: ApplicationService = Depends(get_service)
 ) -> list[dict]:
     """Wnioski całej rodziny (oboje rodzice widzą wszystkie; `applicant_id` mówi, kto składa)."""
+    await ensure_demo_applications(svc.store, svc.mail, p.user_id)
     return [_out(a) for a in await svc.list_for_family(p.user_id)]
 
 

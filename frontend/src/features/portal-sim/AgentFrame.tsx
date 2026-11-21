@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, ApiError } from '../../lib/api'
 import { prefersReducedMotion } from '../../lib/motion'
 import MissingFieldsStep from '../applications/MissingFieldsStep'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { Progress } from '../../ui/controls'
 import type { AgentPlan, AgentStep, AnswerValue, Application } from '../applications/types'
 import AgentCursor from './AgentCursor'
 import { listenFromFrame, postToFrame } from './agentBridge'
@@ -187,21 +190,27 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
 
   return (
     <section className="agent-panel" aria-labelledby="agent-h">
-      <h2 id="agent-h">
-        Agent wypełnia wniosek <span className="badge-sim">AI · SYMULACJA</span>
-      </h2>
-      <p className="muted">
-        Agent wpisuje dane z Waszego profilu do makiety portalu. Możesz kliknąć dowolne pole i je poprawić. Nic nie zostanie
-        wysłane, dopóki tego nie zatwierdzisz.
-      </p>
+      <div className="agent-head">
+        <span className="agent-avatar" aria-hidden="true">
+          <Icon name="sparkle" size={22} />
+        </span>
+        <div>
+          <h2 id="agent-h">Agent wypełnia formularz online</h2>
+          <p className="muted small">
+            Wpisuje dane z Waszego profilu. Możesz kliknąć dowolne pole i je poprawić — nic nie zostanie wysłane, dopóki tego
+            nie zatwierdzisz.
+          </p>
+        </div>
+      </div>
 
+      {total > 0 && phase === 'running' && <Progress value={progress / total} label="Postęp wypełniania" />}
       <div className="agent-status" role="status" aria-live="polite">
         {phase === 'loading' && 'Przygotowuję plan…'}
         {phase === 'running' && `Wypełniam formularz: krok ${Math.min(progress + 1, total)} z ${total}`}
         {phase === 'blocked' && 'Zatrzymałem się — potrzebuję jeszcze kilku danych.'}
         {phase === 'review' && 'Gotowe. Sprawdź formularz i zatwierdź wysyłkę.'}
         {phase === 'submitting' && 'Wysyłam…'}
-        {phase === 'done' && 'Wniosek złożony w makiecie portalu.'}
+        {phase === 'done' && 'Wniosek złożony.'}
       </div>
 
       {error && (
@@ -211,16 +220,26 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
       )}
       {rejected.length > 0 && (
         <p role="note" className="notice">
-          Makieta nie przyjęła pól: {rejected.join(', ')}. Uzupełnij je ręcznie.
+          Formularz nie przyjął pól: {rejected.join(', ')}. Uzupełnij je ręcznie.
         </p>
       )}
 
       {plan && (
         <div className="agent-stage">
+          <div className="browser-bar" aria-hidden="true">
+            <span className="browser-dots">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="browser-url">
+              <Icon name="lock" size={13} /> {plan.kind === 'ezus' ? 'eZUS' : 'Emp@tia'} · {plan.title ?? 'formularz'}
+            </span>
+          </div>
           <iframe
             ref={frameRef}
             className="agent-frame"
-            title={plan.title ?? 'Makieta portalu'}
+            title={plan.title ?? 'Formularz online'}
             src={`/sim/${plan.kind}/${plan.portal_id}`}
             sandbox="allow-scripts allow-same-origin"
           />
@@ -233,11 +252,9 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
       )}
 
       {(phase === 'review' || phase === 'submitting') && (
-        <div className="row">
-          <button type="button" className="btn" disabled={phase === 'submitting'} onClick={approve}>
-            Zatwierdzam i wysyłam
-          </button>
-        </div>
+        <Button block disabled={phase === 'submitting'} onClick={approve} icon="arrowRight">
+          Zatwierdzam i wysyłam
+        </Button>
       )}
     </section>
   )

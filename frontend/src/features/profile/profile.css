@@ -1,0 +1,158 @@
+.profile-lead {
+  margin: 0.25rem 0 0;
+  max-width: 36rem;
+}
+
+.profile-member + .profile-member {
+  padding-top: clamp(1.5rem, 5vw, 2.25rem);
+  border-top: 1px solid var(--line-2);
+}
+.profile-person {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+.profile-person h2 {
+  margin: 0;
+}
+
+.profile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.profile-card {
+  min-width: 0;
+  padding: clamp(1rem, 3vw, 1.35rem);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 0 0 1px var(--line);
+  animation: rise 0.7s var(--ease) both;
+}
+.profile-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+}
+.profile-card-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.profile-empty {
+  margin: 0;
+}
+
+/* etykieta nad wartością — czytelne także na wąskim ekranie */
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  gap: 0.65rem;
+  margin: 0;
+}
+.profile-facts > div {
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+.profile-facts-wide {
+  grid-column: 1 / -1;
+}
+.profile-facts dt {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.profile-facts dd {
+  margin: 0.1rem 0 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.profile-facts-sub {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.profile-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.55rem 0;
+}
+.profile-row + .profile-row {
+  border-top: 1px solid var(--line);
+}
+.profile-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.profile-row-title {
+  display: block;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.profile-row-sub {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+.profile-answers {
+  display: flex;
+  flex-direction: column;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.profile-facts + .profile-answers {
+  margin-top: 0.9rem;
+}
+.profile-answers li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.65rem 0;
+  font-weight: 700;
+}
+.profile-answers li + li {
+  border-top: 1px solid var(--line);
+}
+.profile-answers li > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.profile-foot {
+  margin: 0.85rem 0 0;
+}
+
+/* sekcje dokładane przez inne funkcje (np. umowy) */
+.profile-slot > p {
+  margin: 0;
+}
+.profile-slot .contract-list > li {
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}

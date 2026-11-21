@@ -27,6 +27,22 @@ def _child_info(child: dict) -> dict:
     return out
 
 
+_CONTRACT_KEYS = ("kind", "employer_name", "position", "fte", "start_date", "end_date", "indefinite", "voluntary_sickness")
+
+
+async def _contracts_info(ctx: ToolContext, uid: str) -> list[dict]:
+    """Zatwierdzone umowy rodzica (o pracę, zlecenia, B2B) — bez wynagrodzenia. Nazwę pliku widzi tylko właściciel."""
+    docs = [d for d in await ctx.store.find("contracts", user_id=uid) if d.get("confirmed")]
+    docs.sort(key=lambda d: (d.get("start_date") or "", d["id"]))
+    out = []
+    for d in docs:
+        item = {k: d.get(k) for k in _CONTRACT_KEYS if d.get(k) is not None}
+        if uid == ctx.principal.user_id and d.get("filename"):
+            item["document"] = d["filename"]
+        out.append(item)
+    return out
+
+
 def _safe_answers(answers: dict) -> dict:
     """Do modelu trafiają tylko odpowiedzi tak/nie o warunkach świadczeń (`benefit:*`). Dane z kreatora wniosków
     (numer konta, telefon, adres, e-mail pracodawcy) zostają w aplikacji."""
@@ -36,8 +52,9 @@ def _safe_answers(answers: dict) -> dict:
 @tool(
     "profil_rodziny",
     "Zwraca dane rodziny zalogowanego rodzica: dzieci (imię, daty, sytuacja), rodziców (miasto, gmina, rodzaj "
-    "ubezpieczenia, zwolnienia lekarskie) i odpowiedzi na pytania o uprawnienia. Bez PESEL i zarobków. "
-    "Użyj, gdy odpowiedź zależy od sytuacji rodziny.",
+    "ubezpieczenia, zwolnienia lekarskie, umowy o pracę / zlecenia: pracodawca, stanowisko, etat, okres umowy) "
+    "i odpowiedzi na pytania o uprawnienia. Bez PESEL i zarobków. "
+    "Użyj, gdy odpowiedź zależy od sytuacji rodziny lub zatrudnienia rodzica.",
     {"type": "object", "properties": {}, "additionalProperties": False},
 )
 async def profil_rodziny(ctx: ToolContext, args: dict) -> dict:
@@ -52,7 +69,9 @@ async def profil_rodziny(ctx: ToolContext, args: dict) -> dict:
     for uid in family.get("member_ids", []):
         profile = await ctx.store.get("profiles", uid)
         if profile is None:
-            parents.append({"is_you": uid == ctx.principal.user_id, "profile": None})
+            parents.append(
+                {"is_you": uid == ctx.principal.user_id, "profile": None, "contracts": await _contracts_info(ctx, uid)}
+            )
             continue
         parents.append(
             {
@@ -68,6 +87,7 @@ async def profil_rodziny(ctx: ToolContext, args: dict) -> dict:
                 "sick_leave": [
                     {"code": e["code"], "from": e["from_date"], "to": e["to_date"]} for e in profile.get("ezla", [])
                 ],
+                "contracts": await _contracts_info(ctx, uid),
                 "answers": _safe_answers(profile.get("answers", {})),
             }
         )
