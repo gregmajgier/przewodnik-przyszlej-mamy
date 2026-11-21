@@ -1,0 +1,123 @@
+{
+  "code": "ZAS-53",
+  "title": "Wniosek o zasiłek chorobowy",
+  "pdf": "ZAS-53_pdf_wypelnij_i_wydrukuj.pdf",
+  "fields": [
+    {
+      "id": "pesel",
+      "label": "PESEL",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.pesel",
+      "pdf_field": "topmostSubform[0].Page1[0].PESEL[0]",
+      "format": "digits"
+    },
+    {
+      "id": "birth_date",
+      "label": "Data urodzenia",
+      "type": "date",
+      "required": true,
+      "source_key": "applicant.birth_date",
+      "pdf_field": "topmostSubform[0].Page1[0].Dataurodzenia[0]",
+      "format": "date_digits"
+    },
+    {
+      "id": "first_name",
+      "label": "Imię",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.first_name",
+      "pdf_field": "topmostSubform[0].Page1[0].Imie[0]",
+      "uppercase": true
+    },
+    {
+      "id": "last_name",
+      "label": "Nazwisko",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.last_name",
+      "pdf_field": "topmostSubform[0].Page1[0].Nazwisko[0]",
+      "uppercase": true
+    },
+    {
+      "id": "street",
+      "label": "Ulica",
+      "type": "text",
+      "required": true,
+      "source_key": "answers.street",
+      "pdf_field": "topmostSubform[0].Page1[0].Ulica[0]",
+      "uppercase": true
+    },
+    {
+      "id": "house_no",
+      "label": "Numer domu",
+      "type": "text",
+      "required": true,
+      "source_key": "answers.house_no",
+      "pdf_field": "topmostSubform[0].Page1[0].Numerdomu[0]",
+      "uppercase": true
+    },
+    {
+      "id": "flat_no",
+      "label": "Numer lokalu",
+      "type": "text",
+      "required": false,
+      "source_key": "answers.flat_no",
+      "pdf_field": "topmostSubform[0].Page1[0].Numerlokalu[0]",
+      "uppercase": true
+    },
+    {
+      "id": "postal_code",
+      "label": "Kod pocztowy",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.postal_code",
+      "pdf_field": "topmostSubform[0].Page1[0].Kodpocztowy[0]"
+    },
+    {
+      "id": "post_office",
+      "label": "Miejscowość",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.city",
+      "pdf_field": "topmostSubform[0].Page1[0].Poczta[0]",
+      "uppercase": true
+    },
+    {
+      "id": "phone",
+      "label": "Numer telefonu",
+      "type": "text",
+      "required": false,
+      "source_key": "answers.phone",
+      "pdf_field": "topmostSubform[0].Page1[0].Numertelefonu[0]",
+      "format": "digits"
+    },
+    {
+      "id": "country",
+      "label": "Nazwa państwa",
+      "type": "text",
+      "required": false,
+      "source_key": "const.country",
+      "pdf_field": "topmostSubform[0].Page1[0].Nazwapaństwa[0]",
+      "uppercase": true
+    },
+    {
+      "id": "payer_name",
+      "label": "Nazwa płatnika składek",
+      "type": "text",
+      "required": false,
+      "source_key": "applicant.payer_name",
+      "pdf_field": "topmostSubform[0].Page1[0].Nazwaplatnika[0]",
+      "uppercase": true
+    },
+    {
+      "id": "account_number",
+      "label": "Numer rachunku bankowego (dobrowolnie)",
+      "type": "text",
+      "required": false,
+      "source_key": "answers.account_number",
+      "pdf_field": "topmostSubform[0].Page2[0].Numerrachunku[0]",
+      "format": "digits"
+    }
+  ]
+}

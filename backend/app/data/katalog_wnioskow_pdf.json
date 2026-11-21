@@ -21,7 +21,7 @@
         "eZUS",
         "placówka ZUS",
         "poczta",
-        "płatnik (zleceniobiorca)"
+        "płatnik składek (np. zleceniodawca)"
       ],
       "pdf_do_druku": "https://www.zus.pl/documents/10182/4223950/ZAM_pobierz+i+drukuj.pdf/f1ad7e3f-0eaa-fdbc-20ec-5b07ab59566a?t=1792761767460",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/4223950/ZAM_wypelnij_i_wydrukuj.pdf/4e4534c6-e7cd-b934-9c5e-aab4d64f3f20?t=1793008198611",
@@ -345,7 +345,7 @@
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "7 dni przed rozpoczęciem; do 12. miesiąca życia dziecka",
+      "termin": "7 dni przed rozpoczęciem; do ukończenia przez dziecko 12 miesięcy (przy adopcji: 12 miesięcy od uprawomocnienia przysposobienia, nie dłużej niż do ukończenia przez dziecko 14 lat)",
       "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
     },
     {
@@ -371,7 +371,7 @@
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "razem z wnioskiem o urlop rodzicielski",
+      "termin": "nie później niż 21 dni przed rozpoczęciem pracy w trakcie urlopu rodzicielskiego",
       "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
     },
     {
@@ -384,7 +384,7 @@
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "przed terminem przejęcia",
+      "termin": "najpóźniej 7 dni przed powrotem do pracy",
       "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
     }
   ]

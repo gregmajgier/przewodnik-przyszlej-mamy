@@ -1,0 +1,621 @@
+{
+  "situations": [
+    {
+      "id": "martwe-urodzenie",
+      "label": "Dziecko urodziło się martwe",
+      "intro": "Bardzo nam przykro z powodu waszej straty. Poniżej jest to, co może wam przysługiwać, i dokumenty, o które warto poprosić. Nic nie musicie załatwiać dziś.",
+      "checklist": [
+        {
+          "id": "skrocony-urlop",
+          "title": "Skrócony urlop macierzyński",
+          "body": "Po martwym urodzeniu przysługuje ci skrócony urlop macierzyński: 8 tygodni od zakończenia ciąży, niezależnie od tego, w którym tygodniu ciąży do tego doszło. Pracodawca nie może go odmówić. Nie musisz decydować od razu, ale warto uprzedzić pracodawcę, kiedy poczujesz, że możesz.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/rodzina/latwiejszy-dostep-do-swiadczen-po-stracie-ciazy",
+          "verify": false
+        },
+        {
+          "id": "zasilek-macierzynski",
+          "title": "Zasiłek macierzyński z ZUS za ten okres",
+          "body": "Za okres skróconego urlopu po martwym urodzeniu możesz dostać zasiłek macierzyński z ZUS (jeśli podlegasz ubezpieczeniu chorobowemu). Gdy nie sporządzono aktu urodzenia dziecka, podstawą jest zaświadczenie lekarza lub położnej. Wniosek składa się u pracodawcy albo w ZUS, zależnie od tego, jak jesteś zatrudniona.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [
+            "ZAM"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski/prawo-do-zasilku-i-okres-przyslugiwania/za-okres-urlopu-macierzynskiego-albo-urlopu-na-warunkach-urlopu-macierzynskiego",
+          "verify": true
+        },
+        {
+          "id": "zaswiadczenie-o-stracie",
+          "title": "Zaświadczenie o martwym urodzeniu lub stracie ciąży",
+          "body": "Od 6 sierpnia 2025 r. ZUS przyjmuje zaświadczenie wystawione na podstawie dokumentacji medycznej przez lekarza specjalistę położnictwa i ginekologii, lekarza w trakcie tej specjalizacji albo położną. Nie trzeba ustalać płci dziecka ani badać, w którym tygodniu doszło do straty. Poproś o nie w szpitalu lub u lekarza prowadzącego ciążę. Może być oryginał albo kopia potwierdzona za zgodność.",
+          "kind": "document",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/rodzina/latwiejszy-dostep-do-swiadczen-po-stracie-ciazy",
+          "verify": false
+        },
+        {
+          "id": "akt-urodzenia-martwego",
+          "title": "Akt urodzenia z adnotacją o martwym urodzeniu",
+          "body": "Jeśli sporządzono akt urodzenia z adnotacją, że dziecko urodziło się martwe, ZUS przyjmie go jako podstawę do zasiłków. Gdy aktu nie sporządzono, wystarczy karta zgonu albo zaświadczenie z poprzedniego punktu. O tym, czy akt powstał, dowiesz się w szpitalu lub w urzędzie stanu cywilnego.",
+          "kind": "document",
+          "deadline_text": null,
+          "form_codes": [
+            "ODPIS-AKTU"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-pogrzebowy",
+          "verify": true
+        },
+        {
+          "id": "prawo-do-pochowku",
+          "title": "Możesz zdecydować o pochówku dziecka",
+          "body": "Według obowiązujących przepisów o cmentarzach i chowaniu zmarłych można pochować dziecko martwo urodzone niezależnie od jego wieku i od tego, czy znana jest płeć, na podstawie karty zgonu. Zapytaj w szpitalu o kartę zgonu i o to, jak można odebrać ciało dziecka. Możesz też zdecydować, że pochówek zostanie zorganizowany przez szpital lub gminę. Ta decyzja należy do ciebie.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://bip.brpo.gov.pl/sites/default/files/2024-01/Opinia_BPRM_dzieci_martwo_urodzone_19.01.2024.pdf",
+          "verify": true
+        },
+        {
+          "id": "zasilek-pogrzebowy",
+          "title": "Zasiłek pogrzebowy z ZUS",
+          "body": "Osobie z rodziny, która poniosła koszty pogrzebu, ZUS wypłaca zasiłek pogrzebowy w stałej kwocie (według strony ZUS: 7000 zł, niezależnie od faktycznych kosztów; kwota bywa zmieniana, sprawdź aktualną na stronie ZUS). Zasiłek przysługuje m.in. po śmierci członka rodziny osoby ubezpieczonej w ZUS. Do wniosku Z-12 dołącza się rachunki za pogrzeb oraz kartę zgonu albo zaświadczenie o martwym urodzeniu. Wniosek może przekazać do ZUS także zakład pogrzebowy.",
+          "kind": "right",
+          "deadline_text": "W ciągu 12 miesięcy od dnia śmierci",
+          "form_codes": [
+            "Z-12"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-pogrzebowy",
+          "verify": true
+        },
+        {
+          "id": "drugi-rodzic",
+          "title": "Drugi rodzic: wolne od pracy",
+          "body": "Drugi rodzic, jeśli jest pracownikiem, może porozmawiać z pracodawcą o wolnym. Przepisy dają dwa dni zwolnienia od pracy w związku ze zgonem i pogrzebem dziecka. Czy obejmują one także dziecko urodzone martwo, potwierdź w dziale kadr albo w Państwowej Inspekcji Pracy.",
+          "kind": "right",
+          "deadline_text": "Zwykle trzeba wykorzystać wolne wokół dnia pogrzebu",
+          "form_codes": [],
+          "source_url": "https://www.pip.gov.pl/dla-pracodawcow/pytania-i-odpowiedzi/czy-urlop-ojcowskich-przerwie-sie-w-przypadku-smierci-dziecka",
+          "verify": true
+        },
+        {
+          "id": "asystent-rodziny",
+          "title": "Asystent rodziny w twojej gminie",
+          "body": "Gmina może przydzielić ci asystenta rodziny, który pomoże załatwić sprawy w urzędach na podstawie twojego upoważnienia i da wsparcie. Ministerstwo Zdrowia wymienia wśród osób uprawnionych do wsparcia z ustawy „Za życiem” także kobiety, które po porodzie nie zabiorą dziecka do domu z powodu poronienia lub martwego urodzenia. Wniosek składa się w gminie.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": true
+        },
+        {
+          "id": "wsparcie-psychologiczne",
+          "title": "Rozmowa z kimś, kiedy jej potrzebujesz",
+          "body": "Możesz zadzwonić pod bezpłatny, całodobowy telefon wsparcia emocjonalnego 116 123 albo do Centrum Wsparcia pod numer 800 70 2222. Dorośli mogą zgłosić się też do centrum zdrowia psychicznego, jeśli działa w twojej okolicy: bez skierowania i bez wcześniejszej rejestracji. W nagłej sytuacji zagrożenia życia dzwoń pod 112.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "id": "poronienie",
+      "label": "Poronienie",
+      "intro": "Bardzo ci współczujemy. Poronienie jest stratą, niezależnie od tygodnia ciąży, a przysługują ci te same świadczenia, co po stracie późniejszej. Zbieramy je tu w jednym miejscu, żebyś nie musiała szukać.",
+      "checklist": [
+        {
+          "id": "skrocony-urlop",
+          "title": "Skrócony urlop macierzyński",
+          "body": "Po poronieniu przysługuje ci skrócony urlop macierzyński: 8 tygodni od zakończenia ciąży, niezależnie od tego, w którym tygodniu ciąży do tego doszło. Pracodawca nie może go odmówić. Nie musisz decydować od razu, ale warto uprzedzić pracodawcę, kiedy poczujesz, że możesz.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/rodzina/latwiejszy-dostep-do-swiadczen-po-stracie-ciazy",
+          "verify": false
+        },
+        {
+          "id": "zasilek-macierzynski",
+          "title": "Zasiłek macierzyński z ZUS za ten okres",
+          "body": "Za okres skróconego urlopu po poronieniu możesz dostać zasiłek macierzyński z ZUS (jeśli podlegasz ubezpieczeniu chorobowemu). Gdy nie sporządzono aktu urodzenia dziecka, podstawą jest zaświadczenie lekarza lub położnej. Wniosek składa się u pracodawcy albo w ZUS, zależnie od tego, jak jesteś zatrudniona.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [
+            "ZAM"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski/prawo-do-zasilku-i-okres-przyslugiwania/za-okres-urlopu-macierzynskiego-albo-urlopu-na-warunkach-urlopu-macierzynskiego",
+          "verify": true
+        },
+        {
+          "id": "zaswiadczenie-o-stracie",
+          "title": "Zaświadczenie o martwym urodzeniu lub stracie ciąży",
+          "body": "Od 6 sierpnia 2025 r. ZUS przyjmuje zaświadczenie wystawione na podstawie dokumentacji medycznej przez lekarza specjalistę położnictwa i ginekologii, lekarza w trakcie tej specjalizacji albo położną. Nie trzeba ustalać płci dziecka ani badać, w którym tygodniu doszło do straty. Poproś o nie w szpitalu lub u lekarza prowadzącego ciążę. Może być oryginał albo kopia potwierdzona za zgodność.",
+          "kind": "document",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/rodzina/latwiejszy-dostep-do-swiadczen-po-stracie-ciazy",
+          "verify": false
+        },
+        {
+          "id": "bez-ustalania-plci",
+          "title": "Nie trzeba badań genetycznych ani ustalania płci",
+          "body": "Od 6 sierpnia 2025 r. do skróconego urlopu, zasiłku macierzyńskiego i zasiłku pogrzebowego wystarcza zaświadczenie lekarza lub położnej, także przy stracie na wczesnym etapie ciąży. Jeśli ktoś w urzędzie lub w pracy żąda dodatkowych dokumentów, powołaj się na te przepisy i poproś o pisemne uzasadnienie.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/rodzina/latwiejszy-dostep-do-swiadczen-po-stracie-ciazy",
+          "verify": false
+        },
+        {
+          "id": "prawo-do-pochowku",
+          "title": "Możesz zdecydować o pochówku dziecka",
+          "body": "Według obowiązujących przepisów o cmentarzach i chowaniu zmarłych można pochować dziecko martwo urodzone niezależnie od jego wieku i od tego, czy znana jest płeć, na podstawie karty zgonu. Zapytaj w szpitalu o kartę zgonu i o to, jak można odebrać ciało dziecka. Możesz też zdecydować, że pochówek zostanie zorganizowany przez szpital lub gminę. Ta decyzja należy do ciebie.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://bip.brpo.gov.pl/sites/default/files/2024-01/Opinia_BPRM_dzieci_martwo_urodzone_19.01.2024.pdf",
+          "verify": true
+        },
+        {
+          "id": "zasilek-pogrzebowy",
+          "title": "Zasiłek pogrzebowy z ZUS",
+          "body": "Osobie z rodziny, która poniosła koszty pogrzebu, ZUS wypłaca zasiłek pogrzebowy w stałej kwocie (według strony ZUS: 7000 zł, niezależnie od faktycznych kosztów; kwota bywa zmieniana, sprawdź aktualną na stronie ZUS). Zasiłek przysługuje m.in. po śmierci członka rodziny osoby ubezpieczonej w ZUS. Do wniosku Z-12 dołącza się rachunki za pogrzeb oraz kartę zgonu albo zaświadczenie o martwym urodzeniu. Wniosek może przekazać do ZUS także zakład pogrzebowy.",
+          "kind": "right",
+          "deadline_text": "W ciągu 12 miesięcy od dnia śmierci",
+          "form_codes": [
+            "Z-12"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-pogrzebowy",
+          "verify": true
+        },
+        {
+          "id": "poradnik-siostry-ronie",
+          "title": "Praktyczne informacje po poronieniu",
+          "body": "Fundacja Czułość prowadzi serwis „Siostry Ronie” z materiałami dla osób, które właśnie dowiedziały się o poronieniu, roniły niedawno lub jakiś czas temu, m.in. o tym, jakie świadczenia ci przysługują.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://siostryronie.pl",
+          "verify": true
+        },
+        {
+          "id": "asystent-rodziny",
+          "title": "Asystent rodziny w twojej gminie",
+          "body": "Gmina może przydzielić ci asystenta rodziny, który pomoże załatwić sprawy w urzędach na podstawie twojego upoważnienia i da wsparcie. Ministerstwo Zdrowia wymienia wśród osób uprawnionych do wsparcia z ustawy „Za życiem” także kobiety, które po porodzie nie zabiorą dziecka do domu z powodu poronienia lub martwego urodzenia. Wniosek składa się w gminie.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": true
+        },
+        {
+          "id": "wsparcie-psychologiczne",
+          "title": "Rozmowa z kimś, kiedy jej potrzebujesz",
+          "body": "Możesz zadzwonić pod bezpłatny, całodobowy telefon wsparcia emocjonalnego 116 123 albo do Centrum Wsparcia pod numer 800 70 2222. Dorośli mogą zgłosić się też do centrum zdrowia psychicznego, jeśli działa w twojej okolicy: bez skierowania i bez wcześniejszej rejestracji. W nagłej sytuacji zagrożenia życia dzwoń pod 112.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "id": "wczesniak",
+      "label": "Wcześniak lub dziecko w szpitalu",
+      "intro": "To wyczerpujący czas i rozumiemy, że chcesz być przy dziecku. Poniżej jest to, co daje ci więcej czasu na opiekę i na powrót do domu razem.",
+      "checklist": [
+        {
+          "id": "uzupelniajacy-urlop",
+          "title": "Uzupełniający urlop macierzyński",
+          "body": "Rodzice dzieci urodzonych przedwcześnie lub wymagających hospitalizacji po urodzeniu mogą skorzystać z dodatkowego urlopu i zasiłku: tydzień urlopu za każdy tydzień pobytu dziecka w szpitalu, do 15 tygodni po porodzie (urodzenie przed 28. tygodniem ciąży lub waga do 1000 g) albo do 8 tygodni (pozostałe przypadki). Urlop wykorzystuje się jednorazowo, zaraz po urlopie macierzyńskim; nie można go dzielić między rodziców.",
+          "kind": "right",
+          "deadline_text": "Wniosek przed zakończeniem urlopu macierzyńskiego",
+          "form_codes": [
+            "URLOP-UZUP",
+            "ZAM"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski/prawo-do-zasilku-i-okres-przyslugiwania/za-okres-uzupelniajacego-urlopu-macierzynskiego",
+          "verify": true
+        },
+        {
+          "id": "zaswiadczenie-ze-szpitala",
+          "title": "Zaświadczenie ze szpitala o pobycie dziecka",
+          "body": "Do wniosku potrzebne jest zaświadczenie ze szpitala o długości pobytu dziecka, o tygodniu ciąży i o masie urodzeniowej. Poproś o nie na oddziale neonatologicznym, najlepiej przed wypisem.",
+          "kind": "document",
+          "deadline_text": null,
+          "form_codes": [
+            "Z-3"
+          ],
+          "source_url": "https://www.gov.pl/web/uw-kujawsko-pomorski/dodatkowy-urlop-dla-rodzicow-wczesniakow--nowe-rozwiazanie-wspierajace-rodzine",
+          "verify": true
+        },
+        {
+          "id": "przerwa-w-zasilku",
+          "title": "Przerwa w zasiłku, gdy dziecko jest w szpitalu",
+          "body": "Jeśli dziecko wymaga opieki szpitalnej, a po porodzie wykorzystałaś co najmniej 8 tygodni zasiłku macierzyńskiego, możesz przerwać jego pobieranie i wykorzystać resztę po wypisie dziecka ze szpitala. Jeśli lekarz orzeknie potrzebę osobistej opieki nad dzieckiem, możesz też uzyskać zasiłek opiekuńczy na ogólnych zasadach.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski/prawo-do-zasilku-i-okres-przyslugiwania/za-okres-urlopu-macierzynskiego-albo-urlopu-na-warunkach-urlopu-macierzynskiego",
+          "verify": false
+        },
+        {
+          "id": "niezbednik-rodzica-wczesniaka",
+          "title": "Poradnik i pomoc od rodziców wcześniaków",
+          "body": "Fundacja Wcześniak Rodzice-Rodzicom wydaje bezpłatny „Niezbędnik rodzica wcześniaka”, prowadzi wypożyczalnię sprzętu i łączy rodziców ze sobą. Warto zapytać o to jeszcze w szpitalu.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://wczesniak.pl",
+          "verify": true
+        },
+        {
+          "id": "wsparcie-psychologiczne",
+          "title": "Rozmowa z kimś, kiedy jej potrzebujesz",
+          "body": "Możesz zadzwonić pod bezpłatny, całodobowy telefon wsparcia emocjonalnego 116 123 albo do Centrum Wsparcia pod numer 800 70 2222. Dorośli mogą zgłosić się też do centrum zdrowia psychicznego, jeśli działa w twojej okolicy: bez skierowania i bez wcześniejszej rejestracji. W nagłej sytuacji zagrożenia życia dzwoń pod 112.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna",
+          "verify": false
+        }
+      ]
+    },
+    {
+      "id": "ciezka-choroba",
+      "label": "Ciężka choroba dziecka („Za życiem”)",
+      "intro": "Wiemy, że to ogromny ciężar. Ustawa „Za życiem” daje rodzinom dziecka z ciężką chorobą lub niepełnosprawnością wsparcie finansowe i opiekę. Oto, o co można zapytać.",
+      "checklist": [
+        {
+          "id": "swiadczenie-4000",
+          "title": "Jednorazowe świadczenie 4000 zł",
+          "body": "Matce lub ojcu, opiekunowi prawnemu albo faktycznemu przysługuje jednorazowe świadczenie 4000 zł za urodzenie żywego dziecka z ciężkim i nieodwracalnym upośledzeniem albo nieuleczalną chorobą zagrażającą życiu, powstałą w okresie prenatalnym lub w czasie porodu. Przysługuje bez względu na dochód. Wniosek składa się w urzędzie miasta lub gminy albo w ośrodku pomocy społecznej. Matka powinna być pod opieką medyczną nie później niż od 10. tygodnia ciąży do porodu, co potwierdza lekarz lub położna (ten warunek nie dotyczy opiekuna prawnego i faktycznego).",
+          "kind": "right",
+          "deadline_text": "W ciągu 12 miesięcy od narodzin dziecka, nie później niż do 18. urodzin",
+          "form_codes": [
+            "ZA-ZYCIEM"
+          ],
+          "source_url": "https://www.gov.pl/web/rodzina/informator---zasady-przyznawania-jednorazowego-swiadczenia-w-wysokosci-4000-zl",
+          "verify": false
+        },
+        {
+          "id": "zaswiadczenie-lekarskie",
+          "title": "Zaświadczenie lekarskie o chorobie lub upośledzeniu",
+          "body": "Podstawą świadczenia i innych uprawnień jest zaświadczenie lekarskie. Dla świadczenia 4000 zł wystawia je lekarz ubezpieczenia zdrowotnego z II stopniem specjalizacji lub tytułem specjalisty m.in. w dziedzinie położnictwa i ginekologii, perinatologii, neonatologii, neurologii dziecięcej, kardiologii dziecięcej lub chirurgii dziecięcej. Nie ma sztywnego wzoru. Zapytaj lekarza prowadzącego dziecko.",
+          "kind": "document",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": false
+        },
+        {
+          "id": "uprawnienia-medyczne",
+          "title": "Pierwszeństwo w opiece zdrowotnej i wyroby medyczne",
+          "body": "To samo zaświadczenie uprawnia dziecko do 18. roku życia do korzystania poza kolejnością ze świadczeń zdrowotnych i z usług aptek oraz do wyrobów medycznych na zasadach refundacji, według wskazań medycznych, bez uwzględniania okresów użytkowania.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": false
+        },
+        {
+          "id": "asystent-rodziny-choroba",
+          "title": "Asystent rodziny",
+          "body": "Każda rodzina może poprosić gminę o asystenta rodziny. Pomoże on w sprawach w urzędach (na podstawie pisemnego upoważnienia), udzieli informacji o wsparciu i wsparcia psychologicznego. W sytuacjach z ustawy „Za życiem” nie stosuje się wywiadu środowiskowego.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": false
+        },
+        {
+          "id": "opieka-wytchnieniowa",
+          "title": "Opieka wytchnieniowa",
+          "body": "Rodzicom i opiekunom dziecka z orzeczoną niepełnosprawnością przysługuje według ustawy do 120 godzin opieki nad dzieckiem na czas odpoczynku. Sposób jej organizowania zależy od powiatu, więc zapytaj w ośrodku pomocy społecznej lub w powiatowym centrum pomocy rodzinie, co jest dostępne u ciebie.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": true
+        },
+        {
+          "id": "pomoc-psychologiczna-rodzicow",
+          "title": "Pomoc psychologiczna i rehabilitacja",
+          "body": "Wśród uprawnień rodzin dzieci z orzeczoną niepełnosprawnością ministerstwo wymienia pomoc psychologiczną dla rodziców, rehabilitację leczniczą oraz opiekę paliatywną i hospicyjną w domu lub stacjonarnie. Poproś lekarza prowadzącego o skierowania. Bezpłatna, całodobowa rozmowa: 116 123 lub 800 70 2222.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/informator-za-zyciem-",
+          "verify": false
+        },
+        {
+          "id": "hospicjum-perinatalne",
+          "title": "Hospicjum perinatalne i domowe hospicjum dla dzieci",
+          "body": "Jeśli dziecko jest nieuleczalnie chore, w tym jeszcze przed urodzeniem, można skorzystać z okołoporodowej opieki paliatywnej i z hospicjum dla dzieci. Wykaz ośrodków jest na portalu pacjent.gov.pl; skierowanie wystawia lekarz.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://pacjent.gov.pl/node/4956",
+          "verify": true
+        }
+      ]
+    },
+    {
+      "id": "smierc-dziecka",
+      "label": "Śmierć dziecka",
+      "intro": "Z całego serca współczujemy wam straty. Nie musicie załatwiać wszystkiego naraz. Poniżej jest to, co może wam przysługiwać, i kolejność, w której zwykle się to przydaje.",
+      "checklist": [
+        {
+          "id": "zwolnienie-okolicznosciowe",
+          "title": "Dwa dni zwolnienia od pracy dla każdego rodzica",
+          "body": "Zgon i pogrzeb dziecka uprawniają pracownika do 2 dni zwolnienia od pracy z zachowaniem wynagrodzenia (rozporządzenie w sprawie usprawiedliwiania nieobecności w pracy i udzielania zwolnień). Dotyczy każdego z rodziców, jeśli pracuje na umowie o pracę. Pracodawca może poprosić o dokument potwierdzający zgon.",
+          "kind": "right",
+          "deadline_text": "Wykorzystaj wokół dnia pogrzebu",
+          "form_codes": [],
+          "source_url": "https://www.pip.gov.pl/dla-pracodawcow/pytania-i-odpowiedzi/czy-urlop-ojcowskich-przerwie-sie-w-przypadku-smierci-dziecka",
+          "verify": true
+        },
+        {
+          "id": "zasilek-macierzynski-po-smierci",
+          "title": "Jeśli jesteś na urlopie macierzyńskim",
+          "body": "Jeżeli dziecko zmarło przed ukończeniem 8. tygodnia życia, zasiłek macierzyński przysługuje przez 8 tygodni (56 dni) po porodzie, nie krócej niż 7 dni od śmierci dziecka. Jeżeli dziecko zmarło po 8. tygodniu życia, zasiłek przysługuje przez 7 dni od jego śmierci. Przy porodzie mnogim wymiar zależy od liczby pozostałych dzieci.",
+          "kind": "right",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski/prawo-do-zasilku-i-okres-przyslugiwania/za-okres-urlopu-macierzynskiego-albo-urlopu-na-warunkach-urlopu-macierzynskiego",
+          "verify": false
+        },
+        {
+          "id": "karta-i-akt-zgonu",
+          "title": "Karta zgonu i akt zgonu",
+          "body": "Kartę zgonu wystawia lekarz. Na jej podstawie zgon rejestruje urząd stanu cywilnego. Odpisy aktu zgonu bywają potrzebne w ZUS, w banku i w innych instytucjach, więc warto poprosić o kilka. Wiele formalności może wziąć na siebie zakład pogrzebowy. Zapytaj go o to wprost.",
+          "kind": "document",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-pogrzebowy",
+          "verify": true
+        },
+        {
+          "id": "zasilek-pogrzebowy",
+          "title": "Zasiłek pogrzebowy z ZUS",
+          "body": "Osobie z rodziny, która poniosła koszty pogrzebu, ZUS wypłaca zasiłek pogrzebowy w stałej kwocie (według strony ZUS: 7000 zł, niezależnie od faktycznych kosztów; kwota bywa zmieniana, sprawdź aktualną na stronie ZUS). Zasiłek przysługuje m.in. po śmierci członka rodziny osoby ubezpieczonej w ZUS. Do wniosku Z-12 dołącza się rachunki za pogrzeb oraz kartę zgonu albo zaświadczenie o martwym urodzeniu. Wniosek może przekazać do ZUS także zakład pogrzebowy.",
+          "kind": "right",
+          "deadline_text": "W ciągu 12 miesięcy od dnia śmierci",
+          "form_codes": [
+            "Z-12"
+          ],
+          "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-pogrzebowy",
+          "verify": true
+        },
+        {
+          "id": "grupy-wsparcia",
+          "title": "Wsparcie w żałobie",
+          "body": "Hospicja dla dzieci i fundacje prowadzą bezpłatne wsparcie dla rodziców w żałobie, także dla rodzeństwa. Znajdziesz je poniżej w bazie organizacji. Możesz też skorzystać z rozmowy pod 116 123 lub 800 70 2222, całodobowo i bezpłatnie. Rodzeństwo może zadzwonić pod 116 111.",
+          "kind": "step",
+          "deadline_text": null,
+          "form_codes": [],
+          "source_url": "https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna",
+          "verify": false
+        }
+      ]
+    }
+  ],
+  "foundations": [
+    {
+      "id": "czulosc",
+      "name": "Fundacja Czułość",
+      "description": "Wspiera osoby w kryzysach psychicznych w okresie okołoporodowym i ich bliskich oraz zabiega o zmiany w systemie opieki.",
+      "url": "https://fundacjaczulosc.pl",
+      "situations": [
+        "poronienie",
+        "martwe-urodzenie"
+      ],
+      "region": null
+    },
+    {
+      "id": "siostry-ronie",
+      "name": "Siostry Ronie",
+      "description": "Serwis Fundacji Czułość z materiałami dla osób po poronieniu, także o przysługujących świadczeniach.",
+      "url": "https://siostryronie.pl",
+      "situations": [
+        "poronienie"
+      ],
+      "region": null
+    },
+    {
+      "id": "fundacja-ernesta",
+      "name": "Fundacja Ernesta",
+      "description": "Fundacja wspierająca kobiety po stracie ciąży. Sprawdź na stronie aktualną ofertę pomocy psychologicznej i prawnej.",
+      "url": "https://fundacjaernesta.pl",
+      "situations": [
+        "poronienie",
+        "martwe-urodzenie"
+      ],
+      "region": null
+    },
+    {
+      "id": "rodzic-po-ludzku",
+      "name": "Fundacja Rodzić po Ludzku",
+      "description": "Informacje o prawach kobiet w opiece okołoporodowej, w tym ranking szpitali i poradniki.",
+      "url": "https://rodzicpoludzku.pl",
+      "situations": [
+        "poronienie",
+        "martwe-urodzenie",
+        "wczesniak"
+      ],
+      "region": null
+    },
+    {
+      "id": "wczesniak-rodzice-rodzicom",
+      "name": "Fundacja Wcześniak Rodzice-Rodzicom",
+      "description": "Z inicjatywy rodziców dla rodziców wcześniaków: poradnik „Niezbędnik rodzica wcześniaka”, wypożyczalnia sprzętu, kontakt z innymi rodzicami.",
+      "url": "https://wczesniak.pl",
+      "situations": [
+        "wczesniak"
+      ],
+      "region": null
+    },
+    {
+      "id": "dr-clown",
+      "name": "Fundacja Dr Clown",
+      "description": "Pomaga dzieciom w szpitalach i ich rodzinom. Ma też materiały o tym, jak przygotować dziecko do badań i zabiegów.",
+      "url": "https://drclown.pl",
+      "situations": [
+        "wczesniak",
+        "ciezka-choroba"
+      ],
+      "region": null
+    },
+    {
+      "id": "gajusz",
+      "name": "Fundacja Gajusz",
+      "description": "Łódzkie hospicjum dla dzieci: stacjonarne, domowe i perinatalne, oraz centrum terapii.",
+      "url": "https://gajusz.org.pl",
+      "situations": [
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": "Łódź"
+    },
+    {
+      "id": "warszawskie-hospicjum-dla-dzieci",
+      "name": "Warszawskie Hospicjum dla Dzieci",
+      "description": "Hospicjum dla dzieci. Warszawskie Hospicjum Perinatalne pomaga rodzicom, którzy w badaniu USG lub u genetyka dowiedzieli się, że nienarodzone dziecko jest chore.",
+      "url": "https://www.hospicjum.waw.pl",
+      "situations": [
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": "Warszawa"
+    },
+    {
+      "id": "pomorze-dzieciom",
+      "name": "Fundacja Hospicjum Pomorze Dzieciom",
+      "description": "Domowa opieka paliatywna nad nieuleczalnie chorymi dziećmi i ich rodzinami na Pomorzu, w promieniu do 100 km od Gdańska, całodobowo.",
+      "url": "https://pomorzedzieciom.pl",
+      "situations": [
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": "Pomorze"
+    },
+    {
+      "id": "formula-dobra",
+      "name": "Hospicjum dla Dzieci Dolnego Śląska „Formuła Dobra”",
+      "description": "Pomaga nieuleczalnie chorym dzieciom i wspiera ich rodziny we Wrocławiu i na Dolnym Śląsku.",
+      "url": "https://formuladobra.pl",
+      "situations": [
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": "Dolny Śląsk"
+    },
+    {
+      "id": "krakowskie-hospicjum-tischnera",
+      "name": "Krakowskie Hospicjum dla Dzieci im. ks. Józefa Tischnera",
+      "description": "Opieka nad nieuleczalnie chorymi dziećmi od poczęcia (perinatalna), wsparcie po stracie dziecka i wsparcie dla rodzeństwa.",
+      "url": "https://www.hospicjumtischnera.org",
+      "situations": [
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": "Kraków"
+    },
+    {
+      "id": "lubelskie-hospicjum-maly-ksiaze",
+      "name": "Lubelskie Hospicjum dla Dzieci im. Małego Księcia",
+      "description": "Hospicjum perinatalne, stacjonarne i domowe oraz wsparcie rodzin w żałobie.",
+      "url": "https://hospicjum.lublin.pl",
+      "situations": [
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": "Lublin"
+    },
+    {
+      "id": "panda-team",
+      "name": "Fundacja Panda Team im. Michałka Tarachowicza",
+      "description": "Wspiera osoby w żałobie: dzieci, młodzież i dorosłych, żeby nie przechodzili przez stratę sami.",
+      "url": "https://pandateam.pl",
+      "situations": [
+        "smierc-dziecka"
+      ],
+      "region": null
+    },
+    {
+      "id": "zdazyc-z-pomoca",
+      "name": "Fundacja Dzieciom „Zdążyć z Pomocą”",
+      "description": "Organizacja pożytku publicznego pomagająca chorym dzieciom i ich rodzinom. Infolinia na stronie fundacji.",
+      "url": "https://dzieciom.pl",
+      "situations": [
+        "ciezka-choroba",
+        "wczesniak"
+      ],
+      "region": null
+    },
+    {
+      "id": "mam-marzenie",
+      "name": "Fundacja Mam Marzenie",
+      "description": "Spełnia marzenia ciężko chorych dzieci.",
+      "url": "https://www.mammarzenie.org",
+      "situations": [
+        "ciezka-choroba"
+      ],
+      "region": null
+    },
+    {
+      "id": "pacjent-gov-perinatalna",
+      "name": "Wykaz ośrodków okołoporodowej opieki paliatywnej (pacjent.gov.pl)",
+      "description": "Oficjalny wykaz miejsc, w których można skorzystać z perinatalnej opieki paliatywnej, z informacją, jak się do niej zakwalifikować.",
+      "url": "https://pacjent.gov.pl/node/4956",
+      "situations": [
+        "ciezka-choroba"
+      ],
+      "region": null
+    },
+    {
+      "id": "centrum-wsparcia",
+      "name": "Centrum Wsparcia dla osób dorosłych w kryzysie psychicznym (Fundacja ITAKA), 800 70 2222",
+      "description": "Bezpłatna, całodobowa pomoc: telefon 800 70 2222, czat i e-mail. Na stronie jest grafik dyżurów psychiatry, prawnika i pracownika socjalnego.",
+      "url": "https://centrumwsparcia.pl",
+      "situations": [
+        "martwe-urodzenie",
+        "poronienie",
+        "wczesniak",
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": null
+    },
+    {
+      "id": "116123",
+      "name": "Telefon wsparcia emocjonalnego 116 123 (Niebieska Linia IPZ)",
+      "description": "Bezpłatna rozmowa dla dorosłych w kryzysie emocjonalnym, także przez internet na stronie 116sos.pl.",
+      "url": "https://116sos.pl",
+      "situations": [
+        "martwe-urodzenie",
+        "poronienie",
+        "wczesniak",
+        "ciezka-choroba",
+        "smierc-dziecka"
+      ],
+      "region": null
+    },
+    {
+      "id": "116111",
+      "name": "Telefon zaufania dla dzieci i młodzieży 116 111 (Fundacja Dajemy Dzieciom Siłę)",
+      "description": "Anonimowa, bezpłatna rozmowa i czat dla dzieci i młodzieży, np. dla rodzeństwa po stracie.",
+      "url": "https://116111.pl",
+      "situations": [
+        "smierc-dziecka",
+        "ciezka-choroba"
+      ],
+      "region": null
+    }
+  ]
+}

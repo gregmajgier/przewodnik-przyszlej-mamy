@@ -1,0 +1,62 @@
+.bell {
+  position: relative;
+}
+.bell-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--surface);
+  color: var(--fg);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgb(25 25 25 / 0.2);
+}
+.bell-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bell-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  width: min(22rem, 90vw);
+  background: var(--surface);
+  color: var(--fg);
+  border-radius: 1rem;
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.15);
+  padding: 0.75rem 1rem;
+  z-index: 20;
+}
+.bell-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.bell-panel a {
+  color: var(--fg);
+  font-weight: 700;
+  text-decoration: none;
+}
+.bell-panel li.is-read a {
+  font-weight: 400;
+  color: var(--muted);
+}
