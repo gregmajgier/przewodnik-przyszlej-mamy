@@ -1,0 +1,45 @@
+name: Deploy backend
+
+on:
+  push:
+    branches: [main]
+    paths: [backend/**, .github/workflows/deploy-backend.yml]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency: deploy-backend
+
+env:
+  RESOURCE_GROUP: rg-mrodzina
+  ACR_NAME: ${{ vars.ACR_NAME }}
+  CONTAINER_APP: ca-mrodzina-backend
+  CONTAINER_ENV: cae-mrodzina
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - name: Build image in ACR
+        run: |
+          az acr build -r "$ACR_NAME" -t "mrodzina-backend:${{ github.sha }}" backend
+      - name: Deploy to Container Apps
+        run: |
+          IMAGE="$ACR_NAME.azurecr.io/mrodzina-backend:${{ github.sha }}"
+          if az containerapp show -g "$RESOURCE_GROUP" -n "$CONTAINER_APP" >/dev/null 2>&1; then
+            az containerapp update -g "$RESOURCE_GROUP" -n "$CONTAINER_APP" --image "$IMAGE"
+          else
+            az containerapp create -g "$RESOURCE_GROUP" -n "$CONTAINER_APP" \
+              --environment "$CONTAINER_ENV" --image "$IMAGE" \
+              --registry-server "$ACR_NAME.azurecr.io" --registry-identity system \
+              --target-port 8000 --ingress external \
+              --min-replicas 0 --max-replicas 2
+          fi
