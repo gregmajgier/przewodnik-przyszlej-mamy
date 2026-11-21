@@ -1,10 +1,10 @@
+import { widgets } from '../registry'
 import type { Widget } from '../registry'
 
-// Te same pliki `features/*/widget.tsx`, które wykrywa registry. Dashboard czyta je tu bezpośrednio
-// (a nie z registry.ts), bo registry importuje trasy dashboardu — import z registry byłby cykliczny.
-const modules = import.meta.glob('../*/widget.tsx', { eager: true }) as Record<string, { default: Widget }>
-
-export const dashboardWidgets: Widget[] = Object.keys(modules)
-  .sort()
-  .map((k) => modules[k].default)
-  .sort((a, b) => a.order - b.order)
+/**
+ * Widgety dashboardu z rejestru (każda funkcja dokłada `widget.tsx`), posortowane po `order`.
+ * Funkcja zamiast stałej: rejestr importuje trasy dashboardu, więc odczyt musi nastąpić przy renderze.
+ */
+export function getDashboardWidgets(): Widget[] {
+  return widgets
+}

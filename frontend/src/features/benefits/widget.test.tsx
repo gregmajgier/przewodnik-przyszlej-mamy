@@ -1,50 +1,54 @@
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '../../lib/api'
+import { makeSession, renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
+import type { Benefit, BenefitMatch } from './types'
 import widget from './widget'
-import type { BenefitMatch } from './types'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
   api: vi.fn(),
 }))
 
-function row(id: string, name: string, status: 'fits' | 'maybe' | 'no'): BenefitMatch {
-  return {
-    benefit: { id, name, scope: 'national', unit_id: null, category: 'benefit', description: '', amount_text: null, annual_value_estimate: null, how_to_apply: '', form_codes: [], source_url: 'https://x.pl', extra_text: null, verify: false, tags: [] },
-    match: { status, reasons: [], unmet: [], questions: [], eligible_children: 0 },
-    deadline_date: null,
-  }
-}
+const b = (id: string, name: string, amount: string | null = null): Benefit => ({
+  id, name, scope: 'national', unit_id: null, category: 'benefit', description: '', amount_text: amount,
+  annual_value_estimate: null, how_to_apply: '', form_codes: [], source_url: 'https://www.gov.pl', extra_text: null, verify: false,
+})
+const match = (benefit: Benefit, status: 'fits' | 'maybe' | 'no'): BenefitMatch => ({ benefit, match: { status, reasons: [], unmet: [], questions: [] } })
 
-describe('widget świadczeń', () => {
-  beforeEach(() => vi.clearAllMocks())
+const Widget = widget.Component
 
-  it('ma kolejność i komponent', () => {
-    expect(widget.order).toBeTypeOf('number')
-    expect(widget.Component).toBeTypeOf('function')
-  })
+beforeEach(() => vi.clearAllMocks())
 
-  it('pokazuje liczby i pierwsze pasujące świadczenia oraz link do pełnej listy', async () => {
+describe('kafelek „Świadczenia” na dashboardzie', () => {
+  it('liczy dopasowania i pokazuje najważniejsze (tylko pasujące) z kwotą', async () => {
     routeApi({
       'GET /api/benefits': [
-        row('a', 'Rodzina 800+', 'fits'),
-        row('b', 'Ulga prorodzinna', 'fits'),
-        row('c', 'Dobry Start', 'maybe'),
-        row('d', 'Inne', 'no'),
+        match(b('a', '800 plus', '800 zł miesięcznie'), 'fits'),
+        match(b('b', 'Karta Dużej Rodziny'), 'maybe'),
+        match(b('c', 'Za życiem'), 'no'),
       ],
     })
-    const W = widget.Component
-    render(
-      <MemoryRouter>
-        <W />
-      </MemoryRouter>,
-    )
-    expect(await screen.findByText('Rodzina 800+')).toBeInTheDocument()
-    expect(screen.getByText(/2 pasuje/)).toBeInTheDocument()
-    expect(screen.getByText(/1 może przysługiwać/)).toBeInTheDocument()
-    expect(screen.queryByText('Inne')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /wszystkie świadczenia/i })).toHaveAttribute('href', '/swiadczenia')
+    renderWithSession(<Widget />, { session: makeSession() })
+    expect(await screen.findByText(/pasuje 1 · może ci przysługiwać 1/i)).toBeInTheDocument()
+    expect(screen.getByText('800 plus')).toBeInTheDocument()
+    expect(screen.getByText(/800 zł miesięcznie/)).toBeInTheDocument()
+    expect(screen.queryByText('Karta Dużej Rodziny')).not.toBeInTheDocument()
+    expect(screen.queryByText('Za życiem')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /zobacz wszystkie świadczenia/i })).toHaveAttribute('href', '/swiadczenia')
+  })
+
+  it('pokazuje najwyżej cztery pozycje', async () => {
+    routeApi({ 'GET /api/benefits': Array.from({ length: 6 }, (_, i) => match(b(`n${i}`, `Świadczenie ${i}`), 'fits')) })
+    renderWithSession(<Widget />, { session: makeSession() })
+    await screen.findByText(/pasuje 6/i)
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
+  })
+
+  it('błąd ładowania nie psuje panelu', async () => {
+    routeApi({ 'GET /api/benefits': new ApiError(500, 'błąd') })
+    renderWithSession(<Widget />, { session: makeSession() })
+    expect(await screen.findByText(/nie udało się wczytać świadczeń/i)).toBeInTheDocument()
   })
 })

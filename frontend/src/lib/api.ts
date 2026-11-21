@@ -49,6 +49,29 @@ function extractDetail(body: unknown, status: number): string {
   return 'Nie udało się wykonać operacji.'
 }
 
+/** Pobranie pliku (np. PDF do podglądu w <iframe>, którego nie da się wczytać z nagłówkiem Bearer). */
+export async function apiBlob(path: string): Promise<Blob> {
+  const headers = new Headers()
+  const token = getToken()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  let res: Response
+  try {
+    res = await fetch(`${BASE_URL}${path}`, { headers })
+  } catch {
+    throw new ApiError(0, 'Brak połączenia z serwerem. Sprawdź internet i spróbuj ponownie.')
+  }
+  if (!res.ok) {
+    let data: unknown = null
+    try {
+      data = await res.json()
+    } catch {
+      data = null
+    }
+    throw new ApiError(res.status, extractDetail(data, res.status))
+  }
+  return res.blob()
+}
+
 /** Wywołanie API: dokleja Bearer, serializuje JSON, rzuca ApiError{status, detail}. */
 export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
   const headers = new Headers(init.headers)

@@ -1,4 +1,4 @@
-// Typy odpowiadające backend/app/models/benefit.py, services/matching.py i services/benefit_service.py.
+// Typy odpowiadające backend/app/models/benefit.py i services/benefit_service.py.
 
 export type MatchStatus = 'fits' | 'maybe' | 'no'
 
@@ -16,33 +16,23 @@ export interface Benefit {
   source_url: string
   extra_text: string | null
   verify: boolean
-  tags: string[]
 }
 
-export interface Question {
+export interface MatchQuestion {
   condition_id: string
   text: string
 }
 
-export interface Match {
+export interface MatchResult {
   status: MatchStatus
   reasons: string[]
   unmet: string[]
-  questions: Question[]
-  eligible_children: number
+  questions: MatchQuestion[]
 }
 
 export interface BenefitMatch {
   benefit: Benefit
-  match: Match
-  deadline_date: string | null
-}
-
-export interface AnalysisStep {
-  key: string
-  label: string
-  detail: string
-  status: 'done' | 'warning'
+  match: MatchResult
 }
 
 export interface Totals {
@@ -53,25 +43,26 @@ export interface Totals {
   no: number
 }
 
-export interface NearestDeadline {
-  benefit_id: string
-  name: string
-  date: string
-  days_left: number
-}
-
-export interface Analysis {
-  steps: AnalysisStep[]
-  totals: Totals
-  estimated_annual_total: number
-  nearest_deadline: NearestDeadline | null
-}
-
 export interface Summary {
-  family_name: string
   totals: Totals
   estimated_annual_total: number
-  nearest_deadline: NearestDeadline | null
-  warnings: string[]
+  nearest_deadline: { date: string; benefit_id: string; benefit_name: string } | null
   parameters_label: string
+}
+
+export interface AnalysisStep {
+  key: string
+  label: string
+  detail: string
+  status: string
+}
+
+export interface Analysis extends Summary {
+  steps: AnalysisStep[]
+}
+
+export const STATUS_LABEL: Record<MatchStatus, string> = {
+  fits: 'Pasuje',
+  maybe: 'Może ci przysługiwać',
+  no: 'Nie pasuje',
 }

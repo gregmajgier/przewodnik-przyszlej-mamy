@@ -1,83 +1,89 @@
-/* Ekran analizy — pełny kolor akcentu z tekstem w kolorze tła (jak hero na landingu). */
-.an-panel {
+.analysis {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+/* Duży pas w kolorze akcentu z tekstem w kolorze tła (marka mRodzina). */
+.analysis-hero {
   background: var(--primary);
   color: var(--bg);
   border-radius: 1.5rem;
-  padding: clamp(1.5rem, 5vw, 3rem);
-  min-height: 24rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  padding: 1.75rem 1.5rem;
   box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
 }
-.an-panel h1 {
+.analysis-hero h1 {
   font-weight: 800;
-  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  margin-bottom: 0.25rem;
+}
+.analysis-hero p {
   margin: 0;
+  font-weight: 600;
 }
-.an-logo {
+.analysis-logo {
   width: 4rem;
-  height: auto;
+  height: 4rem;
   color: var(--bg);
+  margin-bottom: 0.5rem;
 }
-.an-steps {
+.analysis-steps {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  font-size: 1.15rem;
 }
-.an-steps li {
+.analysis-steps li {
   display: flex;
+  align-items: flex-start;
   gap: 0.75rem;
-  align-items: baseline;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
 }
-.an-mark {
-  display: inline-block;
-  width: 1.5rem;
+.analysis-steps li.is-done .analysis-mark {
+  background: var(--fg);
+  color: var(--bg);
+}
+.analysis-mark {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
   font-weight: 800;
+  background: var(--primary-soft);
+  color: var(--fg);
 }
-.an-working .an-mark {
-  animation: an-spin 1.2s linear infinite;
+.analysis-steps li.is-active .analysis-mark {
+  animation: analysis-spin 1.2s linear infinite;
 }
-@keyframes an-spin {
+.analysis-detail {
+  display: block;
+}
+.analysis-result {
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+.analysis-total {
+  margin: 0;
+  font-size: 1.1rem;
+}
+@keyframes analysis-spin {
   to {
     transform: rotate(360deg);
   }
 }
-.an-result {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-.an-result p {
-  margin: 0;
-}
-.an-big {
-  font-size: 1.4rem;
-  font-weight: 600;
-}
-.an-cta {
-  font: inherit;
-  font-weight: 800;
-  font-size: 1.1rem;
-  min-height: 44px;
-  padding: 0.7em 1.4em;
-  border: 0;
-  border-radius: 999px;
-  background: var(--bg);
-  color: var(--fg);
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgb(25 25 25 / 0.2);
-}
-.an-error {
-  font-weight: 600;
-}
 @media (prefers-reduced-motion: reduce) {
-  .an-working .an-mark {
+  .analysis-steps li.is-active .analysis-mark {
     animation: none;
   }
 }

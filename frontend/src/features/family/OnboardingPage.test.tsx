@@ -100,6 +100,6 @@ describe('OnboardingPage', () => {
     // brak znanych dzieci => krok 2 pomija się od razu
     expect(await screen.findByText('ABCD2345')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /wychowuję dziecko samodzielnie/i }))
-    expect(await screen.findByText('Strona analizy')).toBeInTheDocument()
+    expect(await screen.findByText('Strona analizy')).toBeInTheDocument() // po onboardingu: analiza, potem panel
   })
 })

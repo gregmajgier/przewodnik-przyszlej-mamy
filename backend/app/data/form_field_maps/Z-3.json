@@ -1,0 +1,53 @@
+{
+  "code": "Z-3",
+  "title": "Zaświadczenie płatnika składek (pracownik)",
+  "pdf": "Z-3_pdf_wypelnij_i_wydrukuj.pdf",
+  "fields": [
+    {
+      "id": "pesel",
+      "label": "PESEL ubezpieczonej",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.pesel",
+      "pdf_field": "topmostSubform[0].Page1[0].PESEL2[0]",
+      "format": "digits"
+    },
+    {
+      "id": "birth_date",
+      "label": "Data urodzenia",
+      "type": "date",
+      "required": true,
+      "source_key": "applicant.birth_date",
+      "pdf_field": "topmostSubform[0].Page1[0].Dataurodzenia[0]",
+      "format": "date_digits"
+    },
+    {
+      "id": "first_name",
+      "label": "Imię",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.first_name",
+      "pdf_field": "topmostSubform[0].Page1[0].Imie[0]",
+      "uppercase": true
+    },
+    {
+      "id": "last_name",
+      "label": "Nazwisko",
+      "type": "text",
+      "required": true,
+      "source_key": "applicant.last_name",
+      "pdf_field": "topmostSubform[0].Page1[0].Nazwisko[0]",
+      "uppercase": true
+    },
+    {
+      "id": "payer_name",
+      "label": "Nazwa płatnika składek",
+      "type": "text",
+      "required": false,
+      "source_key": "applicant.payer_name",
+      "pdf_field": "topmostSubform[0].Page1[0].Nazwaplatnika[0]",
+      "uppercase": true
+    }
+  ],
+  "note": "Wypełnia pracodawca; aplikacja tylko wstępnie uzupełnia dane ubezpieczonej."
+}

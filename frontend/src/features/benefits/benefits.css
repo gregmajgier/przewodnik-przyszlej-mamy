@@ -1,133 +1,107 @@
-/* Karty i strona świadczeń — styl marki mRodzina (tokeny z theme.css). */
-.bf-page {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-.bf-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.bf-group > h2 {
-  font-weight: 800;
-  margin: 0;
-}
-.bf-list {
+.benefit-grid {
   display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
 }
-.bf-card {
+.benefit-card {
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 1.5rem;
-  padding: 1.5rem;
+  padding: 1.1rem 1.25rem;
   box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
 }
-.bf-card p {
-  margin: 0;
+.benefit-card.is-no {
+  box-shadow: none;
+  background: transparent;
 }
-.bf-head {
+.benefit-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
-  flex-wrap: wrap;
 }
-.bf-head h3 {
+.benefit-head h3 {
   margin: 0;
   font-weight: 800;
-  font-size: 1.2rem;
 }
-.bf-badge {
-  border-radius: 999px;
-  padding: 0.15rem 0.75rem;
+.status-badge {
+  flex: none;
+  font-size: 0.8rem;
   font-weight: 800;
-  font-size: 0.85rem;
-  white-space: nowrap;
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  border: 2px solid var(--fg);
+  background: var(--surface);
+  color: var(--fg);
 }
-.bf-badge-fits {
-  background: var(--primary);
-  color: var(--bg);
-}
-.bf-badge-maybe {
+.status-badge.is-fits {
   background: var(--fg);
   color: var(--bg);
 }
-.bf-badge-no {
-  background: transparent;
-  color: var(--muted);
-  border: 2px solid var(--border);
+.status-badge.is-maybe {
+  background: var(--primary-soft);
 }
-.bf-why {
-  font-weight: 600;
-}
-.bf-no {
-  box-shadow: none;
-  border: 1px solid var(--border);
-}
-.bf-questions {
-  list-style: none;
+.benefit-amount {
   margin: 0;
-  padding: 0.75rem 1rem;
-  border-radius: 1rem;
-  background: var(--bg);
+  font-weight: 800;
+}
+.benefit-why h4 {
+  margin: 0 0 0.2rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.benefit-why ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+.benefit-question p {
+  margin: 0 0 0.4rem;
+}
+.benefit-questions {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  background: var(--primary-soft);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
 }
-.bf-questions li {
+.benefit-verify {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.benefit-foot {
+  margin-top: auto;
+}
+.benefit-rest summary {
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.5rem 0;
+  min-height: 44px;
+}
+.benefit-rest .benefit-grid {
+  margin-top: 0.75rem;
+}
+
+/* kafelki dashboardu */
+.widget-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  padding: 1.1rem 1.25rem;
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
+}
+.widget-card h2 {
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+.widget-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-.bf-yesno {
-  display: flex;
-  gap: 0.5rem;
-}
-.bf-yesno .btn,
-.bf-actions .btn {
-  min-height: 44px;
-  min-width: 44px;
-}
-.bf-verify {
-  font-size: 0.9rem;
-  color: var(--muted);
-  border-left: 4px solid var(--fg);
-  padding-left: 0.6rem;
-}
-.bf-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-top: auto;
-  padding-top: 0.5rem;
-}
-.bf-actions a:not(.btn) {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-}
-.bf-more > button {
-  min-height: 44px;
-}
-.bf-hero {
-  background: var(--primary);
-  color: var(--bg);
-  border-radius: 1.5rem;
-  padding: 1.5rem 2rem;
-}
-.bf-hero h1 {
-  margin: 0 0 0.25rem;
-  font-weight: 800;
-}
-.bf-hero p {
-  margin: 0;
+  gap: 0.35rem;
 }

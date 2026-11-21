@@ -16,3 +16,10 @@ export function describeChild(c: Pick<Child, 'status' | 'birth_date' | 'due_date
 export function maskPesel(pesel: string): string {
   return `${'•'.repeat(Math.max(pesel.length - 4, 0))}${pesel.slice(-4)}`
 }
+
+const PLN = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 })
+
+/** 12000 -> "12 000 zł" */
+export function formatPln(amount: number): string {
+  return PLN.format(amount)
+}

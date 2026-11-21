@@ -1,110 +1,95 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
+import { useSession } from '../../lib/session'
 import BenefitCard from './BenefitCard'
 import type { BenefitMatch } from './types'
 import './benefits.css'
 
-function Group({ id, title, items, onAnswer, busy }: {
-  id: string
-  title: string
-  items: BenefitMatch[]
-  onAnswer: (b: string, c: string, a: boolean) => void
-  busy: boolean
-}) {
-  return (
-    <section className="bf-group" aria-labelledby={id}>
-      <h2 id={id}>{title}</h2>
-      <ul className="bf-list">
-        {items.map((it) => (
-          <li key={it.benefit.id}>
-            <BenefitCard item={it} onAnswer={onAnswer} busy={busy} />
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
 export default function BenefitsPage() {
+  const { family, loading } = useSession()
   const [items, setItems] = useState<BenefitMatch[] | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [showRest, setShowRest] = useState(false)
-  const [busy, setBusy] = useState(false)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!family) return
     let cancelled = false
     api<BenefitMatch[]>('/api/benefits')
-      .then((r) => !cancelled && setItems(r))
-      .catch((e) => !cancelled && setError(e instanceof ApiError ? e.detail : 'Nie udało się pobrać świadczeń.'))
+      .then((data) => !cancelled && setItems(data))
+      .catch((e) => !cancelled && setError(e instanceof ApiError ? e.detail : 'Nie udało się wczytać świadczeń.'))
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [family])
 
   const answer = useCallback(async (benefitId: string, conditionId: string, value: boolean) => {
-    setBusy(true)
+    setBusyId(benefitId)
     setError(null)
     try {
+      // odpowiedź zapisuje się w profilu (nie pytamy drugi raz); w odpowiedzi jest przeliczone dopasowanie
       const updated = await api<BenefitMatch>(`/api/benefits/${benefitId}/answers`, {
         method: 'POST',
         body: { condition_id: conditionId, answer: value },
       })
-      setItems((prev) => prev && prev.map((it) => (it.benefit.id === benefitId ? updated : it)))
+      setItems((prev) => prev?.map((m) => (m.benefit.id === benefitId ? updated : m)) ?? prev)
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : 'Nie udało się zapisać odpowiedzi.')
     } finally {
-      setBusy(false)
+      setBusyId(null)
     }
   }, [])
 
-  if (error && !items) {
-    return (
-      <p role="alert" className="alert">
-        {error}
-      </p>
-    )
-  }
-  if (!items) return <p role="status">Ładowanie świadczeń…</p>
+  if (loading) return <p role="status">Ładowanie…</p>
+  if (!family) return <Navigate to="/start" replace />
 
-  const fits = items.filter((i) => i.match.status === 'fits')
-  const maybe = items.filter((i) => i.match.status === 'maybe')
-  const rest = items.filter((i) => i.match.status === 'no')
+  const fits = items?.filter((m) => m.match.status === 'fits') ?? []
+  const maybe = items?.filter((m) => m.match.status === 'maybe') ?? []
+  const rest = items?.filter((m) => m.match.status === 'no') ?? []
 
   return (
-    <div className="bf-page">
-      <div className="bf-hero">
-        <h1>Świadczenia dla waszej rodziny</h1>
-        <p>Przy każdym pokazujemy, dlaczego pasuje — albo czego jeszcze brakuje.</p>
-      </div>
+    <div className="stack">
+      <h1>Świadczenia dla Waszej rodziny</h1>
       {error && (
         <p role="alert" className="alert">
           {error}
         </p>
       )}
-      {fits.length === 0 && maybe.length === 0 && (
-        <p className="notice">Na razie nic nie pasuje — zajrzyj do pozostałych, żeby zobaczyć dlaczego.</p>
-      )}
-      {fits.length > 0 && <Group id="bf-fits" title="Pasuje do was" items={fits} onAnswer={answer} busy={busy} />}
-      {maybe.length > 0 && (
-        <Group id="bf-maybe" title="Może ci przysługiwać" items={maybe} onAnswer={answer} busy={busy} />
-      )}
-      {rest.length > 0 && (
-        <div className="bf-more">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            aria-expanded={showRest}
-            aria-controls="bf-rest"
-            onClick={() => setShowRest((v) => !v)}
-          >
-            {showRest ? 'Ukryj pozostałe' : `Pokaż pozostałe (${rest.length})`}
-          </button>
-          {showRest && (
-            <div id="bf-rest">
-              <Group id="bf-no" title="Nie pasuje (z powodem)" items={rest} onAnswer={answer} busy={busy} />
+      {!items && !error && <p role="status">Wczytuję świadczenia…</p>}
+
+      {items && (
+        <>
+          <section className="stack" aria-labelledby="fits-h">
+            <h2 id="fits-h">Pasuje ({fits.length})</h2>
+            {fits.length === 0 && <p className="muted">Na razie nic nie pasuje na pewno — zajrzyj niżej.</p>}
+            <div className="benefit-grid">
+              {fits.map((m) => (
+                <BenefitCard key={m.benefit.id} item={m} onAnswer={answer} busy={busyId === m.benefit.id} />
+              ))}
             </div>
+          </section>
+
+          <section className="stack" aria-labelledby="maybe-h">
+            <h2 id="maybe-h">Może ci przysługiwać ({maybe.length})</h2>
+            {maybe.length > 0 && <p className="muted">Odpowiedz na kilka pytań — zapamiętamy to i nie zapytamy drugi raz.</p>}
+            <div className="benefit-grid">
+              {maybe.map((m) => (
+                <BenefitCard key={m.benefit.id} item={m} onAnswer={answer} busy={busyId === m.benefit.id} />
+              ))}
+            </div>
+          </section>
+
+          {rest.length > 0 && (
+            <details className="benefit-rest">
+              <summary>Pokaż pozostałe ({rest.length})</summary>
+              <div className="benefit-grid">
+                {rest.map((m) => (
+                  <BenefitCard key={m.benefit.id} item={m} onAnswer={answer} />
+                ))}
+              </div>
+            </details>
           )}
-        </div>
+        </>
       )}
     </div>
   )

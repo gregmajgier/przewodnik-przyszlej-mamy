@@ -1,6 +1,7 @@
 """Dane startowe. `seed_all` jest idempotentne (stałe id, `put` = upsert)."""
 
 from ..storage import Store
+from . import demo_agent  # noqa: F401  (rejestruje odpowiedź demo planu agenta)
 from .benefits import seed_benefits
 from .officials import seed_officials
 from .units import seed_units

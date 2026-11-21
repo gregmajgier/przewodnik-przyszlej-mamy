@@ -121,103 +121,96 @@ wspólny, ale rezerwacja jest atomowa tylko w obrębie procesu (`asyncio.Lock`; 
 Przy wielu replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — inaczej możliwe przekroczenie
 budżetu rzędu liczby replik × rezerwacja. Limit równoległych żądań (`AI_MAX_INFLIGHT`) też jest per proces.
 
-## Skan umów i ostrzeżenia o ryzyku (plan 04)
+## Świadczenia (plan 03)
 
-Backend: `routers/contracts.py`, `services/contract_extract.py` (plik → tekst/obraz → `LLM.structured`),
-`services/contracts.py` (szkice, zatwierdzanie, profil), `services/risk.py` (czyste reguły ryzyka),
-narzędzie MCP `ryzyka`. Frontend: `features/contracts/` (trasy `/umowy`, `/start/umowy`, widżet, sekcja profilu).
+**Katalog.** Świadczenia krajowe są w `backend/app/data/benefits_national.json` (22 pozycje), ładuje je `seed_all`
+(`app/seed/benefits.py`, upsert po stałym `id`). Model: `app/models/benefit.py` (`Benefit`, `Criteria`, `Condition`,
+`Deadline`). Świadczenia gminne i wojewódzkie dodaje urzędnik (plan 07) do tej samej kolekcji `benefits`;
+rodzina widzi tylko te, które obejmują jej adres (`services/units.py`: gmina → tylko własna, województwo → wszystkie
+gminy województwa).
 
-**Przykładowa umowa i skan w trybie demo (bez Azure):**
+**Jak dodać świadczenie krajowe** — nowy obiekt w `benefits_national.json`:
 
-```bash
-cd backend
-.venv/bin/pip install -r requirements-dev.txt          # fpdf2 do generowania PDF
-.venv/bin/python scripts/make_sample_contract.py       # -> app/seed/sample_umowa_anna_nowak.pdf
-# (czcionka z polskimi znakami: DejaVu/Arial/Liberation są wykrywane; inaczej --font /ścieżka/plik.ttf)
-.venv/bin/uvicorn app.main:app --reload
-```
+| Pole | Uwagi |
+|---|---|
+| `id`, `name`, `scope: "national"`, `category` | `id` unikalne i stałe (`nat-...`); `category`: `benefit` (pieniądze, wlicza się do szacunku rocznego) albo `perk` (uprawnienie/ulga). |
+| `criteria` | Kryteria strukturalne sprawdzane kodem. Wiek dziecka w **pełnych ukończonych miesiącach**, obie granice włącznie: „do ukończenia 18 lat” = `child_age_max_months: 215` (w dniu 18. urodzin wiek to już 216 → nie pasuje). Brak danych o dochodzie → `maybe` + pytanie, nigdy `no`. |
+| `extra_conditions` | Warunki dodatkowe: `kind: "auto"` (sprawdzane po `profile_key`) albo `"ask"` (pytanie tak/nie; odpowiedź zapisuje się w `profile.answers["benefit:<id>:<warunek>"]`, więc nie pytamy drugi raz). |
+| `amount_text`, `annual_value_estimate`, `deadline` | Kwota opisowa, szacunek roczny w zł (tylko dla `benefit`) i termin (`anchor`: `birth`/`due`/`child_age`/`fixed`). |
+| `form_codes` | Kody z `katalog_wnioskow_pdf.json` (lub puste). Kod z kreatorem wniosków (patrz niżej) daje przycisk „Złóż wniosek” działający od razu; pozostałe kody pokażą wyjaśnienie i link do pustego formularza. |
+| `source_url` | **Obowiązkowy**, `https://`, oficjalne źródło (ZUS, gov.pl, MRPiPS, ISAP). Wątpliwe dane oznacz `"verify": true`. |
 
-W UI: zaloguj się jako Anna Nowak → załóż rodzinę → „Umowy” → wgraj `sample_umowa_anna_nowak.pdf`.
-Bez `AZURE_OPENAI_*` działa `DemoLLM`: handler `contract_scan` (`app/seed/demo_handlers.py`) czyta etykiety
-„Pracodawca:”, „Stanowisko:”, „Wynagrodzenie:” itd. prostymi regexami, więc własny plik tekstowy z takimi
-etykietami (np. „Umowa zlecenie… Zleceniodawca: …”) też zadziała; brak słowa „umowa” = „Nie udało się
-odczytać umowy”. Przez curl:
+`backend/tests/test_benefits_seed.py` waliduje każdy rekord (model, `https`, unikalne `id`, istniejące `form_codes`,
+co najmniej 16 pozycji) i scenariusz rodziny Nowaków — po dodaniu wpisu uruchom `pytest -q`.
 
-```bash
-curl -H "Authorization: Bearer $TOKEN" -F "file=@app/seed/sample_umowa_anna_nowak.pdf" localhost:8000/api/contracts/scan
-```
+**Silnik** (`services/matching.py`) to czysta, deterministyczna funkcja `match_benefit(ctx, benefit)`; **LLM nie bierze
+udziału w dopasowaniu**. Wynik: `fits` (pasuje), `maybe` (spełnione kryteria, ale są nierozstrzygnięte pytania) albo
+`no` (z powodem w `unmet`); każdy wynik ma ludzkie uzasadnienia w `reasons`.
 
-Ostrzeżenia (`GET /api/risks`) liczą się dla rodziny z dzieckiem w drodze (status „expected”): zlecenie bez
-dobrowolnego chorobowego, umowa o pracę na czas określony kończąca się przed terminem porodu, zadłużenie
-składkowe przy JDG. Aby zobaczyć je w demo, wgraj plik tekstowy ze zleceniem i zatwierdź z „Nie mam” chorobowego.
+**API** (rodzic): `GET /api/benefits` (opublikowane, obejmujące adres rodziny), `GET /api/benefits/{id}`,
+`POST /api/benefits/{id}/answers {condition_id, answer}`, `GET /api/analysis` (kroki ekranu analizy + liczby),
+`GET /api/summary` (agregat dla dashboardu + `parameters_label`). Narzędzie MCP `swiadczenia` (`app/tools/benefits.py`)
+zwraca te same dopasowania asystentowi czatu.
 
-**Limity uploadu:** 5 MB/plik (sprawdzane po `Content-Length` przed parsowaniem multipart i po odczycie), 5 umów
-(zatwierdzone + oczekujące szkice) na rodzica, typy po magic bytes: PDF, PNG, JPEG, tekst. PDF z JavaScriptem /
-`Launch` / załącznikami jest odrzucany. Pliku nie przechowujemy — po ekstrakcji zostają tylko dane zatwierdzone
-przez rodzica. Niezatwierdzone szkice wygasają po 24 h.
+**Frontend:** po onboardingu rodzic trafia na `/analiza` (kroki ujawniane co ~700 ms; przy `prefers-reduced-motion`
+wszystko od razu), potem na `/` — dashboard (nagłówek z podsumowaniem, stawki z `GET /api/parametry` z etykietą
+„Parametry ZUS 2026 – aktywne” i siatka kafelków). Kafelek dokłada każda funkcja plikiem
+`features/<nazwa>/widget.tsx` (`{ order, Component }`) — dashboard ich nie zna z nazwy. Lista świadczeń: `/swiadczenia`.
 
-## Katalog świadczeń i dopasowanie (plan 03)
+## Wnioski, agent i makiety portali (plan 08)
 
-**Gdzie są dane:** `backend/app/data/benefits_national.json` (świadczenia krajowe) → `app/seed/benefits.py`
-ładuje je do kolekcji `benefits` przy starcie (`seed_all`, idempotentnie po stałym `id`). Świadczenia lokalne
-tworzy panel jednostek (plan 07) lub seed przykładowy — ten sam model `Benefit` (`app/models/benefit.py`).
+**Kanały** (`services/applications.py::channels_for`, dane z `katalog_wnioskow_pdf.json`):
 
-**Jak działa dopasowanie** (`app/services/matching.py`, bez LLM): `match_benefit(ctx, benefit)` zwraca
-`fits` / `maybe` / `no` + `reasons` („dlaczego”), `unmet` (powody odrzucenia) i `questions` (tak/nie).
-- Wiek dziecka = pełne ukończone miesiące, granice **włącznie**: „do ukończenia 18 lat” to `child_age_max_months: 215`.
-- Dziecko „w drodze” nie liczy się do wieku ani liczby dzieci (dopiero po urodzeniu); `allow_pregnancy: true`
-  pozwala, by ciąża spełniała też kryterium wieku (zasiłek macierzyński, urlopy).
-- Niespełnione kryterium strukturalne → `no`. Brak danych o dochodzie lub nierozstrzygnięty warunek → `maybe` + pytanie.
-- Odpowiedzi trafiają do `ParentProfile.answers["benefit:{id}:{condition_id}"]` (dochód: `condition_id = "income"`;
-  można też ustawić globalnie `income_per_person`). Odpowiedzi obojga rodziców są łączone, wygrywa pytany.
-- Warunki `auto` czytają fakty po `profile_key`: `family.pregnant`, `family.has_ezla_b`,
-  `family.child_serious_illness`, `family.sickness_insurance` albo klucz bool z `answers`.
+| Wniosek | Kanały |
+|---|---|
+| do pracodawcy (`URLOP-*`, `REZYGNACJA-MAC`) | `employer_email` (PDF generowany + e-mail) lub `pdf_download` |
+| ZUS/gmina z makietą portalu (`ZAM`, `KDR`, `ZA-ZYCIEM`) | `portal_agent`; `ZAM` także `pdf_download` (AcroForm) |
+| tylko elektroniczne (`800PLUS`, `AKTYWNY-RODZIC`) | wyłącznie `portal_agent` (PDF → 422) |
+| ZUS z samym PDF (`ZAS-53`, `ZAS-26`, …) | `pdf_download` |
 
-**Jak dodać świadczenie krajowe:** dopisz rekord do `benefits_national.json` (pola jak w modelu `Benefit`):
-unikalne `id` (`nat-...`), `source_url` z oficjalnego źródła (https), `form_codes` istniejące w
-`katalog_wnioskow_pdf.json` (albo `[]`), kryteria strukturalne w `criteria`, ewentualne `extra_conditions`
-(`kind: "ask"` z `question`, albo `"auto"` z `profile_key`). Kwoty tylko z oficjalnych źródeł; wątpliwe →
-`"verify": true` (karta pokazuje wtedy „potwierdź w źródle”). `annual_value_estimate` + tag `per_child`
-liczy kwotę × liczba dzieci spełniających kryterium wieku. Test `tests/test_benefits_seed.py` waliduje rekordy.
+Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy, potem `ZAM`; zlecenie/JDG → od razu `ZAM`
+(`prefill.recommend_flow`, zwracane w `GET /api/applications/forms`).
 
-**API:** `GET /api/benefits`, `GET /api/benefits/{id}`, `POST /api/benefits/{id}/answers`, `GET /api/analysis`,
-`GET /api/summary` (tylko rodzic z rodziną; wszystko po `family_id` wywołującego). Narzędzie MCP: `swiadczenia`.
+**Przepływ:** `POST /api/applications {form_code, child_id?, channel?}` → szkic z prefillem (`services/prefill.py`:
+profil ZUS, odpowiedzi zapisane w profilu, dziecko) → `needs_input` + lista `missing`, gdy czegoś brakuje (nigdy puste pole
+w PDF) → `POST /{id}/answers` (odpowiedź zapisuje się w profilu; PESEL dziecka przy dziecku) → `GET /{id}/pdf` (podgląd) →
+`POST /{id}/sign` (**symulowany** Profil Zaufany) → `POST /{id}/submit`. Zasady:
 
-**Frontend:** `/analiza` (ekran analizy po onboardingu), `/` (dashboard; kafelki z `features/*/widget.tsx`),
-`/swiadczenia` (lista z grupami „pasuje” / „może przysługiwać” / zwijane „pozostałe”).
+- Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje (403).
+  Cudzy wniosek lub dziecko cudzej rodziny → 404.
+- Podpis obejmuje **odcisk danych** (kanał, adresat, wartości). Zmiana czegokolwiek po podpisie (także danych dziecka)
+  unieważnia go — `submit` odpowie 409 „podpisz ponownie”.
+- `submit` jest **idempotentny po `application.id`** (blokada na wniosek + status): podwójne kliknięcie = jedna wiadomość.
+  Blokada jest per proces (jak limity AI); przy wielu replikach potrzebny byłby warunkowy zapis w bazie.
+- Poczta: `app/mail/provider.py` — `MailProvider` (protokół) i `SimMailProvider`, który **nie wysyła prawdziwych
+  e-maili**, tylko zapisuje wiadomość w `mail_messages` (folder `sent`, w bazie tylko nazwa i rozmiar załącznika).
+  Prawdziwego dostawcę podpinasz, podmieniając zależność `get_mail`.
+- Tryb straty: `cancel_drafts_for_child(store, child_id)` (`services/applications.py`, dostępne też z
+  `routers/applications`) anuluje niewysłane wnioski dziecka; tworzenie/podpis/wysyłka dla takiego dziecka → 409.
 
-## Czat „Zapytaj mRodzinę” (plan 06)
+**Agent w makiecie portalu.** `POST /api/applications/{id}/agent-plan` (za `ai_guard("agent_plan")`) zwraca kroki
+`pole → wartość + uzasadnienie` i listę `blocked` (pytania o braki). Model dostaje **tylko schemat pól**
+(id, etykieta, typ, „czy wartość jest znana”) — żadnych danych osobowych; wartości zawsze pochodzą z prefillu i są
+walidowane typem/wyborem, więc model nie może ich zmyślić ani podmienić. Pole spoza schematu lub niepoprawna wartość
+nie trafia do planu; brak wymaganej wartości → `blocked`, nigdy zgadywanie. Bez Foundry działa deterministyczny
+handler demo (`app/seed/demo_agent.py`).
 
-Czat prowadzi backend (`app/services/chat.py`, `app/routers/chat.py`): model woła narzędzia przez serwer MCP
-działający w procesie (`app/mcp_server.py`, SDK `mcp` 2.x). Narzędzia: `profil_rodziny` (bez PESEL i kwot),
-`szukaj_w_przepisach`, `szukaj_w_sieci` (`app/tools/chat_tools.py`); narzędzia z innych planów dołączają się same.
-Endpointy: `POST /api/chat` (SSE: `session`, `tool`, `token`, `sources`, `done`, `error`),
-`GET|DELETE /api/chat/sessions/{id}` (tylko autor rozmowy).
+Frontend (`features/portal-sim`): makiety `/sim/ezus/:portalId` i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
+znacznik „SYMULACJA”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
+`<iframe>`, wykonuje plan krok po kroku z widocznym kursorem, zatrzymuje się na brakach (pyta rodzica) i przed wysyłką;
+dopiero „Zatwierdzam i wysyłam” wysyła, a po `submitted` woła `portal-submitted`. Protokół `postMessage`
+(`agentBridge.ts`): aplikacja → makieta `fill`/`submit`, makieta → aplikacja `ready`/`ack`/`edited`/`invalid`/`submitted`.
+Obie strony przyjmują wiadomości **tylko z tego samego originu i od właściwego okna**, walidują ich kształt i wysyłają
+z jawnym `targetOrigin`. Makieta odrzuca pola spoza schematu i wartości niezgodne z typem.
 
-### Indeks przepisów
-Dane (`backend/app/data/laws/*.json`) są zacommitowane; budowane z oficjalnego API Sejmu (ELI,
-`https://api.sejm.gov.pl/eli/`) — aktualne teksty jednolite, z PDF (API nie udostępnia HTML dla nowych
-obwieszczeń). Skrypt odrzuca przypisy, nagłówki stron oraz brzmienia przyszłe i przestarzałe (tekst jednolity
-drukuje obok siebie wersję obecną i nową). Odświeżenie po zmianie przepisów:
+**Jak dodać wniosek z kreatorem**
+1. Wniosek z PDF-em AcroForm: zbadaj pola (`pypdf.PdfReader(...).get_fields()`), dodaj mapę
+   `backend/app/data/form_field_maps/<KOD>.json` (pole PDF → `source_key`) — `test_map_fields_exist_in_pdf` wykryje
+   rozjazd mapy z PDF-em.
+2. Wniosek przez makietę portalu: dodaj wpis w `backend/app/data/portal_schemas.json` i kod w `CODE_TO_PORTAL`
+   (`services/prefill.py`).
+3. Kod musi istnieć w `katalog_wnioskow_pdf.json`; kanały wynikają z powyższej tabeli.
 
-```bash
-cd backend
-.venv/bin/pip install -r requirements-dev.txt          # m.in. pdfplumber (tylko do budowy indeksu)
-.venv/bin/python scripts/build_laws_index.py --discover --cache /tmp/laws-pdf   # --only kp,zasilkowa — wybrane akty
-```
-
-Bez `--discover` skrypt używa przypiętych obwieszczeń i sam przełącza się na najnowsze, gdy przypięte wygasło.
-Wynik oznaczony jest `"verify": true` (ekstrakcja z PDF): przed wykorzystaniem w decyzji sprawdź tekst w ISAP
-(link w danych). Wyszukiwanie: własny BM25 (`app/services/laws.py`), bez usług zewnętrznych.
-
-### Web search
-| Zmienna | Domyślnie | Znaczenie |
-|---|---|---|
-| `WEB_SEARCH_PROVIDER` | `none` | `none` \| `brave` \| `serper`. Przy `none` (lub braku klucza) czat uczciwie mówi, że nie ma dostępu do wyszukiwarki. |
-| `WEB_SEARCH_API_KEY` | puste | Klucz dostawcy. |
-
-Wyniki są rankowane: domeny urzędowe (`*.gov.pl`, `zus.pl`, BIP, `um.`/`ug.`/`pup.`/`mops.` itp.) najpierw.
-
-### Tryb demo czatu
-Bez `AZURE_OPENAI_*` działa `DemoLLM` z handlerem `app/seed/demo_chat.py`: wyszukuje przepisy i pokazuje trzy
-najlepiej pasujące artykuły z linkami (bez generowania odpowiedzi). Interfejs oznacza go etykietą „TRYB DEMO”.
+**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis, poczta
+i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
+`/poczta`) działają dopiero po wdrożeniu planu 09.

@@ -1,117 +1,61 @@
-/* Dashboard rodzica — pas w kolorze akcentu z tekstem w kolorze tła, kafelki z miękkim cieniem. */
-.db-page {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-.db-hero {
+/* Pas nagłówka: pełny kolor akcentu, tekst w kolorze tła (marka mRodzina). */
+.dash-hero {
   background: var(--primary);
   color: var(--bg);
-  border-radius: 1.5rem;
-  padding: clamp(1.25rem, 4vw, 2.25rem);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-.db-hero h1 {
-  margin: 0;
-  font-weight: 800;
-  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
-}
-.db-hero p {
-  margin: 0;
-}
-.db-alert {
-  font-weight: 700;
-}
-.db-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-  gap: 1rem;
-  margin: 0;
-}
-.db-stats > div {
-  background: rgb(248 251 239 / 0.14);
-  border-radius: 1rem;
-  padding: 1rem 1.25rem;
-}
-.db-stats dt {
-  font-weight: 600;
-  opacity: 0.95;
-  margin-bottom: 0.25rem;
-}
-.db-stats dd {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-.db-num {
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  font-weight: 800;
-  line-height: 1.1;
-}
-.db-num-sm {
-  font-size: 1.35rem;
-}
-.db-sub {
-  font-weight: 600;
-}
-.db-pill {
-  display: inline-block;
-  background: var(--bg);
-  color: var(--fg);
-  border-radius: 999px;
-  padding: 0.25rem 0.9rem;
-  font-weight: 800;
-  font-size: 0.9rem;
-}
-.db-warnings {
-  background: var(--fg);
-  color: var(--bg);
-  border-radius: 1.5rem;
-  padding: 1rem 1.5rem;
-}
-.db-warnings ul,
-.db-rates ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.db-warnings li {
-  padding: 0.2rem 0;
-  font-weight: 600;
-}
-.db-rates ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.db-rates li {
-  background: var(--surface);
-  border-radius: 1rem;
-  padding: 0.5rem 1rem;
-  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
-}
-.db-grid {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-}
-.db-tile {
-  background: var(--surface);
   border-radius: 1.5rem;
   padding: 1.5rem;
   box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
 }
-.db-tile h2 {
+.dash-hero h1 {
   font-weight: 800;
-  font-size: 1.25rem;
 }
-.db-tile ul {
-  padding-left: 1.1rem;
+.dash-alert {
+  margin: 0;
+  font-weight: 700;
 }
-.db-tile a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
+.dash-summary {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  margin: 0;
+}
+.dash-summary dt {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.dash-summary dd {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.dash-deadline-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.dash-params {
+  border-radius: 1.5rem;
+}
+.dash-params-head {
+  justify-content: space-between;
+}
+.dash-params-head h2 {
+  margin: 0;
+}
+.params-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 999px;
+  padding: 0.15rem 0.8rem;
+}
+.dash-rates {
+  margin-top: 0.75rem;
+}
+.dash-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
 }

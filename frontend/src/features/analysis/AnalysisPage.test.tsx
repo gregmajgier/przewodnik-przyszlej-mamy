@@ -1,119 +1,141 @@
-import { act, render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { act, fireEvent, screen } from '@testing-library/react'
+import { Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ApiError } from '../../lib/api'
+import type { FamilyView } from '../../lib/types'
+import { ANNA, makeSession, renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import type { Analysis } from '../benefits/types'
-import AnalysisPage from './AnalysisPage'
+import AnalysisPage, { STEP_MS } from './AnalysisPage'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
   api: vi.fn(),
 }))
 
+const FAMILY = {
+  family: { id: 'f1', name: 'Nowak', owner_id: ANNA.id, member_ids: [ANNA.id], invite_code: null, invite_expires_at: null },
+  members: [ANNA],
+  children: [],
+  pending_requests: [],
+} as FamilyView
+
 const ANALYSIS: Analysis = {
   steps: [
-    { key: 'zus', label: 'Dane z ZUS', detail: 'umowa o pracę, podstawa 7 850 zł', status: 'done' },
-    { key: 'contracts', label: 'Umowy', detail: '1', status: 'done' },
-    { key: 'catalog', label: 'Przeglądamy świadczenia', detail: '22 krajowych, 0 lokalnych (Kraków, woj. małopolskie)', status: 'done' },
-    { key: 'results', label: 'Wynik dopasowania', detail: 'pasuje do was: 7 · może przysługiwać: 3', status: 'done' },
-    { key: 'deadlines', label: 'Terminy', detail: '1 termin w ciągu 30 dni', status: 'warning' },
+    { key: 'profile', label: 'Czytam twoje dane', detail: 'Rodzice: 1.', status: 'done' },
+    { key: 'family', label: 'Sprawdzam skład rodziny', detail: 'Dzieci: 2, w drodze: 1.', status: 'done' },
+    { key: 'match', label: 'Dopasowuję świadczenia', detail: 'Pasuje: 7.', status: 'done' },
   ],
-  totals: { national: 22, local: 0, fits: 7, maybe: 3, no: 12 },
-  estimated_annual_total: 21424,
+  totals: { national: 20, local: 2, fits: 7, maybe: 5, no: 10 },
+  estimated_annual_total: 12000,
   nearest_deadline: null,
+  parameters_label: 'Parametry ZUS 2026 – aktywne',
 }
 
-function mockReducedMotion(reduced: boolean) {
-  window.matchMedia = vi.fn().mockImplementation((q: string) => ({
-    matches: reduced && q.includes('reduce'),
-    media: q,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-  })) as unknown as typeof window.matchMedia
+function Tree() {
+  return (
+    <Routes>
+      <Route path="/analiza" element={<AnalysisPage />} />
+      <Route path="/" element={<p>Panel główny</p>} />
+      <Route path="/start" element={<p>Start</p>} />
+    </Routes>
+  )
 }
 
-function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/analiza']}>
-      <Routes>
-        <Route path="/analiza" element={<AnalysisPage />} />
-        <Route path="/" element={<p>Panel główny</p>} />
-      </Routes>
-    </MemoryRouter>,
+/** Przewija czas o `ms` i opróżnia mikrozadania (odpowiedzi atrapy API). */
+async function advance(ms: number) {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms)
+  })
+}
+
+/** Doprowadza analizę do końca: najpierw odpowiedź API, potem kolejne kroki (timer rejestruje się po każdym renderze). */
+async function finishAnalysis(steps = 3) {
+  await advance(0)
+  for (let i = 0; i < steps; i++) await advance(STEP_MS)
+}
+
+function stubReducedMotion(reduced: boolean) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn((query: string) => ({ matches: reduced && query.includes('reduce'), media: query, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
   )
 }
 
 describe('AnalysisPage', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    vi.clearAllMocks()
-    mockReducedMotion(false)
-  })
-  afterEach(() => vi.useRealTimers())
-
-  async function loaded() {
+    stubReducedMotion(false)
     routeApi({ 'GET /api/analysis': ANALYSIS })
-    renderPage()
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(0)
-    })
-  }
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
 
-  it('odsłania kroki po kolei co ~700 ms, a bieżący pokazuje „⟳”', async () => {
-    await loaded()
-    expect(screen.getByText(/Dane z ZUS/)).toBeInTheDocument()
-    expect(screen.queryByText(/Umowy/)).not.toBeInTheDocument()
-    expect(screen.getByTestId('step-zus')).toHaveTextContent('⟳')
+  it('ujawnia kroki po kolei, co ~700 ms, a ostatni ⟳ zamienia się w ✓', async () => {
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
+    await advance(0)
 
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(700)
-    })
-    expect(screen.getByTestId('step-zus')).toHaveTextContent('✓')
-    expect(screen.getByTestId('step-contracts')).toHaveTextContent('⟳')
-    expect(screen.queryByText(/Przeglądamy świadczenia/)).not.toBeInTheDocument()
+    const steps = () => screen.getAllByRole('listitem')
+    expect(steps()).toHaveLength(1)
+    expect(steps()[0]).toHaveTextContent('Czytam twoje dane')
+    expect(steps()[0]).toHaveTextContent('⟳')
+    expect(screen.queryByText('Rodzice: 1.')).not.toBeInTheDocument() // szczegóły dopiero po ukończeniu kroku
+
+    await advance(STEP_MS)
+    expect(steps()).toHaveLength(2)
+    expect(steps()[0]).toHaveTextContent('✓')
+    expect(screen.getByText('Rodzice: 1.')).toBeInTheDocument()
+    expect(steps()[1]).toHaveTextContent('Sprawdzam skład rodziny')
+    expect(steps()[1]).toHaveTextContent('⟳')
+
+    await advance(STEP_MS)
+    expect(steps()).toHaveLength(3)
+    expect(steps()[2]).toHaveTextContent('⟳')
     expect(screen.queryByRole('button', { name: /przejdź do panelu/i })).not.toBeInTheDocument()
-  })
 
-  it('na końcu: liczby z API, ostrzeżenie „⚠” i przycisk „Przejdź do panelu”', async () => {
-    await loaded()
-    for (let i = 0; i < 5; i++) {
-      await act(async () => {
-        await vi.advanceTimersByTimeAsync(700)
-      })
-    }
-    expect(screen.getByText(/podstawa 7 850 zł/)).toBeInTheDocument()
-    expect(screen.getByText(/22 krajowych/)).toBeInTheDocument()
-    expect(screen.getByText(/pasuje do was: 7 · może przysługiwać: 3/)).toBeInTheDocument()
-    expect(screen.getByTestId('step-deadlines')).toHaveTextContent('⚠')
-    expect(screen.getByText(/21\s424\s*zł/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /przejdź do panelu/i })).toBeInTheDocument()
-  })
-
-  it('prefers-reduced-motion: wszystko od razu', async () => {
-    mockReducedMotion(true)
-    await loaded()
-    expect(screen.getByTestId('step-deadlines')).toBeInTheDocument()
-    expect(screen.getByText(/pasuje do was: 7/)).toBeInTheDocument()
+    await advance(STEP_MS) // ostatni krok kończy się
+    expect(steps().map((li) => li.textContent?.includes('✓'))).toEqual([true, true, true])
     expect(screen.queryByText('⟳')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /przejdź do panelu/i })).toBeInTheDocument()
   })
 
+  it('pokazuje na końcu liczby z API', async () => {
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
+    await finishAnalysis()
+    const result = screen.getByRole('region', { name: /wynik analizy/i })
+    expect(result).toHaveTextContent('7 pasuje')
+    expect(result).toHaveTextContent('5 może ci przysługiwać')
+    expect(result).toHaveTextContent('10 nie pasuje')
+  })
+
   it('przycisk prowadzi do panelu', async () => {
-    mockReducedMotion(true)
-    await loaded()
-    await act(async () => {
-      screen.getByRole('button', { name: /przejdź do panelu/i }).click()
-    })
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
+    await finishAnalysis()
+    fireEvent.click(screen.getByRole('button', { name: /przejdź do panelu/i }))
     expect(screen.getByText('Panel główny')).toBeInTheDocument()
   })
 
-  it('błąd API pokazuje komunikat i link do panelu', async () => {
-    routeApi({ 'GET /api/analysis': new ApiError(404, 'Nie należysz jeszcze do żadnej rodziny.') })
-    renderPage()
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(0)
-    })
-    expect(screen.getByRole('alert')).toHaveTextContent('Nie należysz jeszcze do żadnej rodziny.')
+  it('prefers-reduced-motion: wszystko od razu, bez odliczania', async () => {
+    stubReducedMotion(true)
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
+    await advance(0)
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+    expect(screen.getByText('Pasuje: 7.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /przejdź do panelu/i })).toBeInTheDocument()
+  })
+
+  it('bez rodziny przekierowuje na /start', async () => {
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: null }) })
+    await advance(0)
+    expect(screen.getByText('Start')).toBeInTheDocument()
+  })
+
+  it('błąd API pokazuje komunikat zamiast kroków', async () => {
+    const { ApiError } = await import('../../lib/api')
+    routeApi({ 'GET /api/analysis': new ApiError(500, 'Coś poszło nie tak.') })
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
+    await advance(0)
+    expect(screen.getByRole('alert')).toHaveTextContent('Coś poszło nie tak.')
   })
 })

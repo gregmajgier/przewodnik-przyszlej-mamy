@@ -4,7 +4,7 @@ import { api } from '../../lib/api'
 import type { BenefitMatch } from './types'
 import './benefits.css'
 
-const SHOWN = 3
+const TOP = 4
 
 export default function BenefitsWidget() {
   const [items, setItems] = useState<BenefitMatch[] | null>(null)
@@ -13,34 +13,37 @@ export default function BenefitsWidget() {
   useEffect(() => {
     let cancelled = false
     api<BenefitMatch[]>('/api/benefits')
-      .then((r) => !cancelled && setItems(r))
+      .then((data) => !cancelled && setItems(data))
       .catch(() => !cancelled && setFailed(true))
     return () => {
       cancelled = true
     }
   }, [])
 
-  const fits = items?.filter((i) => i.match.status === 'fits') ?? []
-  const maybe = items?.filter((i) => i.match.status === 'maybe') ?? []
+  const fits = items?.filter((m) => m.match.status === 'fits') ?? []
+  const maybe = items?.filter((m) => m.match.status === 'maybe') ?? []
 
   return (
-    <section className="bf-widget" aria-labelledby="bf-widget-h">
-      <h2 id="bf-widget-h">Świadczenia</h2>
-      {failed && <p className="muted">Nie udało się pobrać świadczeń. Spróbuj odświeżyć stronę.</p>}
-      {!items && !failed && <p role="status">Ładowanie…</p>}
+    <section className="widget-card" aria-labelledby="w-benefits-h">
+      <h2 id="w-benefits-h">Świadczenia</h2>
+      {failed && <p className="muted">Nie udało się wczytać świadczeń.</p>}
+      {!items && !failed && <p role="status" className="muted">Ładowanie…</p>}
       {items && (
         <>
-          <p>
-            <strong>{fits.length} pasuje</strong> · {maybe.length} może przysługiwać
+          <p className="muted">
+            Pasuje {fits.length} · może ci przysługiwać {maybe.length}
           </p>
-          <ul>
-            {fits.slice(0, SHOWN).map((i) => (
-              <li key={i.benefit.id}>{i.benefit.name}</li>
+          <ul className="widget-list">
+            {fits.slice(0, TOP).map((m) => (
+              <li key={m.benefit.id}>
+                <span>{m.benefit.name}</span>
+                {m.benefit.amount_text && <span className="muted"> — {m.benefit.amount_text}</span>}
+              </li>
             ))}
           </ul>
+          <Link to="/swiadczenia">Zobacz wszystkie świadczenia</Link>
         </>
       )}
-      <Link to="/swiadczenia">Wszystkie świadczenia</Link>
     </section>
   )
 }

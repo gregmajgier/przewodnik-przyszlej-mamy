@@ -18,7 +18,9 @@ export function Logo({ className, color = 'currentColor', duration = 1800, anima
   useLayoutEffect(() => {
     const path = pathRef.current
     if (!path || !animate) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // brak API SVG/Web Animations (np. jsdom) — rysujemy logo statycznie
+    if (typeof path.getTotalLength !== 'function' || typeof path.animate !== 'function') return
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
     const length = path.getTotalLength()
     const anim = path.animate(
       [{ strokeDashoffset: length }, { strokeDashoffset: 0 }],

@@ -1,42 +1,50 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
-import { formatDate } from '../../lib/format'
+import { formatDate, formatPln } from '../../lib/format'
 import { useSession } from '../../lib/session'
-import { daysLeftPhrase, formatPln } from '../benefits/format'
 import type { Summary } from '../benefits/types'
-import { dashboardWidgets } from './widgets'
+import { getDashboardWidgets } from './widgets'
 import './dashboard.css'
 
-interface Params {
-  zasilek_macierzynski_procent?: { macierzynski?: number; rodzicielski?: number; jednolity_wniosek_21_dni?: number }
+/** Fragment `GET /api/parametry` — pokazujemy tylko to, co jest w odpowiedzi. */
+interface Parametry {
+  zasilek_macierzynski_procent?: Record<string, number>
   swiadczenie_rodzicielskie_zl_mies?: number
   becikowe_zl?: number
   za_zyciem_zl?: number
 }
 
-function pct(n: number): string {
-  return `${String(n).replace('.', ',')}%`
-}
+const percent = (n: number) => `${String(n).replace('.', ',')}%`
 
-function rates(p: Params): { label: string; value: string }[] {
-  const out: { label: string; value: string }[] = []
-  const z = p.zasilek_macierzynski_procent
-  if (z?.macierzynski !== undefined && z.rodzicielski !== undefined) {
-    const extra = z.jednolity_wniosek_21_dni !== undefined ? ` (${pct(z.jednolity_wniosek_21_dni)} przy jednym wniosku)` : ''
-    out.push({ label: 'Zasiłek macierzyński / rodzicielski', value: `${pct(z.macierzynski)} / ${pct(z.rodzicielski)}${extra}` })
-  }
+function Rates({ p }: { p: Parametry }) {
+  const pct = p.zasilek_macierzynski_procent
+  const rows: [string, string][] = []
+  if (pct?.macierzynski !== undefined) rows.push(['Zasiłek macierzyński', percent(pct.macierzynski)])
+  if (pct?.rodzicielski !== undefined) rows.push(['Urlop rodzicielski', percent(pct.rodzicielski)])
+  if (pct?.jednolity_wniosek_21_dni !== undefined)
+    rows.push(['Jeden wniosek w 21 dni po porodzie', percent(pct.jednolity_wniosek_21_dni)])
   if (p.swiadczenie_rodzicielskie_zl_mies !== undefined)
-    out.push({ label: 'Świadczenie rodzicielskie', value: `${formatPln(p.swiadczenie_rodzicielskie_zl_mies)} miesięcznie` })
-  if (p.becikowe_zl !== undefined) out.push({ label: 'Becikowe', value: formatPln(p.becikowe_zl) })
-  if (p.za_zyciem_zl !== undefined) out.push({ label: 'Za życiem', value: formatPln(p.za_zyciem_zl) })
-  return out
+    rows.push(['Świadczenie rodzicielskie', `${formatPln(p.swiadczenie_rodzicielskie_zl_mies)} / mies.`])
+  if (p.becikowe_zl !== undefined) rows.push(['Becikowe', formatPln(p.becikowe_zl)])
+  if (p.za_zyciem_zl !== undefined) rows.push(['„Za życiem”', formatPln(p.za_zyciem_zl)])
+  if (rows.length === 0) return null
+  return (
+    <dl className="facts dash-rates">
+      {rows.map(([k, v]) => (
+        <div key={k} style={{ display: 'contents' }}>
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  )
 }
 
 export default function DashboardPage() {
-  const { family, user } = useSession()
+  const { user, family, loading } = useSession()
   const [summary, setSummary] = useState<Summary | null>(null)
-  const [params, setParams] = useState<Params | null>(null)
+  const [params, setParams] = useState<Parametry | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -44,105 +52,78 @@ export default function DashboardPage() {
     let cancelled = false
     api<Summary>('/api/summary')
       .then((s) => !cancelled && setSummary(s))
-      .catch((e) => !cancelled && setError(e instanceof ApiError ? e.detail : 'Nie udało się pobrać podsumowania.'))
-    api<Params>('/api/parametry')
+      .catch((e) => !cancelled && setError(e instanceof ApiError ? e.detail : 'Nie udało się wczytać podsumowania.'))
+    api<Parametry>('/api/parametry')
       .then((p) => !cancelled && setParams(p))
-      .catch(() => undefined) // stawki są dodatkiem — panel działa bez nich
+      .catch(() => undefined) // stawki to dodatek — panel działa bez nich
     return () => {
       cancelled = true
     }
   }, [family])
 
+  if (loading) return <p role="status">Ładowanie…</p>
+  if (user?.role === 'official') return <Navigate to="/urzednik" replace />
   if (!family) return <Navigate to="/start" replace />
 
   const firstName = user?.name.split(' ')[0] ?? ''
-  const label = summary?.parameters_label ?? 'Parametry ZUS – aktywne'
-  const count = summary ? summary.totals.fits + summary.totals.maybe : null
+  const widgets = getDashboardWidgets()
+  const total = summary ? summary.totals.fits + summary.totals.maybe : 0
 
   return (
-    <div className="db-page">
-      <section className="db-hero" aria-labelledby="db-h">
-        <h1 id="db-h">Cześć{firstName ? `, ${firstName}` : ''}! Oto wasza rodzina w pigułce.</h1>
+    <div className="stack">
+      <header className="dash-hero">
+        <h1>Cześć{firstName ? `, ${firstName}` : ''}!</h1>
         {error && (
-          <p role="alert" className="db-alert">
+          <p role="alert" className="dash-alert">
             {error}
           </p>
         )}
-        {!summary && !error && <p role="status">Liczymy…</p>}
+        {!summary && !error && <p role="status">Liczę, co Wam przysługuje…</p>}
         {summary && (
-          <dl className="db-stats">
+          <dl className="dash-summary" aria-label="Podsumowanie">
             <div>
-              <dt>Świadczeń dla was</dt>
-              <dd>
-                <span className="db-num">{count}</span>
-                <span className="db-sub">
-                  {summary.totals.fits} pasuje · {summary.totals.maybe} może przysługiwać
-                </span>
-              </dd>
+              <dt>Świadczeń dla rodziny</dt>
+              <dd>{total}</dd>
             </div>
             <div>
-              <dt>Orientacyjnie rocznie</dt>
-              <dd>
-                <span className="db-num">{summary.estimated_annual_total > 0 ? formatPln(summary.estimated_annual_total) : '—'}</span>
-              </dd>
+              <dt>Szacunkowo rocznie</dt>
+              <dd>{formatPln(summary.estimated_annual_total)}</dd>
             </div>
             <div>
               <dt>Najbliższy termin</dt>
               <dd>
                 {summary.nearest_deadline ? (
                   <>
-                    <span className="db-num db-num-sm">{summary.nearest_deadline.name}</span>
-                    <span className="db-sub">
-                      {formatDate(summary.nearest_deadline.date)} · {daysLeftPhrase(summary.nearest_deadline.days_left)}
-                    </span>
+                    {formatDate(summary.nearest_deadline.date)}
+                    <span className="dash-deadline-name">{summary.nearest_deadline.benefit_name}</span>
                   </>
                 ) : (
-                  <span className="db-num db-num-sm">brak</span>
+                  'brak'
                 )}
               </dd>
             </div>
           </dl>
         )}
-        <p className="db-label">
-          <span className="db-pill">{label}</span>
-        </p>
+      </header>
+
+      <section className="dash-params card" aria-labelledby="params-h">
+        <div className="row dash-params-head">
+          <h2 id="params-h">Stawki</h2>
+          <span className="params-label">{summary?.parameters_label ?? 'Parametry ZUS 2026 – aktywne'}</span>
+        </div>
+        {params ? <Rates p={params} /> : <p className="muted">Wczytuję stawki…</p>}
       </section>
 
-      {summary && summary.warnings.length > 0 && (
-        <section className="db-warnings" aria-label="Ostrzeżenia">
-          <ul>
-            {summary.warnings.map((w) => (
-              <li key={w}>
-                <span aria-hidden="true">⚠ </span>
-                {w}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {params && rates(params).length > 0 && (
-        <section className="db-rates" aria-label="Stawki">
-          <ul>
-            {rates(params).map((r) => (
-              <li key={r.label}>
-                <span className="muted">{r.label}</span> <strong>{r.value}</strong>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <div className="db-grid">
-        {[...dashboardWidgets].sort((a, b) => a.order - b.order).map((w, i) => (
-          <div className="db-tile" key={i}>
-            <w.Component />
-          </div>
+      <div className="dash-grid">
+        {widgets.map((w, i) => (
+          <w.Component key={i} />
         ))}
       </div>
-      <p className="muted">
-        Pełną listę z uzasadnieniem znajdziesz w <Link to="/swiadczenia">Świadczeniach</Link>.
-      </p>
+      {widgets.length === 0 && (
+        <p className="muted">
+          Tu pojawią się kafelki z Waszymi sprawami. <Link to="/swiadczenia">Zobacz świadczenia</Link>.
+        </p>
+      )}
     </div>
   )
 }

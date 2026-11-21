@@ -1,75 +1,73 @@
 import { Link } from 'react-router-dom'
-import { formatDate } from '../../lib/format'
-import { STATUS_LABEL } from './format'
+import { STATUS_LABEL } from './types'
 import type { BenefitMatch } from './types'
+import '../../components/a11y.css'
 import './benefits.css'
 
 interface Props {
   item: BenefitMatch
-  onAnswer: (benefitId: string, conditionId: string, answer: boolean) => void
+  /** Odpowiedź tak/nie na pytanie warunku; strona zapisuje ją przez API. */
+  onAnswer: (benefitId: string, conditionId: string, answer: boolean) => void | Promise<void>
   busy?: boolean
 }
 
 export default function BenefitCard({ item, onAnswer, busy = false }: Props) {
-  const { benefit, match, deadline_date } = item
-  const form = benefit.form_codes[0]
-  const why =
-    match.status === 'fits'
-      ? `Pasuje, bo ${match.reasons.join(' i ')}.`
-      : match.status === 'maybe'
-        ? match.reasons.length
-          ? `Na razie wiemy, że ${match.reasons.join(' i ')}. Potrzebujemy jeszcze twojej odpowiedzi.`
-          : 'Potrzebujemy jeszcze twojej odpowiedzi.'
-        : match.unmet.join(' ')
+  const { benefit, match } = item
+  const headingId = `benefit-${benefit.id}`
+  const why = match.status === 'no' ? match.unmet : match.reasons
 
   return (
-    <article className={`bf-card bf-${match.status}`} aria-labelledby={`bf-${benefit.id}`}>
-      <div className="bf-head">
-        <h3 id={`bf-${benefit.id}`}>{benefit.name}</h3>
-        <span className={`bf-badge bf-badge-${match.status}`}>{STATUS_LABEL[match.status]}</span>
-      </div>
-      <p className="bf-why">{why}</p>
+    <article className={`benefit-card is-${match.status}`} aria-labelledby={headingId}>
+      <header className="benefit-head">
+        <h3 id={headingId}>{benefit.name}</h3>
+        <span className={`status-badge is-${match.status}`}>{STATUS_LABEL[match.status]}</span>
+      </header>
+
+      {benefit.amount_text && <p className="benefit-amount">{benefit.amount_text}</p>}
+
+      {why.length > 0 && (
+        <div className="benefit-why">
+          <h4>{match.status === 'no' ? 'Dlaczego nie' : 'Dlaczego'}</h4>
+          <ul>
+            {why.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {match.status === 'maybe' && match.questions.length > 0 && (
-        <ul className="bf-questions">
+        <div className="benefit-questions" role="group" aria-label={`Pytania o świadczenie ${benefit.name}`}>
           {match.questions.map((q) => (
-            <li key={q.condition_id}>
-              <span id={`q-${benefit.id}-${q.condition_id}`}>{q.text}</span>
-              <span className="bf-yesno" role="group" aria-labelledby={`q-${benefit.id}-${q.condition_id}`}>
-                <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => onAnswer(benefit.id, q.condition_id, true)}>
+            <div key={q.condition_id} className="benefit-question">
+              <p>{q.text}</p>
+              <div className="row">
+                <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => void onAnswer(benefit.id, q.condition_id, true)}>
                   Tak
                 </button>
-                <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => onAnswer(benefit.id, q.condition_id, false)}>
+                <button type="button" className="btn btn-secondary" disabled={busy} onClick={() => void onAnswer(benefit.id, q.condition_id, false)}>
                   Nie
                 </button>
-              </span>
-            </li>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
-      {match.status !== 'no' && (
-        <>
-          <p>{benefit.description}</p>
-          {benefit.amount_text && (
-            <p className="bf-amount">
-              <strong>{benefit.amount_text}</strong>
-            </p>
-          )}
-          {deadline_date && <p className="bf-deadline">Termin: {formatDate(deadline_date)}</p>}
-        </>
-      )}
-      {benefit.verify && (
-        <p className="bf-verify">Dane do weryfikacji — potwierdź w źródle, zanim złożysz wniosek.</p>
-      )}
-      <div className="bf-actions">
-        {match.status !== 'no' && form && (
-          <Link className="btn" to={`/wnioski/nowy?form=${encodeURIComponent(form)}`}>
-            Złóż wniosek
-          </Link>
-        )}
+
+      {benefit.verify && <p className="muted benefit-verify">Dane do weryfikacji — sprawdź w źródle.</p>}
+
+      <footer className="benefit-foot row">
+        {match.status !== 'no' &&
+          benefit.form_codes.map((code) => (
+            <Link key={code} className="btn" to={`/wnioski/nowy?form=${encodeURIComponent(code)}`}>
+              Złóż wniosek{benefit.form_codes.length > 1 ? ` (${code})` : ''}
+            </Link>
+          ))}
         <a href={benefit.source_url} target="_blank" rel="noopener noreferrer">
           Źródło
+          <span className="sr-only"> (otwiera się w nowej karcie)</span>
         </a>
-      </div>
+      </footer>
     </article>
   )
 }

@@ -1,4 +1,4 @@
-"""Seed katalogu świadczeń krajowych z `app/data/benefits_national.json` (idempotentny: stałe id)."""
+"""Seed świadczeń krajowych z `app/data/benefits_national.json` (idempotentny upsert po stałym `id`)."""
 
 import json
 from pathlib import Path
@@ -6,11 +6,11 @@ from pathlib import Path
 from ..models.benefit import Benefit
 from ..storage import Store
 
-DATA = Path(__file__).resolve().parents[1] / "data"
+DATA_FILE = Path(__file__).resolve().parents[1] / "data" / "benefits_national.json"
 
 
 def load_national_benefits() -> list[Benefit]:
-    raw = json.loads((DATA / "benefits_national.json").read_text(encoding="utf-8"))
+    raw = json.loads(DATA_FILE.read_text(encoding="utf-8"))
     return [Benefit.model_validate(b) for b in raw["benefits"]]
 
 
