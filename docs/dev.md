@@ -45,6 +45,17 @@ Wymagania: Python 3.12+, Node 22+.
 - Testy backendu: fixtury `store`, `client` i funkcje `login(client, persona_id)`,
   `login_official(client, email)` w `backend/tests/conftest.py` (`from conftest import login`).
 
+## /jaskolka (ścieżka publiczna, bez logowania)
+
+- Frontend: `http://localhost:5173/jaskolka` (motyw monochromatyczny, osobny chunk). Strona nie wysyła tokenu
+  ani ciasteczek; odhaczenia checklisty żyją tylko w `sessionStorage`. Landing linkuje tu przez
+  `${VITE_APP_URL}/jaskolka`.
+- API: `GET /api/jaskolka/situations`, `/situations/{id}`, `/foundations?situation=ID`; treść w
+  `backend/app/data/jaskolka.json` (pole `verify: true` = do potwierdzenia człowiekiem; lista rzeczy do
+  sprawdzenia: `docs/superpowers/plans/NOTES-05.md`).
+- Sprawdzenie, czy wszystkie adresy w danych odpowiadają (wymaga internetu):
+  `cd backend && .venv/bin/python scripts/check_jaskolka_urls.py`.
+
 ## Konfiguracja (zmienne środowiskowe, `backend/.env`)
 
 | Zmienna | Domyślnie | Znaczenie |
