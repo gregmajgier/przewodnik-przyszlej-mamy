@@ -31,9 +31,9 @@ UNREADABLE = (
     "Nie udało się odczytać umowy. Upewnij się, że to czytelny plik PDF, zdjęcie (PNG/JPG) "
     "albo plik tekstowy z umową, i spróbuj ponownie."
 )
-NOT_A_CONTRACT = "Nie udało się odczytać umowy — ten plik nie wygląda na umowę o pracę, zlecenie ani działalność."
-UNSUPPORTED = "Nie udało się odczytać umowy — obsługujemy tylko pliki PDF, PNG, JPG i TXT."
-DANGEROUS = "Nie udało się odczytać umowy — ten PDF zawiera aktywne elementy (skrypty), więc go nie otworzymy."
+NOT_A_CONTRACT = "Nie udało się odczytać umowy: ten plik nie wygląda na umowę o pracę, zlecenie ani działalność."
+UNSUPPORTED = "Nie udało się odczytać umowy: obsługujemy tylko pliki PDF, PNG, JPG i TXT."
+DANGEROUS = "Nie udało się odczytać umowy: ten PDF zawiera aktywne elementy (skrypty), więc go nie otworzymy."
 
 FileType = Literal["pdf", "png", "jpeg", "text"]
 

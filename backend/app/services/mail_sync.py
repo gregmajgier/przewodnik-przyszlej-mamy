@@ -116,7 +116,7 @@ async def sync_family_mail(
                     family_id=family_id,
                     user_ids=members,
                     kind="mail_review",
-                    text=f"Nowa wiadomość w sprawie wniosku {app.form_code} — sprawdź.",
+                    text=f"Nowa wiadomość w sprawie wniosku {app.form_code}. Sprawdź.",
                     link=f"/wnioski/{app.id}",
                     created_at=now,
                 ),

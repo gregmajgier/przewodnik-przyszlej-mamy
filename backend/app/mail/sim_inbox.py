@@ -51,7 +51,7 @@ def reply_templates(app: Application) -> list[dict]:
             },
             {
                 "from_addr": sender,
-                "subject": f"Re: Wniosek {code} — zatwierdzony",
+                "subject": f"Re: Wniosek {code}: zatwierdzony",
                 "body": "Dzień dobry,\ninformujemy, że wniosek został zatwierdzony. Urlop został ujęty w ewidencji.\n"
                 "Pozdrawiamy, Dział Kadr",
                 "in_thread": True,
@@ -61,7 +61,7 @@ def reply_templates(app: Application) -> list[dict]:
         return [
             {
                 "from_addr": "zasilki@zus.pl",
-                "subject": f"ZUS — wezwanie do uzupełnienia wniosku {code}",
+                "subject": f"ZUS: wezwanie do uzupełnienia wniosku {code}",
                 "body": "Szanowna Pani / Szanowny Panie,\nw celu rozpatrzenia wniosku prosimy o uzupełnienie "
                 "dokumentów: zaświadczenia płatnika składek (Z-3a). Termin: 14 dni.\nZakład Ubezpieczeń Społecznych",
                 "in_thread": False,

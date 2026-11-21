@@ -27,6 +27,37 @@ def client(store):
         yield c
 
 
+@pytest.fixture
+def fresh_tools(monkeypatch):
+    """Czysty rejestr narzędzi MCP z ponownie załadowanymi modułami `app.tools.*`.
+
+    Niektóre testy podmieniają rejestr i usuwają moduły z `sys.modules`; testy, które wołają narzędzia (np. przez
+    czat), nie mogą zależeć od kolejności uruchamiania. Po teście przywracamy dokładnie poprzedni stan: moduły
+    zaimportowane tylko na potrzeby testu są usuwane, żeby późniejsze `load_all_tools()` zarejestrowało je w
+    prawdziwym rejestrze."""
+    import sys
+
+    from app.ai import tools as reg
+
+    import app.tools as pkg
+
+    before = {name: sys.modules[name] for name in sys.modules if name.startswith("app.tools.")}
+    attrs = {name: getattr(pkg, name.rsplit(".", 1)[1], None) for name in before}  # `from app.tools import x` czyta atrybut pakietu
+    monkeypatch.setattr(reg, "_REGISTRY", {})
+    for name in before:
+        monkeypatch.delitem(sys.modules, name)
+    reg.load_all_tools()
+    yield
+    for name in [m for m in sys.modules if m.startswith("app.tools.") and m not in before]:
+        del sys.modules[name]
+        if hasattr(pkg, name.rsplit(".", 1)[1]):
+            delattr(pkg, name.rsplit(".", 1)[1])
+    for name, module in before.items():
+        sys.modules[name] = module
+        if attrs[name] is not None:
+            setattr(pkg, name.rsplit(".", 1)[1], attrs[name])
+
+
 def login(client: TestClient, persona_id: str) -> dict[str, str]:
     """Loguje personę mObywatel i zwraca nagłówki z tokenem."""
     r = client.post("/api/auth/mobywatel", json={"persona_id": persona_id})

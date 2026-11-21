@@ -350,15 +350,41 @@ def test_chat_profile_tool_is_scoped_to_caller_family(client, fake_llm):
     assert "Maja" in results[1] and "Zosia" not in results[1] and "PESEL" not in results[1].upper()
 
 
-def test_demo_mode_returns_retrieved_articles_without_llm(client):
-    h = login(client, ANNA)
-    r = post_chat(client, h, "Ile trwa urlop macierzyński?")  # brak Foundry => DemoLLM
+def _demo_answer(client, h, question):
+    r = post_chat(client, h, question)  # brak Foundry => DemoLLM
     assert r.status_code == 200
     events = parse_sse(r.text)
     kinds = [k for k, _ in events]
     assert kinds[0] == "tool" and kinds[-1] == "done"
-    answer = "".join(d["text"] for k, d in events if k == "token")
-    assert "Tryb demo" in answer and "Kodeks pracy" in answer and "https://isap.sejm.gov.pl/" in answer
+    return "".join(d["text"] for k, d in events if k == "token"), events
+
+
+def test_demo_mode_answers_with_the_amount_first_not_a_pasted_statute(client, fresh_tools):
+    h = login(client, ANNA)
+    answer, events = _demo_answer(client, h, "Ile wynosi becikowe?")
+    first_line = answer.splitlines()[0]
+    assert "becikowe" in first_line.lower() and "1000 zł" in first_line  # kwota w pierwszym zdaniu
+    assert "https://www.gov.pl/web/gov/uzyskaj-becikowe" in answer  # oficjalne źródło jako link
+    assert "Art." not in answer  # żadnego wklejonego fragmentu ustawy
+    assert "tryb demo" in answer.lower()
+    assert not any(k == "sources" for k, _ in events)  # bez „pięciu źródeł” z nietrafionymi artykułami
+
+
+def test_demo_mode_leave_answer_is_specific_and_mentions_the_family(client, fresh_tools):
+    h = login(client, ANNA)
+    client.post("/api/families", json={}, headers=h)
+    client.post("/api/families/me/children", json={"name": "W drodze", "due_date": "2027-02-01"}, headers=h)
+    answer, _ = _demo_answer(client, h, "Ile trwa urlop macierzyński?")
+    assert answer.startswith("**Urlop i zasiłek macierzyński**") and "20 tygodni" in answer
+    assert "Dla Waszej rodziny: pasuje" in answer and "Jak złożyć:" in answer
+    assert "Urlop ojcowski" not in answer  # tylko najtrafniejsze świadczenie
+
+
+def test_demo_mode_falls_back_to_short_article_pointers_when_catalog_has_no_answer(client):
+    h = login(client, ANNA)
+    answer, events = _demo_answer(client, h, "Jak zapisać dziecko do przedszkola?")
+    assert "gotowej odpowiedzi" in answer and "Prawo oświatowe" in answer
+    assert answer.count("Źródło: https://isap.sejm.gov.pl/") == 2  # najwyżej dwa artykuły
     sources = next(d for k, d in events if k == "sources")["sources"]
     assert sources and all(s["url"].startswith("https://isap.sejm.gov.pl/") for s in sources)
 

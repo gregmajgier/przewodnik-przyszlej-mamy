@@ -76,7 +76,7 @@ Testy: vitest + @testing-library/react (`*.test.tsx` obok kodu). Teksty UI po po
 
 ## Branding (obowiązkowe dla każdego frontendu — wzór: `landing/`)
 Zanim zbudujesz UI, obejrzyj `landing/src/App.tsx`, `landing/src/App.css`, `landing/src/index.css`, `landing/src/components/Logo.tsx`. Aplikacja ma wyglądać jak ta sama marka.
-- **Kolory**: tło `#f8fbef`, tekst `#191919`, akcent `#ef4363`; duże pasy/nagłówki w pełnym kolorze akcentu z tekstem w kolorze tła (`#f8fbef`, nie czysta biel); ciemne („`#191919`”) panele z jasnym tekstem jako kontrast. Zawsze przez tokeny z `frontend/src/theme.css` (nie wpisuj hexów w komponentach).
+- **Kolory**: tło `#f8fbef`, tekst `#191919`, akcent marki `#ef4363` (w interfejsie na przyciskach i linkach używaj ciemniejszego `--primary` ze względu na kontrast, patrz `docs/dev.md`); duże pasy/nagłówki w pełnym kolorze akcentu z tekstem w kolorze tła (`#f8fbef`, nie czysta biel); ciemne („`#191919`”) panele z jasnym tekstem jako kontrast. Zawsze przez tokeny z `frontend/src/theme.css` (nie wpisuj hexów w komponentach).
 - **Typografia**: Nunito (400/600/800) do całej treści; Sniglet **tylko** dla słowa „Rodzina” we wordmarku (logo-wstążka „m” + „Rodzina”). Nagłówki Nunito 800.
 - **Kształty**: przyciski-pigułki (`border-radius: 999px`), karty `border-radius: 1.5rem` z cieniem `0 6px 24px rgb(25 25 25 / 0.08)`, mniejsze kafelki `1rem`; okrągłe ikonowe przyciski z cieniem `0 4px 12px rgb(25 25 25 / 0.2)`. Duże odstępy, dużo powietrza.
 - **Logo**: używaj komponentu `Logo`/wordmarku z `frontend/src/components` (animacja rysowania wstążki, wyłączona przy `prefers-reduced-motion`); nagłówek aplikacji: logo + „Rodzina” po lewej, nawigacja po prawej, na tle akcentu z tekstem `#f8fbef`.

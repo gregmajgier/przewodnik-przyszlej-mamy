@@ -18,7 +18,7 @@ def _demo_plan(messages: list[LLMMessage]) -> PlanDraft:
     except (ValueError, AttributeError, IndexError):
         return PlanDraft()
     steps = [
-        DraftStep(field_id=f["id"], reason=f"{f.get('label', 'To pole')} — biorę z twojego profilu.")
+        DraftStep(field_id=f["id"], reason=f"{f.get('label', 'To pole')}: biorę z twojego profilu.")
         for f in fields
         if isinstance(f, dict) and f.get("known") and "id" in f
     ]
