@@ -1,0 +1,50 @@
+/* Style funkcji „Umowy” (plan 04). Kolory wyłącznie z tokenów theme.css. */
+.contract-form {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+.contract-form .field-wide {
+  grid-column: 1 / -1;
+}
+.field-missing input,
+.field-missing select {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.field-missing-note {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--fg);
+}
+.risk {
+  border-left: 6px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  padding: 0.8rem 1rem;
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
+}
+.risk-high {
+  border-left-color: var(--danger);
+}
+.risk-medium {
+  border-left-color: var(--primary);
+}
+.risk-info {
+  border-left-color: var(--ai);
+}
+.risk h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.3rem;
+}
+.risk-severity {
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.contract-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
