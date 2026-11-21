@@ -15,6 +15,7 @@ Brak wymaganej wartości nie powoduje błędu ani pustego pola w PDF — trafia 
 from __future__ import annotations
 
 import json
+import re
 from datetime import date, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -350,6 +351,7 @@ def prefill_portal(
 # ---------- walidacja odpowiedzi ----------
 
 _PESEL_WEIGHTS = (1, 3, 7, 9, 1, 3, 7, 9, 1, 3)
+_EMAIL_RE = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s.]{2,}")
 
 
 def valid_pesel(value: str) -> bool:
@@ -375,7 +377,11 @@ def validate_answer(field: FormField, value: Any) -> Any:
             raise DomainError(422, f"Pole „{field.label}” wymaga daty w formacie RRRR-MM-DD.") from None
     if field.type == "choice" and field.choices and text not in field.choices:
         raise DomainError(422, f"Pole „{field.label}”: wybierz jedną z dostępnych opcji.")
-    if field.format == "pesel" or field.id.endswith("pesel"):
+    if field.format == "email" or field.id.endswith("email"):
+        if not _EMAIL_RE.fullmatch(text):
+            raise DomainError(422, f"Pole „{field.label}”: podaj poprawny adres e-mail.")
+        text = text.lower()
+    elif field.format == "pesel" or field.id.endswith("pesel"):
         text = text.replace(" ", "")
         if not valid_pesel(text):
             raise DomainError(422, "Numer PESEL jest nieprawidłowy. Sprawdź go i spróbuj ponownie.")
