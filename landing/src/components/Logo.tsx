@@ -29,7 +29,7 @@ export function Logo({ className, color = 'currentColor', duration = 1800 }: Pro
   return (
     <svg
       className={className}
-      viewBox="60 110 392 320"
+      viewBox="80 92 352 326"
       role="img"
       aria-label="m"
       fill="none"
