@@ -1,0 +1,2744 @@
+{
+  "meta": {
+    "nazwa": "Reguły uprawnień do świadczeń i parametry silnika",
+    "wersja": "1.1",
+    "data": "2026-11-21",
+    "format_wyrazen": "JSONLogic (jsonlogic.com). Biblioteki: json-logic-qubit (Python), json-logic-js.",
+    "kontekst_oceny": "Obiekt z przestrzeniami nazw z zmienne_uzytkownika.json (wnioskodawca, ubezpieczenie, ..., wyl) oraz 'param' (drzewo z sekcji parametry_drzewo).",
+    "algorytm": [
+      "Dla każdego świadczenia, którego 'etapy' zawiera wnioskodawca.etap, oceń warunki.",
+      "Jeśli jakikolwiek warunek ma wartość false: status 'nie_przysluguje', a przyczyny to pola przyczyna_braku_uprawnien z niespełnionych warunków.",
+      "Jeśli żaden nie jest false, ale któryś zawiera zmienną o wartości null (lista w 'zmienne'): status 'brak_danych', a lista braków = te zmienne.",
+      "Jeśli wszystkie true: status 'przysluguje'. Wynik liczy funkcja z pola wynik.funkcja (parametry z wynik.parametry).",
+      "Informacje (informacje[]) pokazuj, gdy ich warunek jest true. Ryzyka (ryzyka[]) pokazuj, gdy ich warunek jest true; przy braku danych nie pokazuj.",
+      "Wnioski do złożenia: elementy wnioski[] ze spełnionym warunkiem (null = zawsze)."
+    ],
+    "statusy": [
+      "przysluguje",
+      "nie_przysluguje",
+      "brak_danych"
+    ],
+    "do_weryfikacji": "Flaga do_weryfikacji=true przy parametrach i świadczeniach oznacza wartość spoza materiałów ZUS do zadania. Potwierdzić z mentorami przed demo.",
+    "ograniczenie": "Wartości parametrów i warunki są zgodne z materiałami do zadania oraz z ustaleniami zespołu. Nie zastępują opinii ZUS.",
+    "zmiany_1_1": [
+      "SWIADCZENIE_REHABILITACYJNE: parametry procentowe i limit 360 dni, bez do_weryfikacji.",
+      "Nowe parametry: zasilek.podwyzszenie_do_swiadczenia_rodzicielskiego_zl, zasilek.opiekunczy_*, zasilek.pogrzebowy_zl, termin.pogrzebowy_mies, zasilek.podstawa.placa_minimalna_zl / limit_dobrowolne_zl / jdg_najnizsza_zl / przerwa_dziedziczenia_dni, ochrona.ciaza_czas_trwania_dni, zasilek.wyczekiwanie_zwolnienie_lat_obowiazkowego, zasilek.po_ustaniu_min_niezdolnosc_dni, urlop.macierzynski_min_matka_szczegolne_tyg.",
+      "Nowe świadczenia: ZASILEK_OPIEKUNCZY (Z-15), ZASILEK_POGRZEBOWY (Z-12, /jaskolka).",
+      "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE.w3: matka nieubezpieczona w dniu porodu, która podjęła pracę >= 1/2 etatu.",
+      "Pole opcjonalne sciezka_ui (np. /jaskolka) w świadczeniach; pole opcjonalne wnioski[] w ryzykach (POG).",
+      "Parametry kalkulatora: urlop.rodzicielski_z_praca_limit_tyg, urlop.ojcowski_max_czesci, urlop.przyjecie.min_tyg / rodzicielski_par3_tyg, swiadczenia.rodzicielskie_tyg, swiadczenia.zasilek_rodzinny_kwoty_zl, swiadczenia.dodatek_urodzenie_zl."
+    ]
+  },
+  "parametry": [
+    {
+      "sciezka": "zasilek.procent.macierzynski",
+      "wartosc": 100,
+      "jednostka": "%",
+      "opis": "Zasiłek za urlop macierzyński",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.procent.uzupelniajacy",
+      "wartosc": 100,
+      "jednostka": "%",
+      "opis": "Zasiłek za uzupełniający urlop macierzyński",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.procent.ojcowski",
+      "wartosc": 100,
+      "jednostka": "%",
+      "opis": "Zasiłek za urlop ojcowski",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.procent.rodzicielski",
+      "wartosc": 70,
+      "jednostka": "%",
+      "opis": "Zasiłek za urlop rodzicielski",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.procent.jednolity_wniosek_21_dni",
+      "wartosc": 81.5,
+      "jednostka": "%",
+      "opis": "Zasiłek za macierzyński i rodzicielski przy wniosku do 21 dni po porodzie",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.procent.drugi_rodzic_9_tyg",
+      "wartosc": 70,
+      "jednostka": "%",
+      "opis": "Zasiłek za 9 tygodni nieprzenoszalnych drugiego rodzica",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.chorobowy_ciaza_procent",
+      "wartosc": 100,
+      "jednostka": "%",
+      "opis": "Zasiłek chorobowy przy kodzie B",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.podstawa.pomniejszenie_procent",
+      "wartosc": 13.71,
+      "jednostka": "%",
+      "opis": "Pomniejszenie podstawy o składki społeczne",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.wyczekiwanie_dni.obowiazkowe",
+      "wartosc": 30,
+      "jednostka": "dni",
+      "opis": "Okres wyczekiwania, ubezpieczenie obowiązkowe",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.wyczekiwanie_dni.dobrowolne",
+      "wartosc": 90,
+      "jednostka": "dni",
+      "opis": "Okres wyczekiwania, ubezpieczenie dobrowolne",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.wyczekiwanie_zwolnienie_lat_obowiazkowego",
+      "wartosc": 10,
+      "jednostka": "lat",
+      "opis": "Bez okresu wyczekiwania przy co najmniej 10 latach obowiązkowego ubezpieczenia chorobowego",
+      "zrodlo": "ustawa zasiłkowa art. 4 ust. 3 pkt 3",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.wynagrodzenie_chorobowe_dni.standard",
+      "wartosc": 33,
+      "jednostka": "dni/rok",
+      "opis": "Dni wynagrodzenia chorobowego płaconego przez pracodawcę",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.wynagrodzenie_chorobowe_dni.po_50_r_z",
+      "wartosc": 14,
+      "jednostka": "dni/rok",
+      "opis": "Jak wyżej, dla pracownika po 50. roku życia",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.wynagrodzenie_chorobowe_wiek_progu",
+      "wartosc": 50,
+      "jednostka": "lata",
+      "opis": "Próg wieku dla krótszego okresu wynagrodzenia chorobowego",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.okres_zasilkowy_dni",
+      "wartosc": 270,
+      "jednostka": "dni",
+      "opis": "Maksymalny okres zasiłkowy (ciąża)",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.okres_zasilkowy_ostrzezenie_dni",
+      "wartosc": 30,
+      "jednostka": "dni",
+      "opis": "Ile dni przed limitem pokazać ostrzeżenie (parametr produktowy, nie przepis)",
+      "zrodlo": "zespol",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.ciaglosc_max_przerwa_dni",
+      "wartosc": 30,
+      "jednostka": "dni",
+      "opis": "Przerwa w ubezpieczeniu, która nie przerywa ciągłości",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.okno_po_ustaniu_ubezpieczenia_dni",
+      "wartosc": 14,
+      "jednostka": "dni",
+      "opis": "Okno, w którym niezdolność po ustaniu ubezpieczenia nadal daje zasiłek (Z-10)",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.po_ustaniu_min_niezdolnosc_dni",
+      "wartosc": 30,
+      "jednostka": "dni",
+      "opis": "Zasiłek po ustaniu ubezpieczenia: niezdolność musi trwać bez przerwy co najmniej 30 dni",
+      "zrodlo": "ustawa zasiłkowa art. 7",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.rehabilitacyjny_ciaza_procent",
+      "wartosc": 100,
+      "jednostka": "%",
+      "opis": "Świadczenie rehabilitacyjne w okresie ciąży",
+      "zrodlo": "ustawa zasiłkowa art. 19 ust. 1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.rehabilitacyjny_standard_90_dni_procent",
+      "wartosc": 90,
+      "jednostka": "%",
+      "opis": "Świadczenie rehabilitacyjne poza ciążą: pierwsze 90 dni (ustawa: pierwsze 3 miesiące)",
+      "zrodlo": "ustawa zasiłkowa art. 19 ust. 1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.rehabilitacyjny_standard_pozostale_procent",
+      "wartosc": 75,
+      "jednostka": "%",
+      "opis": "Świadczenie rehabilitacyjne poza ciążą: pozostały okres",
+      "zrodlo": "ustawa zasiłkowa art. 19 ust. 1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.rehabilitacyjny_max_dni",
+      "wartosc": 360,
+      "jednostka": "dni",
+      "opis": "Maksymalny okres świadczenia rehabilitacyjnego (ustawa: 12 miesięcy)",
+      "zrodlo": "ustawa zasiłkowa art. 18 ust. 2",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.podwyzszenie_do_swiadczenia_rodzicielskiego_zl",
+      "wartosc": 1000,
+      "jednostka": "zł/mies.",
+      "opis": "Zasiłek macierzyński niższy od tej kwoty podwyższa się do niej (kwota świadczenia rodzicielskiego)",
+      "zrodlo": "ustawa zasiłkowa art. 31 ust. 3a; kwota jak swiadczenia.rodzicielskie_zl_mies",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.opiekunczy_procent",
+      "wartosc": 80,
+      "jednostka": "%",
+      "opis": "Zasiłek opiekuńczy: procent podstawy wymiaru",
+      "zrodlo": "ustawa zasiłkowa art. 35 ust. 1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.opiekunczy_max_dni_w_roku",
+      "wartosc": 60,
+      "jednostka": "dni",
+      "opis": "Zasiłek opiekuńczy nad dzieckiem: limit dni w roku kalendarzowym (łącznie, niezależnie od liczby dzieci)",
+      "zrodlo": "ustawa zasiłkowa art. 33 ust. 1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.opiekunczy_wiek_dziecka_max_lat",
+      "wartosc": 14,
+      "jednostka": "lat",
+      "opis": "Zasiłek opiekuńczy nad chorym dzieckiem: do ukończenia 14 lat",
+      "zrodlo": "ustawa zasiłkowa art. 32 ust. 1 pkt 2",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.pogrzebowy_zl",
+      "wartosc": 7000,
+      "jednostka": "zł",
+      "opis": "Zasiłek pogrzebowy (także po martwym urodzeniu / zgonie dziecka)",
+      "zrodlo": "ustawa o emeryturach i rentach z FUS art. 80 (kwota od 1.01.2025)",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.zadluzenie_prog_zl",
+      "wartosc": 0,
+      "jednostka": "zł",
+      "opis": "Próg zadłużenia składkowego, powyżej którego ostrzegamy (JDG)",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.podstawa.placa_minimalna_zl",
+      "wartosc": 4806,
+      "jednostka": "zł",
+      "opis": "Płaca minimalna 2026: minimalna podstawa wymiaru pracownika na pełnym etacie = płaca minimalna − 13,71%",
+      "zrodlo": "ustawa zasiłkowa art. 45; Załącznik ZUS „Minimalna podstawa wymiaru zasiłku w 2026 roku”",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.podstawa.limit_dobrowolne_zl",
+      "wartosc": 23550,
+      "jednostka": "zł/mies.",
+      "opis": "Limit miesięcznej podstawy przy dobrowolnym ubezpieczeniu chorobowym",
+      "zrodlo": "Załącznik ZUS, sekcja „Dla nie pracowników”",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "zasilek.podstawa.jdg_najnizsza_zl",
+      "wartosc": 5652.0,
+      "jednostka": "zł/mies.",
+      "opis": "Najniższa podstawa składek JDG (60% prognozowanego przeciętnego wynagrodzenia) — do art. 48a i 49",
+      "zrodlo": "Poradnik ZUS 2026 str. 15 (kwota spoza plików zadania)",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "zasilek.podstawa.przerwa_dziedziczenia_dni",
+      "wartosc": 30,
+      "jednostka": "dni",
+      "opis": "Przerwa między zasiłkami krótsza niż 1 miesiąc: podstawy nie ustala się na nowo (przyjęto miesiąc = 30 dni)",
+      "zrodlo": "ustawa zasiłkowa art. 43",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "platnik.prog_ubezpieczonych",
+      "wartosc": 20,
+      "jednostka": "osoby",
+      "opis": "Powyżej tej liczby zgłoszonych do ubezpieczenia chorobowego płatnik wypłaca zasiłki sam (art. 61 ustawy zasiłkowej)",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.macierzynski_tyg.1",
+      "wartosc": 20,
+      "jednostka": "tyg",
+      "opis": "Urlop macierzyński, 1 dziecko",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.macierzynski_tyg.2",
+      "wartosc": 31,
+      "jednostka": "tyg",
+      "opis": "Urlop macierzyński, 2 dzieci",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.macierzynski_tyg.3",
+      "wartosc": 33,
+      "jednostka": "tyg",
+      "opis": "Urlop macierzyński, 3 dzieci",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.macierzynski_tyg.4",
+      "wartosc": 35,
+      "jednostka": "tyg",
+      "opis": "Urlop macierzyński, 4 dzieci",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.macierzynski_tyg.5_plus",
+      "wartosc": 37,
+      "jednostka": "tyg",
+      "opis": "Urlop macierzyński, 5 i więcej dzieci",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.macierzynski_min_matka_tyg",
+      "wartosc": 14,
+      "jednostka": "tyg",
+      "opis": "Minimum urlopu macierzyńskiego wykorzystywane przez matkę po porodzie",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.macierzynski_min_matka_szczegolne_tyg",
+      "wartosc": 8,
+      "jednostka": "tyg",
+      "opis": "Sytuacje szczególne (szpital, niezdolność do samodzielnej egzystencji, porzucenie): matka po min. 8 tyg. po porodzie",
+      "zrodlo": "Kodeks pracy art. 180 § 6, 10, 13",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.macierzynski_przed_porodem_max_tyg",
+      "wartosc": 6,
+      "jednostka": "tyg",
+      "opis": "Maksymalnie tyle tygodni urlopu przed przewidywaną datą porodu",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_tyg.1",
+      "wartosc": 41,
+      "jednostka": "tyg",
+      "opis": "Pula urlopu rodzicielskiego, 1 dziecko",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_tyg.mnogi",
+      "wartosc": 43,
+      "jednostka": "tyg",
+      "opis": "Pula urlopu rodzicielskiego, ciąża mnoga",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_tyg.za_zyciem_1",
+      "wartosc": 65,
+      "jednostka": "tyg",
+      "opis": "Pula urlopu rodzicielskiego, 1 dziecko z zaświadczeniem Za życiem",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_tyg.za_zyciem_mnogi",
+      "wartosc": 67,
+      "jednostka": "tyg",
+      "opis": "Pula urlopu rodzicielskiego, ciąża mnoga z zaświadczeniem Za życiem",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_nieprzenoszalny_tyg",
+      "wartosc": 9,
+      "jednostka": "tyg",
+      "opis": "Nieprzenoszalna część urlopu rodzicielskiego każdego z rodziców",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_max_czesci",
+      "wartosc": 5,
+      "jednostka": "części",
+      "opis": "Maksymalna liczba części urlopu rodzicielskiego",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_praca_max_wymiar",
+      "wartosc": 0.5,
+      "jednostka": "etat",
+      "opis": "Maksymalny wymiar pracy w trakcie urlopu rodzicielskiego",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_z_praca_limit_tyg.1",
+      "wartosc": 82,
+      "jednostka": "tyg",
+      "opis": "Maksymalny łączny wymiar urlopu rodzicielskiego łączonego z pracą (1)",
+      "zrodlo": "Kodeks pracy art. 182¹f § 1 i § 1¹",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_z_praca_limit_tyg.mnogi",
+      "wartosc": 86,
+      "jednostka": "tyg",
+      "opis": "Maksymalny łączny wymiar urlopu rodzicielskiego łączonego z pracą (mnogi)",
+      "zrodlo": "Kodeks pracy art. 182¹f § 1 i § 1¹",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_z_praca_limit_tyg.za_zyciem_1",
+      "wartosc": 130,
+      "jednostka": "tyg",
+      "opis": "Maksymalny łączny wymiar urlopu rodzicielskiego łączonego z pracą (za_zyciem_1)",
+      "zrodlo": "Kodeks pracy art. 182¹f § 1 i § 1¹",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_z_praca_limit_tyg.za_zyciem_mnogi",
+      "wartosc": 134,
+      "jednostka": "tyg",
+      "opis": "Maksymalny łączny wymiar urlopu rodzicielskiego łączonego z pracą (za_zyciem_mnogi)",
+      "zrodlo": "Kodeks pracy art. 182¹f § 1 i § 1¹",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.rodzicielski_do_konca_roku_wiek_dziecka",
+      "wartosc": 6,
+      "jednostka": "lata",
+      "opis": "Urlop rodzicielski do końca roku kalendarzowego, w którym dziecko kończy tyle lat",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.ojcowski_dni",
+      "wartosc": 14,
+      "jednostka": "dni",
+      "opis": "Wymiar urlopu ojcowskiego",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.ojcowski_min_czesc_dni",
+      "wartosc": 7,
+      "jednostka": "dni",
+      "opis": "Minimalna część urlopu ojcowskiego przy podziale",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.ojcowski_max_czesci",
+      "wartosc": 2,
+      "jednostka": "części",
+      "opis": "Urlop ojcowski: jednorazowo albo w 2 częściach",
+      "zrodlo": "Kodeks pracy art. 182³ § 1¹",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.ojcowski_max_wiek_dziecka_mies",
+      "wartosc": 12,
+      "jednostka": "miesiące",
+      "opis": "Urlop ojcowski do ukończenia tylu miesięcy życia dziecka",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.ojcowski_adopcja_max_wiek_dziecka_lat",
+      "wartosc": 14,
+      "jednostka": "lata",
+      "opis": "Przy adopcji: nie później niż do ukończenia tylu lat przez dziecko",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.uzupelniajacy_max_tyg.wczesniak_ciezki",
+      "wartosc": 15,
+      "jednostka": "tyg",
+      "opis": "Uzupełniający urlop: dziecko poniżej progu tygodnia lub masy",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.uzupelniajacy_max_tyg.wczesniak_lekki",
+      "wartosc": 8,
+      "jednostka": "tyg",
+      "opis": "Uzupełniający urlop: pozostałe przypadki z hospitalizacją lub wcześniactwem",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.uzupelniajacy_tydzien_graniczny_ciezki",
+      "wartosc": 28,
+      "jednostka": "tydzień ciąży",
+      "opis": "Poniżej tego tygodnia przysługuje dłuższy wymiar",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.uzupelniajacy_tydzien_graniczny",
+      "wartosc": 37,
+      "jednostka": "tydzień ciąży",
+      "opis": "Poniżej tego tygodnia (i od progu cięższego) przysługuje krótszy wymiar",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.uzupelniajacy_masa_graniczna_g",
+      "wartosc": 1000,
+      "jednostka": "g",
+      "opis": "Masa urodzeniowa uprawniająca do dłuższego wymiaru",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "urlop.martwe_urodzenie_tyg",
+      "wartosc": 8,
+      "jednostka": "tyg",
+      "opis": "Wymiar zasiłku przy martwym urodzeniu lub zgonie dziecka do 8. tygodnia życia",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.martwe_min_dni_od_zgonu",
+      "wartosc": 7,
+      "jednostka": "dni",
+      "opis": "Zasiłek nie krócej niż tyle dni od zgonu dziecka",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.przyjecie.rodzina_zastepcza_max_wiek_lat",
+      "wartosc": 7,
+      "jednostka": "lata",
+      "opis": "Rodzina zastępcza niezawodowa: maksymalny wiek dziecka",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.przyjecie.rodzina_zastepcza_odroczony_max_wiek_lat",
+      "wartosc": 10,
+      "jednostka": "lata",
+      "opis": "Jak wyżej przy odroczonym obowiązku szkolnym",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.przyjecie.przysposobienie_max_wiek_lat",
+      "wartosc": 14,
+      "jednostka": "lata",
+      "opis": "Wniosek o przysposobienie: maksymalny wiek dziecka",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.przyjecie.min_tyg",
+      "wartosc": 9,
+      "jednostka": "tyg",
+      "opis": "Urlop na warunkach urlopu macierzyńskiego: nie krócej niż 9 tygodni",
+      "zrodlo": "Kodeks pracy art. 183 § 3",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.przyjecie.rodzicielski_par3_tyg.zwykly",
+      "wartosc": 38,
+      "jednostka": "tyg",
+      "opis": "Urlop rodzicielski w przypadku z art. 183 § 3 (urlop na warunkach macierzyńskiego skrócony do 9 tyg.) (zwykly)",
+      "zrodlo": "Kodeks pracy art. 183 § 4 pkt 3, § 4³",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "urlop.przyjecie.rodzicielski_par3_tyg.za_zyciem",
+      "wartosc": 62,
+      "jednostka": "tyg",
+      "opis": "Urlop rodzicielski w przypadku z art. 183 § 3 (urlop na warunkach macierzyńskiego skrócony do 9 tyg.) (za_zyciem)",
+      "zrodlo": "Kodeks pracy art. 183 § 4 pkt 3, § 4³",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.wniosek_81_5_dni",
+      "wartosc": 21,
+      "jednostka": "dni",
+      "opis": "Termin wniosku o 81,5% (od porodu)",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.urlop_rodzicielski_przed_dni",
+      "wartosc": 21,
+      "jednostka": "dni",
+      "opis": "Wniosek o urlop rodzicielski: tyle dni przed rozpoczęciem",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.urlop_ojcowski_przed_dni",
+      "wartosc": 7,
+      "jednostka": "dni",
+      "opis": "Wniosek o urlop ojcowski: tyle dni przed rozpoczęciem",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.urlop_uzup_przed_koncem_dni",
+      "wartosc": 21,
+      "jednostka": "dni",
+      "opis": "Wniosek o uzupełniający: tyle dni przed końcem urlopu macierzyńskiego",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.zgloszenie_urodzenia_dni",
+      "wartosc": 21,
+      "jednostka": "dni",
+      "opis": "Zgłoszenie urodzenia od wystawienia karty urodzenia",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.sr7_mies",
+      "wartosc": 3,
+      "jednostka": "miesiące",
+      "opis": "SR-7: złożenie w tym terminie od urodzenia daje świadczenie za cały okres",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.800plus_mies",
+      "wartosc": 3,
+      "jednostka": "miesiące",
+      "opis": "800+: złożenie w tym terminie od urodzenia daje wyrównanie od urodzenia",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.becikowe_mies",
+      "wartosc": 12,
+      "jednostka": "miesiące",
+      "opis": "Becikowe: termin od urodzenia",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.za_zyciem_mies",
+      "wartosc": 12,
+      "jednostka": "miesiące",
+      "opis": "Za życiem 4000 zł: termin od urodzenia",
+      "zrodlo": "katalog zespołu",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.ostrzezenie_dni",
+      "wartosc": 7,
+      "jednostka": "dni",
+      "opis": "Ile dni przed terminem pokazać ostrzeżenie (parametr produktowy)",
+      "zrodlo": "zespol",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "termin.pogrzebowy_mies",
+      "wartosc": 12,
+      "jednostka": "mies.",
+      "opis": "Prawo do zasiłku pogrzebowego wygasa po 12 miesiącach od śmierci",
+      "zrodlo": "ustawa o emeryturach i rentach z FUS art. 79",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.rodzicielskie_zl_mies",
+      "wartosc": 1000,
+      "jednostka": "zł/mies",
+      "opis": "Świadczenie rodzicielskie",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.rodzicielskie_tyg.1",
+      "wartosc": 52,
+      "jednostka": "tyg",
+      "opis": "Okres świadczenia rodzicielskiego wg liczby dzieci z jednego porodu (1)",
+      "zrodlo": "ustawa o świadczeniach rodzinnych art. 17c ust. 3",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.rodzicielskie_tyg.2",
+      "wartosc": 65,
+      "jednostka": "tyg",
+      "opis": "Okres świadczenia rodzicielskiego wg liczby dzieci z jednego porodu (2)",
+      "zrodlo": "ustawa o świadczeniach rodzinnych art. 17c ust. 3",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.rodzicielskie_tyg.3",
+      "wartosc": 67,
+      "jednostka": "tyg",
+      "opis": "Okres świadczenia rodzicielskiego wg liczby dzieci z jednego porodu (3)",
+      "zrodlo": "ustawa o świadczeniach rodzinnych art. 17c ust. 3",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.rodzicielskie_tyg.4",
+      "wartosc": 69,
+      "jednostka": "tyg",
+      "opis": "Okres świadczenia rodzicielskiego wg liczby dzieci z jednego porodu (4)",
+      "zrodlo": "ustawa o świadczeniach rodzinnych art. 17c ust. 3",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.rodzicielskie_tyg.5_plus",
+      "wartosc": 71,
+      "jednostka": "tyg",
+      "opis": "Okres świadczenia rodzicielskiego wg liczby dzieci z jednego porodu (5_plus)",
+      "zrodlo": "ustawa o świadczeniach rodzinnych art. 17c ust. 3",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.becikowe_zl",
+      "wartosc": 1000,
+      "jednostka": "zł",
+      "opis": "Jednorazowa zapomoga z tytułu urodzenia",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.becikowe_kryterium_zl",
+      "wartosc": 1922,
+      "jednostka": "zł/os.",
+      "opis": "Kryterium dochodowe becikowego",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_kryterium_zl",
+      "wartosc": 674,
+      "jednostka": "zł/os.",
+      "opis": "Kryterium dochodowe zasiłku rodzinnego",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_kryterium_niepelnospr_zl",
+      "wartosc": 764,
+      "jednostka": "zł/os.",
+      "opis": "Kryterium przy dziecku z niepełnosprawnością",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_wiek_max_lat",
+      "wartosc": 18,
+      "jednostka": "lata",
+      "opis": "Zasiłek rodzinny: wiek dziecka",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_wiek_max_ucz_lat",
+      "wartosc": 21,
+      "jednostka": "lata",
+      "opis": "Zasiłek rodzinny: wiek dziecka uczącego się",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_kwoty_zl.do_5_lat",
+      "wartosc": 95,
+      "jednostka": "zł/mies.",
+      "opis": "Kwota zasiłku rodzinnego na dziecko wg wieku (do_5_lat)",
+      "zrodlo": "rozporządzenie RM w sprawie wysokości dochodu i kwot świadczeń rodzinnych",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_kwoty_zl.od_5_do_18_lat",
+      "wartosc": 124,
+      "jednostka": "zł/mies.",
+      "opis": "Kwota zasiłku rodzinnego na dziecko wg wieku (od_5_do_18_lat)",
+      "zrodlo": "rozporządzenie RM w sprawie wysokości dochodu i kwot świadczeń rodzinnych",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.zasilek_rodzinny_kwoty_zl.od_18_do_24_lat",
+      "wartosc": 135,
+      "jednostka": "zł/mies.",
+      "opis": "Kwota zasiłku rodzinnego na dziecko wg wieku (od_18_do_24_lat)",
+      "zrodlo": "rozporządzenie RM w sprawie wysokości dochodu i kwot świadczeń rodzinnych",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.dodatek_urodzenie_zl",
+      "wartosc": 1000,
+      "jednostka": "zł",
+      "opis": "Dodatek do zasiłku rodzinnego z tytułu urodzenia dziecka (jednorazowo, wniosek do 12 mies.)",
+      "zrodlo": "ustawa o świadczeniach rodzinnych art. 9",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.za_zyciem_zl",
+      "wartosc": 4000,
+      "jednostka": "zł",
+      "opis": "Jednorazowe świadczenie Za życiem",
+      "zrodlo": "parametry_admin z zmienne_uzytkownika v0.1",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.800plus_zl_mies",
+      "wartosc": 800,
+      "jednostka": "zł/mies",
+      "opis": "Świadczenie wychowawcze 800+",
+      "zrodlo": "zespol",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.800plus_wiek_max_lat",
+      "wartosc": 18,
+      "jednostka": "lata",
+      "opis": "800+: dziecko poniżej tego wieku",
+      "zrodlo": "zespol",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.aktywny_rodzic_wiek_od_mies",
+      "wartosc": 12,
+      "jednostka": "miesiące",
+      "opis": "Aktywny rodzic: dolna granica wieku dziecka",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.aktywny_rodzic_wiek_do_mies",
+      "wartosc": 35,
+      "jednostka": "miesiące",
+      "opis": "Aktywny rodzic: górna granica wieku dziecka",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.aktywny_rodzic_zlobek_zl",
+      "wartosc": 1500,
+      "jednostka": "zł/mies",
+      "opis": "Aktywny rodzic, w żłobku (maksymalna kwota)",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.aktywny_rodzic_praca_zl",
+      "wartosc": 1500,
+      "jednostka": "zł/mies",
+      "opis": "Aktywny rodzic, w pracy",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.aktywny_rodzic_dom_zl",
+      "wartosc": 500,
+      "jednostka": "zł/mies",
+      "opis": "Aktywny rodzic, w domu",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.kdr_prog_dzieci",
+      "wartosc": 3,
+      "jednostka": "dzieci",
+      "opis": "Karta Dużej Rodziny: minimalna liczba dzieci",
+      "zrodlo": "zespol",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "swiadczenia.kdr_wiek_max_lat",
+      "wartosc": 18,
+      "jednostka": "lata",
+      "opis": "KDR: wiek dziecka",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "swiadczenia.kdr_wiek_max_ucz_lat",
+      "wartosc": 25,
+      "jednostka": "lata",
+      "opis": "KDR: wiek dziecka uczącego się",
+      "zrodlo": "zespol",
+      "do_weryfikacji": true
+    },
+    {
+      "sciezka": "ochrona.umowa_terminowa_przedluzenie_od_miesiaca_ciazy",
+      "wartosc": 3,
+      "jednostka": "miesiąc ciąży",
+      "opis": "Umowa terminowa kończąca się po tym miesiącu ciąży przedłuża się do dnia porodu",
+      "zrodlo": "zadanie ZUS",
+      "do_weryfikacji": false
+    },
+    {
+      "sciezka": "ochrona.ciaza_czas_trwania_dni",
+      "wartosc": 280,
+      "jednostka": "dni",
+      "opis": "Szacowany początek ciąży = przewidywana data porodu − 280 dni (reguła Naegelego), gdy brak daty z zaświadczenia",
+      "zrodlo": "konwencja medyczna (do art. 177 § 3 KP)",
+      "do_weryfikacji": true
+    }
+  ],
+  "parametry_drzewo": {
+    "zasilek": {
+      "procent": {
+        "macierzynski": 100,
+        "uzupelniajacy": 100,
+        "ojcowski": 100,
+        "rodzicielski": 70,
+        "jednolity_wniosek_21_dni": 81.5,
+        "drugi_rodzic_9_tyg": 70
+      },
+      "chorobowy_ciaza_procent": 100,
+      "podstawa": {
+        "pomniejszenie_procent": 13.71,
+        "placa_minimalna_zl": 4806,
+        "limit_dobrowolne_zl": 23550,
+        "jdg_najnizsza_zl": 5652.0,
+        "przerwa_dziedziczenia_dni": 30
+      },
+      "wyczekiwanie_dni": {
+        "obowiazkowe": 30,
+        "dobrowolne": 90
+      },
+      "wynagrodzenie_chorobowe_dni": {
+        "standard": 33,
+        "po_50_r_z": 14
+      },
+      "wynagrodzenie_chorobowe_wiek_progu": 50,
+      "okres_zasilkowy_dni": 270,
+      "okres_zasilkowy_ostrzezenie_dni": 30,
+      "ciaglosc_max_przerwa_dni": 30,
+      "okno_po_ustaniu_ubezpieczenia_dni": 14,
+      "zadluzenie_prog_zl": 0,
+      "rehabilitacyjny_ciaza_procent": 100,
+      "rehabilitacyjny_standard_90_dni_procent": 90,
+      "rehabilitacyjny_standard_pozostale_procent": 75,
+      "rehabilitacyjny_max_dni": 360,
+      "podwyzszenie_do_swiadczenia_rodzicielskiego_zl": 1000,
+      "opiekunczy_procent": 80,
+      "opiekunczy_max_dni_w_roku": 60,
+      "opiekunczy_wiek_dziecka_max_lat": 14,
+      "pogrzebowy_zl": 7000,
+      "wyczekiwanie_zwolnienie_lat_obowiazkowego": 10,
+      "po_ustaniu_min_niezdolnosc_dni": 30
+    },
+    "platnik": {
+      "prog_ubezpieczonych": 20
+    },
+    "urlop": {
+      "macierzynski_tyg": {
+        "1": 20,
+        "2": 31,
+        "3": 33,
+        "4": 35,
+        "5_plus": 37
+      },
+      "macierzynski_min_matka_tyg": 14,
+      "macierzynski_przed_porodem_max_tyg": 6,
+      "rodzicielski_tyg": {
+        "1": 41,
+        "mnogi": 43,
+        "za_zyciem_1": 65,
+        "za_zyciem_mnogi": 67
+      },
+      "rodzicielski_nieprzenoszalny_tyg": 9,
+      "rodzicielski_max_czesci": 5,
+      "rodzicielski_praca_max_wymiar": 0.5,
+      "rodzicielski_do_konca_roku_wiek_dziecka": 6,
+      "ojcowski_dni": 14,
+      "ojcowski_min_czesc_dni": 7,
+      "ojcowski_max_wiek_dziecka_mies": 12,
+      "ojcowski_adopcja_max_wiek_dziecka_lat": 14,
+      "uzupelniajacy_max_tyg": {
+        "wczesniak_ciezki": 15,
+        "wczesniak_lekki": 8
+      },
+      "uzupelniajacy_tydzien_graniczny_ciezki": 28,
+      "uzupelniajacy_tydzien_graniczny": 37,
+      "uzupelniajacy_masa_graniczna_g": 1000,
+      "martwe_urodzenie_tyg": 8,
+      "martwe_min_dni_od_zgonu": 7,
+      "przyjecie": {
+        "rodzina_zastepcza_max_wiek_lat": 7,
+        "rodzina_zastepcza_odroczony_max_wiek_lat": 10,
+        "przysposobienie_max_wiek_lat": 14,
+        "min_tyg": 9,
+        "rodzicielski_par3_tyg": {
+          "zwykly": 38,
+          "za_zyciem": 62
+        }
+      },
+      "macierzynski_min_matka_szczegolne_tyg": 8,
+      "rodzicielski_z_praca_limit_tyg": {
+        "1": 82,
+        "mnogi": 86,
+        "za_zyciem_1": 130,
+        "za_zyciem_mnogi": 134
+      },
+      "ojcowski_max_czesci": 2
+    },
+    "termin": {
+      "wniosek_81_5_dni": 21,
+      "urlop_rodzicielski_przed_dni": 21,
+      "urlop_ojcowski_przed_dni": 7,
+      "urlop_uzup_przed_koncem_dni": 21,
+      "zgloszenie_urodzenia_dni": 21,
+      "sr7_mies": 3,
+      "800plus_mies": 3,
+      "becikowe_mies": 12,
+      "za_zyciem_mies": 12,
+      "ostrzezenie_dni": 7,
+      "pogrzebowy_mies": 12
+    },
+    "swiadczenia": {
+      "rodzicielskie_zl_mies": 1000,
+      "becikowe_zl": 1000,
+      "becikowe_kryterium_zl": 1922,
+      "zasilek_rodzinny_kryterium_zl": 674,
+      "zasilek_rodzinny_kryterium_niepelnospr_zl": 764,
+      "zasilek_rodzinny_wiek_max_lat": 18,
+      "zasilek_rodzinny_wiek_max_ucz_lat": 21,
+      "za_zyciem_zl": 4000,
+      "800plus_zl_mies": 800,
+      "800plus_wiek_max_lat": 18,
+      "aktywny_rodzic_wiek_od_mies": 12,
+      "aktywny_rodzic_wiek_do_mies": 35,
+      "aktywny_rodzic_zlobek_zl": 1500,
+      "aktywny_rodzic_praca_zl": 1500,
+      "aktywny_rodzic_dom_zl": 500,
+      "kdr_prog_dzieci": 3,
+      "kdr_wiek_max_lat": 18,
+      "kdr_wiek_max_ucz_lat": 25,
+      "rodzicielskie_tyg": {
+        "1": 52,
+        "2": 65,
+        "3": 67,
+        "4": 69,
+        "5_plus": 71
+      },
+      "zasilek_rodzinny_kwoty_zl": {
+        "do_5_lat": 95,
+        "od_5_do_18_lat": 124,
+        "od_18_do_24_lat": 135
+      },
+      "dodatek_urodzenie_zl": 1000
+    },
+    "ochrona": {
+      "umowa_terminowa_przedluzenie_od_miesiaca_ciazy": 3,
+      "ciaza_czas_trwania_dni": 280
+    }
+  },
+  "swiadczenia": [
+    {
+      "id": "ZASILEK_CHOROBOWY_CIAZA",
+      "nazwa": "Zasiłek chorobowy w ciąży",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "w_ciazy"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.w1",
+          "opis": "Wnioskodawczyni jest w ciąży",
+          "wyrazenie": {"==":[{"var":"ciaza.w_ciazy"},true]},
+          "przyczyna_braku_uprawnien": "Zasiłek chorobowy w ciąży wymaga ciąży.",
+          "zmienne": [
+            "ciaza.w_ciazy"
+          ]
+        },
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.w2",
+          "opis": "Jest e-ZLA z kodem B",
+          "wyrazenie": {"==":[{"var":"wyl.ma_ezla_kod_b"},true]},
+          "przyczyna_braku_uprawnien": "Bez kodu B w e-ZLA zasiłek nie wynosi 100% (zwolnienie nie jest związane z ciążą).",
+          "zmienne": [
+            "wyl.ma_ezla_kod_b"
+          ]
+        },
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.w3",
+          "opis": "Ma ubezpieczenie chorobowe lub mieści się w oknie po jego ustaniu",
+          "wyrazenie": {"==":[{"var":"wyl.tytul_aktywny_lub_w_oknie"},true]},
+          "przyczyna_braku_uprawnien": "Brak ubezpieczenia chorobowego w dniu początku niezdolności.",
+          "zmienne": [
+            "wyl.tytul_aktywny_lub_w_oknie"
+          ]
+        },
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.w4",
+          "opis": "Spełniony okres wyczekiwania (30 dni obowiązkowe, 90 dobrowolne)",
+          "wyrazenie": {"==":[{"var":"wyl.spelnia_okres_wyczekiwania"},true]},
+          "przyczyna_braku_uprawnien": "Okres wyczekiwania nie został jeszcze spełniony.",
+          "zmienne": [
+            "wyl.spelnia_okres_wyczekiwania"
+          ]
+        },
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.w5",
+          "opis": "Okres zasiłkowy nie jest wyczerpany",
+          "wyrazenie": {"<":[{"var":"zdrowie.okres_zasilkowy_wykorzystany_dni"},{"var":"param.zasilek.okres_zasilkowy_dni"}]},
+          "przyczyna_braku_uprawnien": "Wyczerpano okres zasiłkowy (270 dni). Sprawdź świadczenie rehabilitacyjne.",
+          "zmienne": [
+            "param.zasilek.okres_zasilkowy_dni",
+            "zdrowie.okres_zasilkowy_wykorzystany_dni"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ZAS-53",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        },
+        {
+          "kod": "Z-10",
+          "warunek": {"==":[{"var":"wyl.w_okresie_po_ustaniu_ubezpieczenia"},true]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a",
+        "ZAS-12"
+      ],
+      "informacje": [
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.i1",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]},
+          "komunikat": "Przez pierwsze 33 dni niezdolności w roku (14 po 50. r.ż.) wynagrodzenie wypłaca pracodawca, dopiero potem zasiłek.",
+          "zmienne": [
+            "wyl.pracownik"
+          ]
+        },
+        {
+          "id": "ZASILEK_CHOROBOWY_CIAZA.i2",
+          "warunek": {"==":[{"var":"wyl.platnik_wyplaca_zasilki"},true]},
+          "komunikat": "Zasiłek wypłaca Twój pracodawca (płatnik zgłasza ponad 20 osób do ubezpieczenia chorobowego).",
+          "zmienne": [
+            "wyl.platnik_wyplaca_zasilki"
+          ]
+        }
+      ],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_chorobowy_ciaza",
+        "parametry": [
+          "zasilek.chorobowy_ciaza_procent",
+          "zasilek.okres_zasilkowy_dni",
+          "zasilek.wynagrodzenie_chorobowe_dni.standard",
+          "zasilek.wynagrodzenie_chorobowe_dni.po_50_r_z",
+          "zasilek.podstawa.pomniejszenie_procent"
+        ],
+        "opis": "Zasiłek = podstawa wymiaru x procent. Pracownik: pierwsze 33 dni w roku (14 po 50. r.ż.) to wynagrodzenie chorobowe od pracodawcy."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO",
+      "nazwa": "Zasiłek w wysokości zasiłku macierzyńskiego (po utracie pracy w ciąży)",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS",
+      "etapy": [
+        "w_ciazy"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO.w1",
+          "opis": "Wnioskodawczyni jest w ciąży",
+          "wyrazenie": {"==":[{"var":"ciaza.w_ciazy"},true]},
+          "przyczyna_braku_uprawnien": "Świadczenie przysługuje tylko w ciąży.",
+          "zmienne": [
+            "ciaza.w_ciazy"
+          ]
+        },
+        {
+          "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO.w2",
+          "opis": "Była zatrudniona na umowę o pracę",
+          "wyrazenie": {"==":[{"var":"ubezpieczenie.tytul"},"umowa_o_prace"]},
+          "przyczyna_braku_uprawnien": "Dotyczy umów o pracę.",
+          "zmienne": [
+            "ubezpieczenie.tytul"
+          ]
+        },
+        {
+          "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO.w3",
+          "opis": "Umowa została rozwiązana w ciąży",
+          "wyrazenie": {"==":[{"var":"ubezpieczenie.umowa_rozwiazana_w_ciazy"},true]},
+          "przyczyna_braku_uprawnien": "Umowa nie została rozwiązana w okresie ciąży.",
+          "zmienne": [
+            "ubezpieczenie.umowa_rozwiazana_w_ciazy"
+          ]
+        },
+        {
+          "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO.w4",
+          "opis": "Przyczyna: upadłość, likwidacja, śmierć pracodawcy albo naruszenie przepisów potwierdzone prawomocnym wyrokiem",
+          "wyrazenie": {"or":[{"in":[{"var":"ubezpieczenie.przyczyna_rozwiazania_umowy"},["upadlosc","likwidacja","smierc_pracodawcy"]]},{"and":[{"==":[{"var":"ubezpieczenie.przyczyna_rozwiazania_umowy"},"naruszenie_przepisow"]},{"==":[{"var":"ubezpieczenie.prawomocny_wyrok_naruszenie_przepisow"},true]}]}]},
+          "przyczyna_braku_uprawnien": "Przyczyna rozwiązania umowy nie uprawnia do świadczenia (naruszenie przepisów wymaga prawomocnego wyroku).",
+          "zmienne": [
+            "ubezpieczenie.prawomocny_wyrok_naruszenie_przepisow",
+            "ubezpieczenie.przyczyna_rozwiazania_umowy"
+          ]
+        },
+        {
+          "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO.w5",
+          "opis": "Pracodawca nie zapewnił innego zatrudnienia",
+          "wyrazenie": {"==":[{"var":"ubezpieczenie.zapewniono_inne_zatrudnienie"},false]},
+          "przyczyna_braku_uprawnien": "Zapewnienie innego zatrudnienia wyłącza prawo do świadczenia.",
+          "zmienne": [
+            "ubezpieczenie.zapewniono_inne_zatrudnienie"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ZAS-55",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_w_wysokosci_macierzynskiego",
+        "parametry": [
+          "zasilek.procent.macierzynski",
+          "zasilek.podstawa.pomniejszenie_procent"
+        ],
+        "opis": "100% podstawy wymiaru, wypłacany do dnia porodu po ustaniu ubezpieczenia."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "SWIADCZENIE_REHABILITACYJNE",
+      "nazwa": "Świadczenie rehabilitacyjne",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS",
+      "etapy": [
+        "w_ciazy",
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "SWIADCZENIE_REHABILITACYJNE.w1",
+          "opis": "Okres zasiłkowy wyczerpany",
+          "wyrazenie": {"==":[{"var":"wyl.okres_zasilkowy_wyczerpany"},true]},
+          "przyczyna_braku_uprawnien": "Najpierw musi się wyczerpać zasiłek chorobowy (270 dni).",
+          "zmienne": [
+            "wyl.okres_zasilkowy_wyczerpany"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_REHABILITACYJNE.w2",
+          "opis": "Niezdolność do pracy trwa",
+          "wyrazenie": {"==":[{"var":"zdrowie.nadal_niezdolna_do_pracy"},true]},
+          "przyczyna_braku_uprawnien": "Brak dalszej niezdolności do pracy.",
+          "zmienne": [
+            "zdrowie.nadal_niezdolna_do_pracy"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_REHABILITACYJNE.w3",
+          "opis": "Dalsze leczenie rokuje odzyskanie zdolności do pracy",
+          "wyrazenie": {"==":[{"var":"zdrowie.rokowania_odzyskania_zdolnosci"},true]},
+          "przyczyna_braku_uprawnien": "Bez rokowań odzyskania zdolności do pracy ZUS rozpatrza rentę, nie świadczenie rehabilitacyjne.",
+          "zmienne": [
+            "zdrowie.rokowania_odzyskania_zdolnosci"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_REHABILITACYJNE.w4",
+          "opis": "Ubezpieczenie aktywne lub w oknie po ustaniu",
+          "wyrazenie": {"==":[{"var":"wyl.tytul_aktywny_lub_w_oknie"},true]},
+          "przyczyna_braku_uprawnien": "Brak tytułu ubezpieczenia.",
+          "zmienne": [
+            "wyl.tytul_aktywny_lub_w_oknie"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ZNp-7",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_swiadczenie_rehabilitacyjne",
+        "parametry": [
+          "zasilek.rehabilitacyjny_ciaza_procent",
+          "zasilek.rehabilitacyjny_standard_90_dni_procent",
+          "zasilek.rehabilitacyjny_standard_pozostale_procent",
+          "zasilek.rehabilitacyjny_max_dni",
+          "zasilek.podstawa.pomniejszenie_procent"
+        ],
+        "opis": "Od podstawy wymiaru zasiłku chorobowego: w ciąży 100%; poza ciążą 90% przez pierwsze 90 dni i 75% za pozostały okres; łącznie maks. 360 dni (12 miesięcy). Orzeka lekarz orzecznik ZUS."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_MACIERZYNSKI_MATKA",
+      "nazwa": "Zasiłek macierzyński matki (urlop macierzyński, uzupełniający, rodzicielski)",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "w_ciazy",
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MATKA.w1",
+          "opis": "Wnioskodawca jest matką dziecka",
+          "wyrazenie": {"==":[{"var":"wnioskodawca.rola"},"matka"]},
+          "przyczyna_braku_uprawnien": "Ścieżka dla matki.",
+          "zmienne": [
+            "wnioskodawca.rola"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MATKA.w2",
+          "opis": "Dziecko urodzone żywo",
+          "wyrazenie": {"==":[{"var":"porod.stan_dziecka"},"zywe"]},
+          "przyczyna_braku_uprawnien": "Przy martwym urodzeniu lub zgonie dziecka obowiązuje krótszy wymiar (ścieżka /jaskolka).",
+          "zmienne": [
+            "porod.stan_dziecka"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MATKA.w3",
+          "opis": "Ubezpieczona w dniu porodu",
+          "wyrazenie": {"==":[{"var":"wyl.ubezpieczony_w_dniu_porodu"},true]},
+          "przyczyna_braku_uprawnien": "Brak ubezpieczenia chorobowego w dniu porodu. Rozważ świadczenie rodzicielskie z gminy.",
+          "zmienne": [
+            "wyl.ubezpieczony_w_dniu_porodu"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MATKA.w4",
+          "opis": "Ma ubezpieczenie chorobowe (obowiązkowe lub dobrowolne)",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek macierzyński nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "URLOP-MAC-ROD",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        },
+        {
+          "kod": "REZYGNACJA-MAC",
+          "warunek": {"==":[{"var":"plan.rezygnacja_z_macierzynskiego_po_14_tyg.czy"},true]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MATKA.i1",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]},
+          "komunikat": "Pracownica składa wniosek o urlop u pracodawcy; pracodawca ustala i wypłaca zasiłek albo przekazuje sprawę do ZUS.",
+          "zmienne": [
+            "wyl.pracownik"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MATKA.i2",
+          "warunek": {"and":[{">=":[{"var":"wyl.dni_do_konca_terminu_81_5"},0]},{"<=":[{"var":"wyl.dni_do_konca_terminu_81_5"},{"var":"param.termin.ostrzezenie_dni"}]}]},
+          "komunikat": "Zbliża się koniec terminu na wniosek o 81,5% zasiłku za cały okres.",
+          "zmienne": [
+            "param.termin.ostrzezenie_dni",
+            "wyl.dni_do_konca_terminu_81_5"
+          ]
+        }
+      ],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_macierzynski",
+        "parametry": [
+          "urlop.macierzynski_tyg.1",
+          "urlop.macierzynski_min_matka_tyg",
+          "urlop.macierzynski_przed_porodem_max_tyg",
+          "zasilek.procent.macierzynski",
+          "zasilek.procent.rodzicielski",
+          "zasilek.procent.jednolity_wniosek_21_dni",
+          "urlop.rodzicielski_tyg.1"
+        ],
+        "opis": "Wymiar wg porod.liczba_dzieci; 100% za macierzyński, 70% za rodzicielski albo 81,5% za całość przy wniosku do 21 dni po porodzie."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+      "nazwa": "Zasiłek macierzyński przy martwym urodzeniu lub zgonie dziecka",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE.w1",
+          "opis": "Wnioskodawca jest matką",
+          "wyrazenie": {"==":[{"var":"wnioskodawca.rola"},"matka"]},
+          "przyczyna_braku_uprawnien": "Ścieżka dla matki.",
+          "zmienne": [
+            "wnioskodawca.rola"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE.w2",
+          "opis": "Martwe urodzenie lub zgon dziecka",
+          "wyrazenie": {"in":[{"var":"porod.stan_dziecka"},["martwe","zgon_do_8_tyg","zgon_po_8_tyg"]]},
+          "przyczyna_braku_uprawnien": "Dziecko żyje: obowiązuje zwykły zasiłek macierzyński.",
+          "zmienne": [
+            "porod.stan_dziecka"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE.w3",
+          "opis": "Ubezpieczona w dniu porodu",
+          "wyrazenie": {"==":[{"var":"wyl.ubezpieczony_w_dniu_porodu"},true]},
+          "przyczyna_braku_uprawnien": "Brak ubezpieczenia chorobowego w dniu porodu.",
+          "zmienne": [
+            "wyl.ubezpieczony_w_dniu_porodu"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE.w4",
+          "opis": "Ma ubezpieczenie chorobowe",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "URLOP-MAC-ROD",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_martwe_urodzenie",
+        "parametry": [
+          "urlop.martwe_urodzenie_tyg",
+          "urlop.martwe_min_dni_od_zgonu",
+          "zasilek.procent.macierzynski"
+        ],
+        "opis": "8 tygodni po porodzie, nie krócej niż 7 dni od zgonu dziecka; przy ciąży mnogiej wymiar wg liczby dzieci pozostałych przy życiu."
+      },
+      "do_weryfikacji": false,
+      "uwagi": "Obsługiwane przez /jaskolka. Wymaga zaświadczenia o martwym urodzeniu.",
+      "sciezka_ui": "/jaskolka"
+    },
+    {
+      "id": "ZASILEK_POGRZEBOWY",
+      "nazwa": "Zasiłek pogrzebowy (martwe urodzenie lub zgon dziecka)",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "sciezka_ui": "/jaskolka",
+      "warunki": [
+        {
+          "id": "ZASILEK_POGRZEBOWY.w1",
+          "opis": "Martwe urodzenie lub zgon dziecka",
+          "wyrazenie": {"in":[{"var":"porod.stan_dziecka"},["martwe","zgon_do_8_tyg","zgon_po_8_tyg"]]},
+          "przyczyna_braku_uprawnien": "Zasiłek pogrzebowy dotyczy śmierci dziecka.",
+          "zmienne": [
+            "porod.stan_dziecka"
+          ]
+        },
+        {
+          "id": "ZASILEK_POGRZEBOWY.w2",
+          "opis": "Rodzic objęty ubezpieczeniem emerytalnym i rentowymi w ZUS albo pobierający emeryturę lub rentę",
+          "wyrazenie": {"or":[{"in":[{"var":"ubezpieczenie.tytul"},["umowa_o_prace","umowa_zlecenia","jdg","wspolpraca_jdg","duchowny","bezrobotna_z_zasilkiem"]]},{"in":[{"var":"drugi_rodzic.tytul_ubezpieczenia"},["umowa_o_prace","umowa_zlecenia","jdg","wspolpraca_jdg","duchowny","bezrobotna_z_zasilkiem"]]},{"==":[{"var":"ubezpieczenie.pobiera_emeryture_rente"},true]}]},
+          "przyczyna_braku_uprawnien": "Zasiłek pogrzebowy z ZUS po śmierci członka rodziny przysługuje, gdy rodzic podlega ubezpieczeniom emerytalnemu i rentowym w ZUS albo pobiera emeryturę lub rentę (KRUS i służby mundurowe wypłacają zasiłek we własnym systemie).",
+          "zmienne": [
+            "drugi_rodzic.tytul_ubezpieczenia",
+            "ubezpieczenie.pobiera_emeryture_rente",
+            "ubezpieczenie.tytul"
+          ]
+        },
+        {
+          "id": "ZASILEK_POGRZEBOWY.w3",
+          "opis": "Wnioskodawca pokrył koszty pogrzebu",
+          "wyrazenie": {"==":[{"var":"rodzina.poniesiono_koszty_pogrzebu"},true]},
+          "przyczyna_braku_uprawnien": "Zasiłek przysługuje osobie, która pokryła koszty pogrzebu.",
+          "zmienne": [
+            "rodzina.poniesiono_koszty_pogrzebu"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "Z-12",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [
+        {
+          "id": "ZASILEK_POGRZEBOWY.i1",
+          "warunek": {"in":[{"var":"ubezpieczenie.tytul"},["krus","sluzba_mundurowa"]]},
+          "komunikat": "Przy ubezpieczeniu w KRUS lub w służbach mundurowych zasiłek pogrzebowy wypłaca KRUS lub właściwy organ, nie ZUS.",
+          "zmienne": [
+            "ubezpieczenie.tytul"
+          ]
+        }
+      ],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_pogrzebowy",
+        "parametry": [
+          "zasilek.pogrzebowy_zl",
+          "termin.pogrzebowy_mies"
+        ],
+        "opis": "Jednorazowo 7000 zł; wniosek najpóźniej 12 miesięcy od dnia śmierci (przy martwym urodzeniu: od dnia porodu)."
+      },
+      "do_weryfikacji": true,
+      "uwagi": "Ścieżka /jaskolka. Kwota i krąg uprawnionych: ustawa o emeryturach i rentach z FUS art. 77–80; potwierdzić z mentorami ZUS."
+    },
+    {
+      "id": "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE",
+      "nazwa": "Zasiłek za urlop macierzyński przejęty przez ojca",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE.w1",
+          "opis": "Wnioskodawca jest ojcem",
+          "wyrazenie": {"==":[{"var":"wnioskodawca.rola"},"ojciec"]},
+          "przyczyna_braku_uprawnien": "Ścieżka dla ojca.",
+          "zmienne": [
+            "wnioskodawca.rola"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE.w2",
+          "opis": "Ojciec ma ubezpieczenie chorobowe",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Ojciec musi podlegać ubezpieczeniu chorobowemu.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        },
+        {
+          "id": "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE.w3",
+          "opis": "Matka wykorzystała 14 tygodni i zrezygnowała z reszty albo zachodzi sytuacja szczególna (szpital, niezdolność do samodzielnej egzystencji, śmierć, porzucenie); albo matka bez ubezpieczenia chorobowego w dniu porodu podjęła zatrudnienie w wymiarze co najmniej 1/2 etatu",
+          "wyrazenie": {"or":[{"and":[{"==":[{"var":"matka.wykorzystala_14_tyg"},true]},{"==":[{"var":"plan.rezygnacja_z_macierzynskiego_po_14_tyg.czy"},true]}]},{"in":[{"var":"matka.stan"},["zmarla","porzucila_dziecko"]]},{"==":[{"var":"matka.orzeczenie_niezdolnosci_do_samodzielnej_egzystencji"},true]},{"==":[{"var":"wyl.matka_hospitalizowana"},true]},{"and":[{"==":[{"var":"matka.ubezpieczona_w_dniu_porodu"},false]},{"==":[{"var":"matka.podjela_prace_min_pol_etatu"},true]}]}]},
+          "przyczyna_braku_uprawnien": "Ojciec może przejąć urlop dopiero po 14 tygodniach matki, chyba że zachodzi sytuacja szczególna (szpital, niezdolność do samodzielnej egzystencji, śmierć, porzucenie) albo matka bez ubezpieczenia chorobowego podjęła pracę co najmniej na 1/2 etatu.",
+          "zmienne": [
+            "matka.orzeczenie_niezdolnosci_do_samodzielnej_egzystencji",
+            "matka.podjela_prace_min_pol_etatu",
+            "matka.stan",
+            "matka.ubezpieczona_w_dniu_porodu",
+            "matka.wykorzystala_14_tyg",
+            "plan.rezygnacja_z_macierzynskiego_po_14_tyg.czy",
+            "wyl.matka_hospitalizowana"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "URLOP-MAC-OJC",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        },
+        {
+          "kod": "ZAS-33",
+          "warunek": {"in":[{"var":"matka.stan"},["zmarla","porzucila_dziecko"]]}
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [
+        {
+          "id": "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE.i1",
+          "warunek": {"and":[{"==":[{"var":"matka.ubezpieczona_w_dniu_porodu"},false]},{"==":[{"var":"matka.podjela_prace_min_pol_etatu"},true]}]},
+          "komunikat": "Gdy matka nie miała ubezpieczenia chorobowego w dniu porodu i podjęła pracę (co najmniej 1/2 etatu), ojciec przejmuje urlop od dnia podjęcia przez nią pracy, nie wcześniej niż po 14 tygodniach od porodu.",
+          "zmienne": [
+            "matka.podjela_prace_min_pol_etatu",
+            "matka.ubezpieczona_w_dniu_porodu"
+          ]
+        }
+      ],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_macierzynski_ojciec",
+        "parametry": [
+          "zasilek.procent.macierzynski",
+          "urlop.macierzynski_min_matka_tyg"
+        ],
+        "opis": "100% podstawy wymiaru ojca za przejętą część; start bezpośrednio po urlopie matki."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_URLOP_RODZICIELSKI",
+      "nazwa": "Zasiłek za urlop rodzicielski",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_URLOP_RODZICIELSKI.w1",
+          "opis": "Ubezpieczenie chorobowe",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        },
+        {
+          "id": "ZASILEK_URLOP_RODZICIELSKI.w2",
+          "opis": "Dziecko w wieku uprawniającym do urlopu rodzicielskiego",
+          "wyrazenie": {"==":[{"var":"wyl.dziecko_w_wieku_urlopu_rodzicielskiego"},true]},
+          "przyczyna_braku_uprawnien": "Urlop rodzicielski przysługuje do końca roku, w którym dziecko kończy 6 lat.",
+          "zmienne": [
+            "wyl.dziecko_w_wieku_urlopu_rodzicielskiego"
+          ]
+        },
+        {
+          "id": "ZASILEK_URLOP_RODZICIELSKI.w3",
+          "opis": "Matka ubezpieczona w dniu porodu, ojciec, lub rodzic przyjmujący dziecko",
+          "wyrazenie": {"or":[{"and":[{"==":[{"var":"wnioskodawca.rola"},"matka"]},{"==":[{"var":"wyl.ubezpieczony_w_dniu_porodu"},true]}]},{"==":[{"var":"wnioskodawca.rola"},"ojciec"]},{"and":[{"in":[{"var":"wnioskodawca.rola"},["przysposabiajacy","rodzina_zastepcza_niezawodowa"]]},{"==":[{"var":"wyl.ma_dziecko_przyjete_na_wychowanie"},true]}]}]},
+          "przyczyna_braku_uprawnien": "Ta rola nie daje prawa do urlopu rodzicielskiego (np. zawodowa rodzina zastępcza).",
+          "zmienne": [
+            "wnioskodawca.rola",
+            "wyl.ma_dziecko_przyjete_na_wychowanie",
+            "wyl.ubezpieczony_w_dniu_porodu"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "URLOP-ROD",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        },
+        {
+          "kod": "URLOP-ROD-PRACA",
+          "warunek": {"==":[{"var":"wyl.laczy_urlop_z_praca"},true]}
+        },
+        {
+          "kod": "ZAS-39",
+          "warunek": {"==":[{"var":"matka.pobiera_zasilek_8_tyg_po_porodzie"},true]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_rodzicielski",
+        "parametry": [
+          "urlop.rodzicielski_tyg.1",
+          "urlop.rodzicielski_tyg.mnogi",
+          "urlop.rodzicielski_tyg.za_zyciem_1",
+          "urlop.rodzicielski_tyg.za_zyciem_mnogi",
+          "urlop.rodzicielski_nieprzenoszalny_tyg",
+          "urlop.rodzicielski_max_czesci",
+          "urlop.rodzicielski_praca_max_wymiar",
+          "zasilek.procent.rodzicielski"
+        ],
+        "opis": "70% podstawy (81,5% przy wniosku do 21 dni po porodzie). Pula wg liczby dzieci i zaświadczenia Za życiem; praca w trakcie urlopu wydłuża go proporcjonalnie."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_URLOP_OJCOWSKI",
+      "nazwa": "Zasiłek za urlop ojcowski",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_URLOP_OJCOWSKI.w1",
+          "opis": "Wnioskodawca jest ojcem",
+          "wyrazenie": {"==":[{"var":"wnioskodawca.rola"},"ojciec"]},
+          "przyczyna_braku_uprawnien": "Urlop ojcowski to wyłączne prawo ojca.",
+          "zmienne": [
+            "wnioskodawca.rola"
+          ]
+        },
+        {
+          "id": "ZASILEK_URLOP_OJCOWSKI.w2",
+          "opis": "Ubezpieczenie chorobowe",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        },
+        {
+          "id": "ZASILEK_URLOP_OJCOWSKI.w3",
+          "opis": "Dziecko w oknie urlopu ojcowskiego (12 miesięcy życia)",
+          "wyrazenie": {"==":[{"var":"wyl.dziecko_w_oknie_urlopu_ojcowskiego"},true]},
+          "przyczyna_braku_uprawnien": "Prawo do urlopu ojcowskiego wygasło.",
+          "zmienne": [
+            "wyl.dziecko_w_oknie_urlopu_ojcowskiego"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "URLOP-OJC",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_ojcowski",
+        "parametry": [
+          "urlop.ojcowski_dni",
+          "urlop.ojcowski_min_czesc_dni",
+          "zasilek.procent.ojcowski"
+        ],
+        "opis": "14 dni, jednorazowo lub 2 x min. 7 dni, 100% podstawy. Liczba dzieci nie wydłuża urlopu."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_URLOP_UZUPELNIAJACY",
+      "nazwa": "Zasiłek za uzupełniający urlop macierzyński",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_URLOP_UZUPELNIAJACY.w1",
+          "opis": "Dziecko wymaga uzupełniającego urlopu (wcześniak lub hospitalizacja)",
+          "wyrazenie": {">":[{"var":"wyl.uzupelniajacy_wymiar_tyg"},0]},
+          "przyczyna_braku_uprawnien": "Brak przesłanek (wcześniactwo lub hospitalizacja dziecka).",
+          "zmienne": [
+            "wyl.uzupelniajacy_wymiar_tyg"
+          ]
+        },
+        {
+          "id": "ZASILEK_URLOP_UZUPELNIAJACY.w2",
+          "opis": "Ubezpieczenie chorobowe",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        },
+        {
+          "id": "ZASILEK_URLOP_UZUPELNIAJACY.w3",
+          "opis": "Matka ubezpieczona w dniu porodu lub ojciec",
+          "wyrazenie": {"or":[{"and":[{"==":[{"var":"wnioskodawca.rola"},"matka"]},{"==":[{"var":"wyl.ubezpieczony_w_dniu_porodu"},true]}]},{"==":[{"var":"wnioskodawca.rola"},"ojciec"]}]},
+          "przyczyna_braku_uprawnien": "Prawo przysługuje jednemu z rodziców.",
+          "zmienne": [
+            "wnioskodawca.rola",
+            "wyl.ubezpieczony_w_dniu_porodu"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "URLOP-UZUP",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_uzupelniajacy",
+        "parametry": [
+          "urlop.uzupelniajacy_max_tyg.wczesniak_ciezki",
+          "urlop.uzupelniajacy_max_tyg.wczesniak_lekki",
+          "zasilek.procent.uzupelniajacy"
+        ],
+        "opis": "100% podstawy, jednorazowo, bezpośrednio po urlopie macierzyńskim."
+      },
+      "do_weryfikacji": true,
+      "uwagi": "Progi tygodnia i masy: do weryfikacji z załącznikiem ZUS."
+    },
+    {
+      "id": "ZASILEK_ADOPCJA_ZASTEPCZA",
+      "nazwa": "Zasiłek macierzyński przy przyjęciu dziecka na wychowanie",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_ADOPCJA_ZASTEPCZA.w1",
+          "opis": "Jest dziecko przyjęte na wychowanie",
+          "wyrazenie": {"==":[{"var":"wyl.ma_dziecko_przyjete_na_wychowanie"},true]},
+          "przyczyna_braku_uprawnien": "Brak dziecka przyjętego na wychowanie.",
+          "zmienne": [
+            "wyl.ma_dziecko_przyjete_na_wychowanie"
+          ]
+        },
+        {
+          "id": "ZASILEK_ADOPCJA_ZASTEPCZA.w2",
+          "opis": "Przysposabiający lub rodzina zastępcza niezawodowa",
+          "wyrazenie": {"in":[{"var":"wnioskodawca.rola"},["przysposabiajacy","rodzina_zastepcza_niezawodowa"]]},
+          "przyczyna_braku_uprawnien": "Zawodowa rodzina zastępcza nie ma prawa do urlopu i zasiłku.",
+          "zmienne": [
+            "wnioskodawca.rola"
+          ]
+        },
+        {
+          "id": "ZASILEK_ADOPCJA_ZASTEPCZA.w3",
+          "opis": "Ubezpieczenie chorobowe",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        },
+        {
+          "id": "ZASILEK_ADOPCJA_ZASTEPCZA.w4",
+          "opis": "Dziecko w limicie wieku (7/10 lat zastępcza, 14 lat adopcja)",
+          "wyrazenie": {"==":[{"var":"wyl.dziecko_przyjete_w_limicie_wieku"},true]},
+          "przyczyna_braku_uprawnien": "Dziecko przekracza limit wieku.",
+          "zmienne": [
+            "wyl.dziecko_przyjete_w_limicie_wieku"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ZAS-26",
+          "warunek": null
+        },
+        {
+          "kod": "URLOP-MAC-PRZYJECIE",
+          "warunek": {"==":[{"var":"wyl.pracownik"},true]}
+        },
+        {
+          "kod": "ZAM",
+          "warunek": {"==":[{"var":"wyl.pracownik"},false]}
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_adopcja",
+        "parametry": [
+          "urlop.przyjecie.rodzina_zastepcza_max_wiek_lat",
+          "urlop.przyjecie.rodzina_zastepcza_odroczony_max_wiek_lat",
+          "urlop.przyjecie.przysposobienie_max_wiek_lat",
+          "zasilek.procent.macierzynski",
+          "zasilek.procent.rodzicielski"
+        ],
+        "opis": "Urlop na warunkach macierzyńskiego (100%) i rodzicielski (70%) wg wieku dziecka."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_OPIEKUNCZY",
+      "nazwa": "Zasiłek opiekuńczy (opieka nad chorym dzieckiem)",
+      "typ": "zasilek_zus",
+      "instytucja": "ZUS lub płatnik składek",
+      "etapy": [
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_OPIEKUNCZY.w1",
+          "opis": "Ubezpieczenie chorobowe (obowiązkowe lub dobrowolne)",
+          "wyrazenie": {"in":[{"var":"ubezpieczenie.chorobowe"},["obowiazkowe","dobrowolne"]]},
+          "przyczyna_braku_uprawnien": "Bez ubezpieczenia chorobowego zasiłek opiekuńczy nie przysługuje.",
+          "zmienne": [
+            "ubezpieczenie.chorobowe"
+          ]
+        },
+        {
+          "id": "ZASILEK_OPIEKUNCZY.w2",
+          "opis": "Dziecko do ukończenia 14 lat",
+          "wyrazenie": {"==":[{"var":"wyl.ma_dziecko_do_14_lat"},true]},
+          "przyczyna_braku_uprawnien": "Zasiłek opiekuńczy nad chorym dzieckiem przysługuje do ukończenia przez nie 14 lat.",
+          "zmienne": [
+            "wyl.ma_dziecko_do_14_lat"
+          ]
+        },
+        {
+          "id": "ZASILEK_OPIEKUNCZY.w3",
+          "opis": "Nie wykorzystano limitu 60 dni w roku kalendarzowym",
+          "wyrazenie": {"<":[{"var":"zdrowie.zasilek_opiekunczy_wykorzystany_dni"},{"var":"param.zasilek.opiekunczy_max_dni_w_roku"}]},
+          "przyczyna_braku_uprawnien": "Wykorzystano limit 60 dni zasiłku opiekuńczego w tym roku kalendarzowym.",
+          "zmienne": [
+            "param.zasilek.opiekunczy_max_dni_w_roku",
+            "zdrowie.zasilek_opiekunczy_wykorzystany_dni"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "Z-15",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [
+        "Z-3",
+        "Z-3a"
+      ],
+      "informacje": [
+        {
+          "id": "ZASILEK_OPIEKUNCZY.i1",
+          "warunek": {"==":[{"var":"rodzina.wspolne_gospodarstwo_domowe"},true]},
+          "komunikat": "Zasiłek nie przysługuje, jeśli opiekę może zapewnić inny domownik (nie dotyczy opieki nad chorym dzieckiem do 2 lat). Potwierdzasz to oświadczeniem we wniosku Z-15.",
+          "zmienne": [
+            "rodzina.wspolne_gospodarstwo_domowe"
+          ]
+        }
+      ],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_opiekunczy",
+        "parametry": [
+          "zasilek.opiekunczy_procent",
+          "zasilek.opiekunczy_max_dni_w_roku",
+          "zasilek.opiekunczy_wiek_dziecka_max_lat",
+          "zasilek.podstawa.pomniejszenie_procent"
+        ],
+        "opis": "80% podstawy wymiaru za każdy dzień opieki; łącznie maks. 60 dni w roku kalendarzowym. Bez okresu wyczekiwania."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_800PLUS",
+      "nazwa": "Świadczenie wychowawcze 800+",
+      "typ": "swiadczenie_zus_elektroniczne",
+      "instytucja": "ZUS",
+      "etapy": [
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_800PLUS.w1",
+          "opis": "Jest dziecko do 18. roku życia mieszkające w Polsce",
+          "wyrazenie": {">":[{"var":"wyl.liczba_dzieci_do_800plus"},0]},
+          "przyczyna_braku_uprawnien": "Brak dziecka spełniającego kryteria wieku i pobytu.",
+          "zmienne": [
+            "wyl.liczba_dzieci_do_800plus"
+          ]
+        },
+        {
+          "id": "ZASILEK_800PLUS.w2",
+          "opis": "Zamieszkanie w Polsce",
+          "wyrazenie": {"==":[{"var":"wnioskodawca.adres_zamieszkania.kraj"},"PL"]},
+          "przyczyna_braku_uprawnien": "Wymagane zamieszkanie w Polsce.",
+          "zmienne": [
+            "wnioskodawca.adres_zamieszkania.kraj"
+          ]
+        },
+        {
+          "id": "ZASILEK_800PLUS.w3",
+          "opis": "Obywatel Polski lub cudzoziemiec z legalnym pobytem",
+          "wyrazenie": {"or":[{"==":[{"var":"wnioskodawca.obywatelstwo"},"PL"]},{"==":[{"var":"wnioskodawca.legalny_pobyt_w_polsce"},true]}]},
+          "przyczyna_braku_uprawnien": "Brak uprawnienia ze względu na obywatelstwo i pobyt.",
+          "zmienne": [
+            "wnioskodawca.legalny_pobyt_w_polsce",
+            "wnioskodawca.obywatelstwo"
+          ]
+        },
+        {
+          "id": "ZASILEK_800PLUS.w4",
+          "opis": "Przy statusie UKR: aktywność zawodowa",
+          "wyrazenie": {"or":[{"==":[{"var":"wnioskodawca.status_ukr"},false]},{"==":[{"var":"wnioskodawca.aktywnosc_zawodowa_ukr"},true]}]},
+          "przyczyna_braku_uprawnien": "Przy statusie UKR wymagana jest aktywność zawodowa.",
+          "zmienne": [
+            "wnioskodawca.aktywnosc_zawodowa_ukr",
+            "wnioskodawca.status_ukr"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "800PLUS",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "kwota_stala",
+        "parametry": [
+          "swiadczenia.800plus_zl_mies"
+        ],
+        "opis": "Stała kwota miesięczna; złożenie w 3 miesiące od urodzenia daje wyrównanie od urodzenia."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "AKTYWNY_RODZIC",
+      "nazwa": "Aktywny rodzic (w pracy, w żłobku, w domu)",
+      "typ": "swiadczenie_zus_elektroniczne",
+      "instytucja": "ZUS",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "AKTYWNY_RODZIC.w1",
+          "opis": "Dziecko w wieku 12-35 miesięcy",
+          "wyrazenie": {"==":[{"var":"wyl.ma_dziecko_12_35_mies"},true]},
+          "przyczyna_braku_uprawnien": "Program obejmuje dzieci w wieku 12-35 miesięcy.",
+          "zmienne": [
+            "wyl.ma_dziecko_12_35_mies"
+          ]
+        },
+        {
+          "id": "AKTYWNY_RODZIC.w2",
+          "opis": "Spełniony jeden z trybów: w żłobku, w pracy, w domu",
+          "wyrazenie": {"or":[{"==":[{"var":"wyl.ma_dziecko_w_zlobku"},true]},{"==":[{"var":"wyl.oboje_rodzice_aktywni_zawodowo"},true]},{"==":[{"var":"wyl.rodzic_aktywny_w_domu"},true]}]},
+          "przyczyna_braku_uprawnien": "Nie spełniono warunków żadnego z trybów programu.",
+          "zmienne": [
+            "wyl.ma_dziecko_w_zlobku",
+            "wyl.oboje_rodzice_aktywni_zawodowo",
+            "wyl.rodzic_aktywny_w_domu"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "AKTYWNY-RODZIC",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_aktywny_rodzic",
+        "parametry": [
+          "swiadczenia.aktywny_rodzic_zlobek_zl",
+          "swiadczenia.aktywny_rodzic_praca_zl",
+          "swiadczenia.aktywny_rodzic_dom_zl"
+        ],
+        "opis": "Kwota zależy od trybu; przy opiece naprzemiennej dzielona po połowie."
+      },
+      "do_weryfikacji": true,
+      "uwagi": "Warunki trybów i kwoty do potwierdzenia z mentorami ZUS."
+    },
+    {
+      "id": "SWIADCZENIE_RODZICIELSKIE",
+      "nazwa": "Świadczenie rodzicielskie (1000 zł)",
+      "typ": "swiadczenie_gminne",
+      "instytucja": "Gmina (MOPS/OPS)",
+      "etapy": [
+        "w_ciazy",
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "SWIADCZENIE_RODZICIELSKIE.w1",
+          "opis": "Brak prawa do zasiłku macierzyńskiego",
+          "wyrazenie": {"==":[{"var":"wyl.brak_prawa_do_zasilku_macierzynskiego"},true]},
+          "przyczyna_braku_uprawnien": "Masz prawo do zasiłku macierzyńskiego z ZUS, który ma pierwszeństwo.",
+          "zmienne": [
+            "wyl.brak_prawa_do_zasilku_macierzynskiego"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_RODZICIELSKIE.w2",
+          "opis": "Nie pobiera świadczenia wykluczającego",
+          "wyrazenie": {"==":[{"var":"wyl.pobiera_swiadczenie_wykluczajace_sr7"},false]},
+          "przyczyna_braku_uprawnien": "Pobierasz świadczenie wykluczające świadczenie rodzicielskie.",
+          "zmienne": [
+            "wyl.pobiera_swiadczenie_wykluczajace_sr7"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_RODZICIELSKIE.w3",
+          "opis": "Brak świadczenia z tytułu urodzenia za granicą",
+          "wyrazenie": {"==":[{"var":"rodzina.swiadczenie_za_granica"},false]},
+          "przyczyna_braku_uprawnien": "Świadczenie z tego samego tytułu za granicą wyłącza prawo.",
+          "zmienne": [
+            "rodzina.swiadczenie_za_granica"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_RODZICIELSKIE.w4",
+          "opis": "Dziecko urodzone żywo lub przyjęte na wychowanie",
+          "wyrazenie": {"or":[{"==":[{"var":"porod.stan_dziecka"},"zywe"]},{"==":[{"var":"wyl.ma_dziecko_przyjete_na_wychowanie"},true]}]},
+          "przyczyna_braku_uprawnien": "Brak dziecka uprawniającego do świadczenia.",
+          "zmienne": [
+            "porod.stan_dziecka",
+            "wyl.ma_dziecko_przyjete_na_wychowanie"
+          ]
+        },
+        {
+          "id": "SWIADCZENIE_RODZICIELSKIE.w5",
+          "opis": "Obywatel Polski lub cudzoziemiec z legalnym pobytem",
+          "wyrazenie": {"or":[{"==":[{"var":"wnioskodawca.obywatelstwo"},"PL"]},{"==":[{"var":"wnioskodawca.legalny_pobyt_w_polsce"},true]}]},
+          "przyczyna_braku_uprawnien": "Brak uprawnienia ze względu na obywatelstwo i pobyt.",
+          "zmienne": [
+            "wnioskodawca.legalny_pobyt_w_polsce",
+            "wnioskodawca.obywatelstwo"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "SR-7",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "kwota_stala_okres",
+        "parametry": [
+          "swiadczenia.rodzicielskie_zl_mies",
+          "termin.sr7_mies"
+        ],
+        "opis": "1000 zł miesięcznie; długość okresu wg liczby dzieci (do weryfikacji)."
+      },
+      "do_weryfikacji": true
+    },
+    {
+      "id": "BECIKOWE",
+      "nazwa": "Becikowe (jednorazowa zapomoga 1000 zł)",
+      "typ": "swiadczenie_gminne",
+      "instytucja": "Gmina",
+      "etapy": [
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "BECIKOWE.w1",
+          "opis": "Dochód na osobę w limicie",
+          "wyrazenie": {"<=":[{"var":"wyl.dochod_na_osobe"},{"var":"param.swiadczenia.becikowe_kryterium_zl"}]},
+          "przyczyna_braku_uprawnien": "Dochód na osobę przekracza kryterium.",
+          "zmienne": [
+            "param.swiadczenia.becikowe_kryterium_zl",
+            "wyl.dochod_na_osobe"
+          ]
+        },
+        {
+          "id": "BECIKOWE.w2",
+          "opis": "Opieka medyczna od 10. tygodnia ciąży (lub przyjęcie dziecka)",
+          "wyrazenie": {"or":[{"==":[{"var":"ciaza.opieka_medyczna_od_10_tyg"},true]},{"==":[{"var":"wyl.ma_dziecko_przyjete_na_wychowanie"},true]}]},
+          "przyczyna_braku_uprawnien": "Brak opieki medycznej od 10. tygodnia ciąży.",
+          "zmienne": [
+            "ciaza.opieka_medyczna_od_10_tyg",
+            "wyl.ma_dziecko_przyjete_na_wychowanie"
+          ]
+        },
+        {
+          "id": "BECIKOWE.w3",
+          "opis": "Dziecko urodzone żywo lub przyjęte",
+          "wyrazenie": {"or":[{"==":[{"var":"porod.stan_dziecka"},"zywe"]},{"==":[{"var":"wyl.ma_dziecko_przyjete_na_wychowanie"},true]}]},
+          "przyczyna_braku_uprawnien": "Becikowe nie przysługuje przy martwym urodzeniu.",
+          "zmienne": [
+            "porod.stan_dziecka",
+            "wyl.ma_dziecko_przyjete_na_wychowanie"
+          ]
+        },
+        {
+          "id": "BECIKOWE.w4",
+          "opis": "Brak świadczenia za granicą",
+          "wyrazenie": {"==":[{"var":"rodzina.swiadczenie_za_granica"},false]},
+          "przyczyna_braku_uprawnien": "Świadczenie za granicą wyłącza prawo.",
+          "zmienne": [
+            "rodzina.swiadczenie_za_granica"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "BECIKOWE",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "kwota_stala",
+        "parametry": [
+          "swiadczenia.becikowe_zl",
+          "swiadczenia.becikowe_kryterium_zl",
+          "termin.becikowe_mies"
+        ],
+        "opis": "Jednorazowo, wniosek do 12 miesięcy od urodzenia."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "ZASILEK_RODZINNY",
+      "nazwa": "Zasiłek rodzinny i dodatki (w tym z tytułu urodzenia dziecka)",
+      "typ": "swiadczenie_gminne",
+      "instytucja": "Gmina",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "ZASILEK_RODZINNY.w1",
+          "opis": "Są dzieci w wieku uprawniającym",
+          "wyrazenie": {">":[{"var":"wyl.liczba_dzieci_do_zasilku_rodzinnego"},0]},
+          "przyczyna_braku_uprawnien": "Brak dziecka w wieku uprawniającym.",
+          "zmienne": [
+            "wyl.liczba_dzieci_do_zasilku_rodzinnego"
+          ]
+        },
+        {
+          "id": "ZASILEK_RODZINNY.w2",
+          "opis": "Dochód na osobę w limicie (674 zł, 764 zł przy niepełnosprawności)",
+          "wyrazenie": {"<=":[{"var":"wyl.dochod_na_osobe"},{"if":[{"==":[{"var":"wyl.ma_dziecko_niepelnosprawne"},true]},{"var":"param.swiadczenia.zasilek_rodzinny_kryterium_niepelnospr_zl"},{"var":"param.swiadczenia.zasilek_rodzinny_kryterium_zl"}]}]},
+          "przyczyna_braku_uprawnien": "Dochód na osobę przekracza kryterium.",
+          "zmienne": [
+            "param.swiadczenia.zasilek_rodzinny_kryterium_niepelnospr_zl",
+            "param.swiadczenia.zasilek_rodzinny_kryterium_zl",
+            "wyl.dochod_na_osobe",
+            "wyl.ma_dziecko_niepelnosprawne"
+          ]
+        },
+        {
+          "id": "ZASILEK_RODZINNY.w3",
+          "opis": "Brak świadczenia za granicą",
+          "wyrazenie": {"==":[{"var":"rodzina.swiadczenie_za_granica"},false]},
+          "przyczyna_braku_uprawnien": "Świadczenie za granicą wyłącza prawo.",
+          "zmienne": [
+            "rodzina.swiadczenie_za_granica"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "SR-1",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "oblicz_zasilek_rodzinny",
+        "parametry": [
+          "swiadczenia.zasilek_rodzinny_kryterium_zl",
+          "swiadczenia.zasilek_rodzinny_kryterium_niepelnospr_zl"
+        ],
+        "opis": "Kwoty zasiłku i dodatków wg wieku dziecka; dodatek z tytułu urodzenia 1000 zł."
+      },
+      "do_weryfikacji": true
+    },
+    {
+      "id": "ZA_ZYCIEM_4000",
+      "nazwa": "Jednorazowe świadczenie Za życiem (4000 zł)",
+      "typ": "swiadczenie_gminne",
+      "instytucja": "Gmina",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "ZA_ZYCIEM_4000.w1",
+          "opis": "Dziecko ma zaświadczenie Za życiem",
+          "wyrazenie": {"==":[{"var":"wyl.ma_dziecko_za_zyciem"},true]},
+          "przyczyna_braku_uprawnien": "Brak zaświadczenia Za życiem.",
+          "zmienne": [
+            "wyl.ma_dziecko_za_zyciem"
+          ]
+        },
+        {
+          "id": "ZA_ZYCIEM_4000.w2",
+          "opis": "Opieka medyczna od 10. tygodnia ciąży",
+          "wyrazenie": {"==":[{"var":"ciaza.opieka_medyczna_od_10_tyg"},true]},
+          "przyczyna_braku_uprawnien": "Wymagana opieka medyczna od 10. tygodnia ciąży.",
+          "zmienne": [
+            "ciaza.opieka_medyczna_od_10_tyg"
+          ]
+        },
+        {
+          "id": "ZA_ZYCIEM_4000.w3",
+          "opis": "Brak świadczenia za granicą",
+          "wyrazenie": {"==":[{"var":"rodzina.swiadczenie_za_granica"},false]},
+          "przyczyna_braku_uprawnien": "Świadczenie za granicą wyłącza prawo.",
+          "zmienne": [
+            "rodzina.swiadczenie_za_granica"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ZA-ZYCIEM",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "kwota_stala",
+        "parametry": [
+          "swiadczenia.za_zyciem_zl",
+          "termin.za_zyciem_mies"
+        ],
+        "opis": "Jednorazowo, wniosek do 12 miesięcy od urodzenia."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "KARTA_DUZEJ_RODZINY",
+      "nazwa": "Karta Dużej Rodziny",
+      "typ": "swiadczenie_gminne",
+      "instytucja": "Gmina",
+      "etapy": [
+        "planuje",
+        "w_ciazy",
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "KARTA_DUZEJ_RODZINY.w1",
+          "opis": "Co najmniej 3 dzieci wliczanych do KDR",
+          "wyrazenie": {">=":[{"var":"wyl.liczba_dzieci_do_kdr"},{"var":"param.swiadczenia.kdr_prog_dzieci"}]},
+          "przyczyna_braku_uprawnien": "Karta przysługuje rodzinom z co najmniej 3 dzieci.",
+          "zmienne": [
+            "param.swiadczenia.kdr_prog_dzieci",
+            "wyl.liczba_dzieci_do_kdr"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "KDR",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "kwota_brak",
+        "parametry": [
+          "swiadczenia.kdr_prog_dzieci"
+        ],
+        "opis": "Uprawnienie bez kwoty; brak kryterium dochodowego."
+      },
+      "do_weryfikacji": true
+    },
+    {
+      "id": "OCHRONA_STOSUNKU_PRACY",
+      "nazwa": "Ochrona stosunku pracy w ciąży i na urlopach (Kodeks pracy)",
+      "typ": "uprawnienie_pracownicze",
+      "instytucja": "Pracodawca",
+      "etapy": [
+        "planuje",
+        "w_ciazy",
+        "po_porodzie",
+        "adopcja_zastepcza"
+      ],
+      "warunki": [
+        {
+          "id": "OCHRONA_STOSUNKU_PRACY.w1",
+          "opis": "Pracownik na umowie o pracę",
+          "wyrazenie": {"==":[{"var":"ubezpieczenie.tytul"},"umowa_o_prace"]},
+          "przyczyna_braku_uprawnien": "Ochrona dotyczy pracowników (nie osób prowadzących działalność ani na zleceniu).",
+          "zmienne": [
+            "ubezpieczenie.tytul"
+          ]
+        },
+        {
+          "id": "OCHRONA_STOSUNKU_PRACY.w2",
+          "opis": "W okresie ochrony (ciąża, urlop lub wniosek o urlop)",
+          "wyrazenie": {"==":[{"var":"wyl.w_okresie_ochrony"},true]},
+          "przyczyna_braku_uprawnien": "Nie trwa okres ochrony.",
+          "zmienne": [
+            "wyl.w_okresie_ochrony"
+          ]
+        }
+      ],
+      "wnioski": [],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "brak",
+        "parametry": [
+          "ochrona.umowa_terminowa_przedluzenie_od_miesiaca_ciazy"
+        ],
+        "opis": "Zakaz wypowiedzenia i rozwiązania umowy; umowa terminowa kończąca się po 3. miesiącu ciąży przedłuża się do dnia porodu."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "FORMALNOSC_ZGLOSZENIE_URODZENIA",
+      "nazwa": "Zgłoszenie urodzenia dziecka",
+      "typ": "formalnosc",
+      "instytucja": "USC",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "FORMALNOSC_ZGLOSZENIE_URODZENIA.w1",
+          "opis": "Poród nastąpił",
+          "wyrazenie": {"==":[{"var":"wyl.dziecko_urodzone"},true]},
+          "przyczyna_braku_uprawnien": "Zgłoszenie dotyczy urodzonego dziecka.",
+          "zmienne": [
+            "wyl.dziecko_urodzone"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ZGLOSZENIE-URODZENIA",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "brak",
+        "parametry": [
+          "termin.zgloszenie_urodzenia_dni"
+        ],
+        "opis": "Termin 21 dni od wystawienia karty urodzenia."
+      },
+      "do_weryfikacji": false
+    },
+    {
+      "id": "FORMALNOSC_ODPIS_AKTU",
+      "nazwa": "Odpis aktu urodzenia",
+      "typ": "formalnosc",
+      "instytucja": "USC",
+      "etapy": [
+        "po_porodzie"
+      ],
+      "warunki": [
+        {
+          "id": "FORMALNOSC_ODPIS_AKTU.w1",
+          "opis": "Poród nastąpił",
+          "wyrazenie": {"==":[{"var":"wyl.dziecko_urodzone"},true]},
+          "przyczyna_braku_uprawnien": "Odpis dotyczy urodzonego dziecka.",
+          "zmienne": [
+            "wyl.dziecko_urodzone"
+          ]
+        }
+      ],
+      "wnioski": [
+        {
+          "kod": "ODPIS-AKTU",
+          "warunek": null
+        }
+      ],
+      "dokumenty_zrodlowe": [],
+      "informacje": [],
+      "wynik": {
+        "funkcja": "brak",
+        "parametry": [],
+        "opis": "Symulacja e-usługi wymagana w zadaniu."
+      },
+      "do_weryfikacji": false
+    }
+  ],
+  "ryzyka": [
+    {
+      "id": "R_BRAK_UBEZP_W_DNIU_PORODU",
+      "nazwa": "Brak ubezpieczenia chorobowego w dniu porodu",
+      "poziom": "wysokie",
+      "warunek": {"and":[{"==":[{"var":"wyl.ubezpieczony_w_dniu_porodu"},false]},{"in":[{"var":"wnioskodawca.etap"},["planuje","w_ciazy"]]}]},
+      "komunikat": "Jeśli w dniu porodu nie będziesz objęta ubezpieczeniem chorobowym, zasiłek macierzyński może Ci nie przysługiwać.",
+      "dotyczy": [
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ],
+      "podstawa": "zadanie ZUS, sekcja H pkt 3"
+    },
+    {
+      "id": "R_USTANIE_UBEZPIECZENIA",
+      "nazwa": "Ustanie ubezpieczenia przed porodem",
+      "poziom": "wysokie",
+      "warunek": {"==":[{"var":"wyl.ubezpieczenie_ustalo_przed_porodem"},true]},
+      "komunikat": "Ubezpieczenie ustało przed porodem (koniec umowy, zlecenia lub działalności). Sprawdź, czy przysługuje zasiłek w wysokości macierzyńskiego lub świadczenie rodzicielskie.",
+      "dotyczy": [
+        "ZASILEK_MACIERZYNSKI_MATKA",
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO",
+        "SWIADCZENIE_RODZICIELSKIE"
+      ],
+      "podstawa": "zadanie ZUS, sekcja H pkt 3"
+    },
+    {
+      "id": "R_BRAK_DOBROWOLNEGO",
+      "nazwa": "Brak dobrowolnego ubezpieczenia chorobowego",
+      "poziom": "wysokie",
+      "warunek": {"and":[{"==":[{"var":"ubezpieczenie.chorobowe"},"brak"]},{"in":[{"var":"ubezpieczenie.tytul"},["umowa_zlecenia","jdg","wspolpraca_jdg","ulga_na_start"]]},{"in":[{"var":"wnioskodawca.etap"},["planuje","w_ciazy"]]}]},
+      "komunikat": "Na zleceniu i w działalności zasiłek wymaga dobrowolnego ubezpieczenia chorobowego (okres wyczekiwania 90 dni).",
+      "dotyczy": [
+        "ZASILEK_CHOROBOWY_CIAZA",
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ],
+      "podstawa": "zadanie ZUS, sekcja 1"
+    },
+    {
+      "id": "R_ZMIANA_PODSTAWY",
+      "nazwa": "Podwyższenie podstawy składek w ciąży",
+      "poziom": "srednie",
+      "warunek": {"==":[{"var":"ubezpieczenie.zmiana_podstawy_w_ciazy.czy"},true]},
+      "komunikat": "ZUS może zakwestionować podwyższenie podstawy składek w ciąży i ustalić niższą podstawę zasiłku.",
+      "dotyczy": [
+        "ZASILEK_CHOROBOWY_CIAZA",
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ],
+      "podstawa": "zadanie ZUS, sekcja H pkt 2",
+      "wnioski": [
+        "POG"
+      ]
+    },
+    {
+      "id": "R_ZMIANA_WARUNKOW",
+      "nazwa": "Zmiana warunków zatrudnienia w ciąży",
+      "poziom": "srednie",
+      "warunek": {"==":[{"var":"ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy.czy"},true]},
+      "komunikat": "Zmiana warunków zatrudnienia w ciąży może obniżyć lub odebrać zasiłek.",
+      "dotyczy": [
+        "ZASILEK_CHOROBOWY_CIAZA",
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ],
+      "podstawa": "zadanie ZUS, sekcja 2"
+    },
+    {
+      "id": "R_ZADLUZENIE_JDG",
+      "nazwa": "Zadłużenie składkowe",
+      "poziom": "wysokie",
+      "warunek": {"and":[{"in":[{"var":"ubezpieczenie.tytul"},["jdg","wspolpraca_jdg","ulga_na_start"]]},{">":[{"var":"ubezpieczenie.zadluzenie_skladkowe.kwota"},{"var":"param.zasilek.zadluzenie_prog_zl"}]}]},
+      "komunikat": "Zadłużenie składkowe na dzień powstania prawa może wpłynąć na prawo do zasiłku. Sprawdź zaświadczenie i rozważ spłatę lub układ ratalny.",
+      "dotyczy": [
+        "ZASILEK_CHOROBOWY_CIAZA",
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ],
+      "podstawa": "zadanie ZUS, sekcja 3",
+      "wnioski": [
+        "POG"
+      ]
+    },
+    {
+      "id": "R_TERMIN_81_5",
+      "nazwa": "Kończy się termin na wniosek o 81,5%",
+      "poziom": "srednie",
+      "warunek": {"and":[{">=":[{"var":"wyl.dni_do_konca_terminu_81_5"},0]},{"<=":[{"var":"wyl.dni_do_konca_terminu_81_5"},{"var":"param.termin.ostrzezenie_dni"}]},{"==":[{"var":"plan.wniosek_81_5.czy"},false]}]},
+      "komunikat": "Wniosek o 81,5% zasiłku za cały okres trzeba złożyć do 21 dni po porodzie.",
+      "dotyczy": [
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ],
+      "podstawa": "zadanie ZUS, sekcja G"
+    },
+    {
+      "id": "R_OKRES_ZASILKOWY",
+      "nazwa": "Zbliża się koniec okresu zasiłkowego",
+      "poziom": "srednie",
+      "warunek": {">=":[{"var":"zdrowie.okres_zasilkowy_wykorzystany_dni"},{"-":[{"var":"param.zasilek.okres_zasilkowy_dni"},{"var":"param.zasilek.okres_zasilkowy_ostrzezenie_dni"}]}]},
+      "komunikat": "Zbliżasz się do limitu 270 dni zasiłku. Rozważ świadczenie rehabilitacyjne, jeśli niezdolność do pracy będzie trwać.",
+      "dotyczy": [
+        "ZASILEK_CHOROBOWY_CIAZA",
+        "SWIADCZENIE_REHABILITACYJNE"
+      ],
+      "podstawa": "zadanie ZUS, sekcja 1"
+    },
+    {
+      "id": "R_BRAK_OCHRONY",
+      "nazwa": "Ochrona z Kodeksu pracy nie dotyczy Twojej umowy",
+      "poziom": "info",
+      "warunek": {"and":[{"in":[{"var":"ubezpieczenie.tytul"},["jdg","wspolpraca_jdg","ulga_na_start","umowa_zlecenia","umowa_o_dzielo"]]},{"==":[{"var":"ciaza.w_ciazy"},true]}]},
+      "komunikat": "Szczególna ochrona przed zwolnieniem dotyczy pracowników, nie osób na zleceniu ani prowadzących działalność.",
+      "dotyczy": [
+        "OCHRONA_STOSUNKU_PRACY"
+      ],
+      "podstawa": "zadanie ZUS, sekcja I"
+    }
+  ],
+  "walidacje_planu": [
+    {
+      "id": "mac_min_14",
+      "opis": "Matka wykorzystuje osobiście minimum 14 tygodni urlopu macierzyńskiego po porodzie",
+      "parametry": [
+        "urlop.macierzynski_min_matka_tyg"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "mac_przed_porodem",
+      "opis": "Urlop macierzyński można zacząć najwcześniej 6 tygodni przed przewidywaną datą porodu",
+      "parametry": [
+        "urlop.macierzynski_przed_porodem_max_tyg"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "mac_wymiar",
+      "opis": "Wymiar urlopu macierzyńskiego zależy od porod.liczba_dzieci",
+      "parametry": [
+        "urlop.macierzynski_tyg.1",
+        "urlop.macierzynski_tyg.2",
+        "urlop.macierzynski_tyg.3",
+        "urlop.macierzynski_tyg.4",
+        "urlop.macierzynski_tyg.5_plus"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "rod_nieprzenoszalne",
+      "opis": "Każdemu rodzicowi przysługuje nieprzenoszalna część puli urlopu rodzicielskiego",
+      "parametry": [
+        "urlop.rodzicielski_nieprzenoszalny_tyg"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "rod_max_czesci",
+      "opis": "Urlop rodzicielski można podzielić na maksymalnie 5 części",
+      "parametry": [
+        "urlop.rodzicielski_max_czesci"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "rod_termin",
+      "opis": "Urlop rodzicielski do końca roku kalendarzowego, w którym dziecko kończy 6 lat",
+      "parametry": [
+        "urlop.rodzicielski_do_konca_roku_wiek_dziecka"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "rod_praca",
+      "opis": "Praca w trakcie urlopu rodzicielskiego maksymalnie w wymiarze 0,5 etatu u tego samego pracodawcy",
+      "parametry": [
+        "urlop.rodzicielski_praca_max_wymiar"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "ojc_dni",
+      "opis": "Urlop ojcowski: 14 dni jednorazowo albo w 2 częściach po minimum 7 dni",
+      "parametry": [
+        "urlop.ojcowski_dni",
+        "urlop.ojcowski_min_czesc_dni"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "ojc_termin",
+      "opis": "Urlop ojcowski do ukończenia 12. miesiąca życia dziecka",
+      "parametry": [
+        "urlop.ojcowski_max_wiek_dziecka_mies"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "uzup_jednorazowo",
+      "opis": "Uzupełniający urlop macierzyński jednorazowo, bezpośrednio po urlopie macierzyńskim",
+      "parametry": [
+        "urlop.uzupelniajacy_max_tyg.wczesniak_ciezki",
+        "urlop.uzupelniajacy_max_tyg.wczesniak_lekki"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    },
+    {
+      "id": "wniosek_81_5",
+      "opis": "Wniosek o 81,5% najpóźniej 21 dni po porodzie",
+      "parametry": [
+        "termin.wniosek_81_5_dni"
+      ],
+      "funkcja": "waliduj_plan_urlopow"
+    }
+  ]
+}

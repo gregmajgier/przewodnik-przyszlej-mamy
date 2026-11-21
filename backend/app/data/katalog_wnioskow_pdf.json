@@ -1,21 +1,72 @@
 {
   "meta": {
     "nazwa": "Katalog wniosków i formularzy do wypełniania przez aplikację",
+    "wersja": "1.1",
+    "data": "2026-11-21",
     "data_sprawdzenia_linkow": "2026-11-21",
     "uwagi": [
       "Linki do PDF ZUS zawierają parametr ?t= (wersja); po aktualizacji formularza ZUS link się zmienia: sprawdzaj stronę formularza.",
       "Od 24.10.2026 r. ZUR i ZAO połączono z ZAM, a Z-3b zlikwidowano (treść zadania ZUS).",
       "Wnioski do pracodawcy nie mają urzędowego wzoru: generujemy je sami zgodnie z rozporządzeniem MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322).",
-      "Wersja 'wypełnij i wydrukuj' ma pola formularza (AcroForm) i nadaje się do automatycznego wypełniania."
-    ]
+      "Wersja 'wypełnij i wydrukuj' ma pola formularza (AcroForm) i nadaje się do automatycznego wypełniania.",
+      "Terminy są strukturalne: pole 'param' wskazuje wartość w reguly_uprawnien.json (parametry), więc zmiana w panelu admina zmienia termin bez zmiany katalogu.",
+      "Pole 'swiadczenia' to indeks odwrotny, generowany z reguly_uprawnien.json. Nie edytować ręcznie.",
+      "Dodano URLOP-MAC-OJC i URLOP-MAC-PRZYJECIE (generowane przez aplikację).",
+      "1.1: dodano Z-15 (zasiłek opiekuńczy; zastąpił Z-15A i Z-15B), Z-12 (zasiłek pogrzebowy, /jaskolka) i POG (pismo ogólne). Pole 'ryzyka' to indeks odwrotny ryzyk z reguly_uprawnien.json (generowany).",
+      "Pole 'plik_lokalny': PDF zapisany w app/data/wnioski_pdf (gdy brak stałego linku z zus.pl)."
+    ],
+    "enumy": {
+      "instytucja_typ": [
+        "zus",
+        "zus_lub_platnik",
+        "platnik",
+        "pracodawca",
+        "gmina",
+        "usc"
+      ],
+      "rola": [
+        "wniosek",
+        "dokument_zrodlowy",
+        "usluga_elektroniczna"
+      ],
+      "tryb_aplikacji": [
+        "pdf_acroform",
+        "pdf_generowany",
+        "parser_dokumentu",
+        "deep_link_symulacja",
+        "e_usluga_symulacja",
+        "link_zewnetrzny"
+      ],
+      "terminy.rodzaj": [
+        "zlozenie_wniosku",
+        "wygasniecie_prawa"
+      ],
+      "terminy.kierunek": [
+        "przed",
+        "po",
+        "razem"
+      ],
+      "terminy.odniesienie": [
+        "data_porodu",
+        "data_urodzenia",
+        "data_zgonu",
+        "koniec_urlopu_macierzynskiego",
+        "przejecie_urlopu_przez_ojca",
+        "rozpoczecie_urlopu",
+        "wniosek_URLOP-ROD",
+        "wystawienie_karty_urodzenia"
+      ]
+    }
   },
   "wnioski": [
     {
       "kod": "ZAM",
       "nazwa": "Wniosek o zasiłek macierzyński (także za urlop rodzicielski i ojcowski)",
       "instytucja": "ZUS lub płatnik",
-      "kto": "Ubezpieczeni niebędący pracownikami (JDG, zlecenie) i inni wnioskujący do ZUS; pracownik składa wniosek o urlop u pracodawcy",
-      "aktualizacja": "2026-10-24",
+      "instytucja_typ": "zus_lub_platnik",
+      "adresat_opis": "Ubezpieczeni niebędący pracownikami (JDG, zlecenie) i inni wnioskujący do ZUS; pracownik składa wniosek o urlop u pracodawcy",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
@@ -23,83 +74,130 @@
         "poczta",
         "płatnik (zleceniobiorca)"
       ],
+      "terminy": [],
+      "aktualizacja": "2026-10-24",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/4223950/ZAM_pobierz+i+drukuj.pdf/f1ad7e3f-0eaa-fdbc-20ec-5b07ab59566a?t=1792761767460",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/4223950/ZAM_wypelnij_i_wydrukuj.pdf/4e4534c6-e7cd-b934-9c5e-aab4d64f3f20?t=1793008198611",
-      "strona_formularza": "https://www.zus.pl/wzory-formularzy/zasilki/zasilek-macierzynski/-/asset_publisher/m5Npg4icZlfP/content/wniosek-zas-54"
+      "strona_formularza": "https://www.zus.pl/wzory-formularzy/zasilki/zasilek-macierzynski/-/asset_publisher/m5Npg4icZlfP/content/wniosek-zas-54",
+      "uwagi": [
+        "Od 24.10.2026 obejmuje także dawne ZUR i ZAO."
+      ],
+      "swiadczenia": [
+        "ZASILEK_ADOPCJA_ZASTEPCZA",
+        "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+        "ZASILEK_MACIERZYNSKI_MATKA",
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE",
+        "ZASILEK_URLOP_OJCOWSKI",
+        "ZASILEK_URLOP_RODZICIELSKI",
+        "ZASILEK_URLOP_UZUPELNIAJACY"
+      ]
     },
     {
       "kod": "ZAS-53",
       "nazwa": "Wniosek o zasiłek chorobowy",
       "instytucja": "ZUS",
-      "kto": "JDG, osoby po ustaniu ubezpieczenia, osoby, którym zasiłek wypłaca ZUS",
-      "aktualizacja": "2026-04-13 (inna podstrona ZUS podaje 2026-10-24, sprawdzić)",
+      "instytucja_typ": "zus",
+      "adresat_opis": "JDG, osoby po ustaniu ubezpieczenia, osoby, którym zasiłek wypłaca ZUS",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
         "placówka ZUS",
         "poczta"
       ],
+      "terminy": [],
+      "aktualizacja": "2026-04-13 (inna podstrona ZUS podaje 2026-10-24, sprawdzić)",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/10157865/ZAS-53_do+wydruku.pdf/fb9f344f-b24d-031a-d1ca-18e26c19027d?t=1775825350615",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/10157865/ZAS-53_WCAG2_do+zapisu.pdf/b6f67bac-5887-3bd0-18ca-d857fa6504e1?t=1790939407391",
-      "strona_formularza": "https://www.zus.pl/-/zaswiadczenie-zas-53"
+      "strona_formularza": "https://www.zus.pl/-/zaswiadczenie-zas-53",
+      "uwagi": [
+        "Data aktualizacji niepewna: jedna podstrona ZUS podaje 2026-04-13, inna 2026-10-24."
+      ],
+      "swiadczenia": [
+        "ZASILEK_CHOROBOWY_CIAZA"
+      ]
     },
     {
       "kod": "ZAS-55",
       "nazwa": "Wniosek o zasiłek w wysokości zasiłku macierzyńskiego i zasiłek wyrównawczy",
       "instytucja": "ZUS",
-      "kto": "Kobieta w ciąży po utracie pracy (upadłość, likwidacja, śmierć pracodawcy, naruszenie przepisów)",
-      "aktualizacja": "2025-01-01",
+      "instytucja_typ": "zus",
+      "adresat_opis": "Kobieta w ciąży po utracie pracy (upadłość, likwidacja, śmierć pracodawcy, naruszenie przepisów)",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
         "placówka ZUS",
         "poczta"
       ],
+      "terminy": [],
+      "aktualizacja": "2025-01-01",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/4223950/ZAS-55_pobierz_plik_drukowany.pdf/6346a0af-1507-87c3-eaee-ec215604d96e?t=1735656010457",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/4223950/ZAS-55_wypelnij_i_wydrukuj.pdf/884ace3c-f1a2-2306-b915-bf546a963111?t=1735656047359",
-      "strona_formularza": "https://www.zus.pl/-/wnioski-zas-55"
+      "strona_formularza": "https://www.zus.pl/-/wnioski-zas-55",
+      "swiadczenia": [
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ]
     },
     {
       "kod": "ZNp-7",
       "nazwa": "Wniosek o świadczenie rehabilitacyjne",
       "instytucja": "ZUS",
-      "kto": "Po wyczerpaniu zasiłku chorobowego, gdy dalsze leczenie rokuje odzyskanie zdolności do pracy",
-      "aktualizacja": "2026-10-24",
+      "instytucja_typ": "zus",
+      "adresat_opis": "Po wyczerpaniu zasiłku chorobowego, gdy dalsze leczenie rokuje odzyskanie zdolności do pracy",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
         "placówka ZUS",
         "poczta"
       ],
+      "terminy": [],
+      "aktualizacja": "2026-10-24",
+      "pdf_do_druku": "https://www.zus.pl/documents/10182/4447142/ZNp-7_pobierz+i+wydrukuj.pdf/80a29902-a38f-6020-61e6-925e783e1676?t=1793008842078",
+      "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/4447142/ZNp-7_wypelnij_i_wydrukuj.pdf/4424a84d-6857-ee1e-8f0d-08f99b24efad?t=1793008868338",
+      "strona_formularza": "https://www.zus.pl/wzory-formularzy/zasilki/swiadczenie-rehabilitacyjne",
       "zalaczniki": [
         "N-9 zaświadczenie o stanie zdrowia (lekarz)",
         "OL-10 wywiad zawodowy",
         "Z-3/Z-3a"
       ],
-      "pdf_do_druku": "https://www.zus.pl/documents/10182/4447142/ZNp-7_pobierz+i+wydrukuj.pdf/80a29902-a38f-6020-61e6-925e783e1676?t=1793008842078",
-      "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/4447142/ZNp-7_wypelnij_i_wydrukuj.pdf/4424a84d-6857-ee1e-8f0d-08f99b24efad?t=1793008868338",
-      "strona_formularza": "https://www.zus.pl/wzory-formularzy/zasilki/swiadczenie-rehabilitacyjne"
+      "swiadczenia": [
+        "SWIADCZENIE_REHABILITACYJNE"
+      ]
     },
     {
       "kod": "Z-10",
       "nazwa": "Oświadczenie w związku z roszczeniem o zasiłek chorobowy/świadczenie rehabilitacyjne po ustaniu tytułu ubezpieczenia",
       "instytucja": "ZUS",
-      "kto": "Osoby po ustaniu zatrudnienia lub ubezpieczenia",
+      "instytucja_typ": "zus",
+      "adresat_opis": "Osoby po ustaniu zatrudnienia lub ubezpieczenia",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
         "placówka ZUS",
         "poczta"
       ],
+      "terminy": [],
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/4223950/Z-10_wydrukuj_wype%C5%82nij.pdf/a97222d7-e70c-0f2a-dc2f-fb9bb5089a38?t=1792763384946",
-      "strona_formularza": "https://www.zus.pl/-/o%C5%9Bwiadczenie-zus-z-10"
+      "strona_formularza": "https://www.zus.pl/-/o%C5%9Bwiadczenie-zus-z-10",
+      "swiadczenia": [
+        "ZASILEK_CHOROBOWY_CIAZA"
+      ]
     },
     {
       "kod": "ZAS-26",
       "nazwa": "Oświadczenie o przyjęciu na wychowanie dziecka (zasiłek macierzyński)",
       "instytucja": "ZUS lub płatnik",
-      "kto": "Adopcja, rodzina zastępcza niezawodowa",
-      "aktualizacja": "2025-01-01",
+      "instytucja_typ": "zus_lub_platnik",
+      "adresat_opis": "Adopcja, rodzina zastępcza niezawodowa",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
@@ -107,16 +205,23 @@
         "poczta",
         "pracodawca"
       ],
+      "terminy": [],
+      "aktualizacja": "2025-01-01",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/788036/ZAS-26_do+pobrania.pdf/bd817b19-f5c6-46ba-8afb-2c7b3a89be51?t=1735656714689",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/788036/ZAS-26_do+wype%C5%82nienia+i+wydruku.pdf/dd9790b1-5139-4a19-8cf3-5a888f7ba88e?t=1735656808915",
-      "strona_formularza": "https://www.zus.pl/-/oswiadczenie-zas-26"
+      "strona_formularza": "https://www.zus.pl/-/oswiadczenie-zas-26",
+      "swiadczenia": [
+        "ZASILEK_ADOPCJA_ZASTEPCZA"
+      ]
     },
     {
       "kod": "ZAS-33",
       "nazwa": "Oświadczenie o porzuceniu dziecka przez matkę lub o śmierci matki dziecka",
       "instytucja": "ZUS lub płatnik",
-      "kto": "Ojciec przejmujący urlop macierzyński",
-      "aktualizacja": "2025-01-01",
+      "instytucja_typ": "zus_lub_platnik",
+      "adresat_opis": "Ojciec przejmujący urlop macierzyński",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
@@ -124,16 +229,23 @@
         "poczta",
         "pracodawca"
       ],
+      "terminy": [],
+      "aktualizacja": "2025-01-01",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/788036/ZAS-33_do+pobrania+i+wydruku.pdf/0b9c07a2-94b8-497a-a15d-390bf5c72b2d?t=1735656579965",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/788036/ZAS-33_do+wype%C5%82nienia+i+wydruku.pdf/fa81d3bc-3dc8-4bae-b5f6-cac61f954a37?t=1735656618927",
-      "strona_formularza": "https://www.zus.pl/-/oswiadczenie-zas-33"
+      "strona_formularza": "https://www.zus.pl/-/oswiadczenie-zas-33",
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ]
     },
     {
       "kod": "ZAS-39",
       "nazwa": "Oświadczenie, że matka dziecka pobiera zasiłek macierzyński w okresie 8 tygodni po porodzie",
       "instytucja": "ZUS lub płatnik",
-      "kto": "Drugi rodzic (jednoczesne korzystanie)",
-      "aktualizacja": "2025-01-01",
+      "instytucja_typ": "zus_lub_platnik",
+      "adresat_opis": "Drugi rodzic (jednoczesne korzystanie)",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_acroform",
       "tylko_elektronicznie": false,
       "wysylka": [
         "eZUS",
@@ -141,18 +253,123 @@
         "poczta",
         "pracodawca"
       ],
+      "terminy": [],
+      "aktualizacja": "2025-01-01",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/788036/ZAS-39+do+pobrania+i+wydruku.pdf/311c8367-ad3f-4d27-ac52-69fce5171014?t=1735656279991",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/788036/ZAS-39_do+wype%C5%82nienia.pdf/12b695e8-81a1-47f9-ae6b-ae5cfb66c5c8?t=1735656311081",
-      "strona_formularza": "https://www.zus.pl/-/oswiadczenie-zas-39"
+      "strona_formularza": "https://www.zus.pl/-/oswiadczenie-zas-39",
+      "swiadczenia": [
+        "ZASILEK_URLOP_RODZICIELSKI"
+      ]
+    },
+    {
+      "kod": "Z-15",
+      "nazwa": "Wniosek o zasiłek opiekuńczy z powodu sprawowania opieki nad członkiem rodziny",
+      "instytucja": "ZUS lub płatnik",
+      "instytucja_typ": "zus_lub_platnik",
+      "adresat_opis": "Ubezpieczony chorobowo rodzic opiekujący się zdrowym dzieckiem do 8 lat, chorym dzieckiem do 14 lat lub dzieckiem z niepełnosprawnością do 18 lat",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
+      "tylko_elektronicznie": false,
+      "wysylka": [
+        "eZUS",
+        "płatnik składek",
+        "placówka ZUS",
+        "poczta"
+      ],
+      "terminy": [],
+      "pdf_do_druku": null,
+      "pdf_wypelnij_i_wydrukuj": null,
+      "strona_formularza": null,
+      "zalaczniki": [
+        "e-ZLA na opiekę nad dzieckiem"
+      ],
+      "uwagi": [
+        "Z-15 zastąpił wcześniejsze wnioski Z-15A (dziecko) i Z-15B (członek rodziny).",
+        "Wersja „pobierz i wydrukuj” bez pól AcroForm — do wydruku, bez automatycznego wypełniania."
+      ],
+      "swiadczenia": [
+        "ZASILEK_OPIEKUNCZY"
+      ],
+      "plik_lokalny": "wnioski_pdf/Z-15_pdf_do_druku.pdf"
+    },
+    {
+      "kod": "Z-12",
+      "nazwa": "Wniosek o zasiłek pogrzebowy",
+      "instytucja": "ZUS",
+      "instytucja_typ": "zus",
+      "adresat_opis": "Osoba, która pokryła koszty pogrzebu dziecka (także martwo urodzonego)",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
+      "tylko_elektronicznie": false,
+      "sciezka_ui": "/jaskolka",
+      "wysylka": [
+        "eZUS",
+        "placówka ZUS",
+        "poczta"
+      ],
+      "terminy": [
+        {
+          "rodzaj": "wygasniecie_prawa",
+          "param": "termin.pogrzebowy_mies",
+          "jednostka": "miesiac",
+          "odniesienie": "data_zgonu",
+          "kierunek": "po",
+          "opis": "Prawo wygasa po 12 miesiącach od dnia śmierci"
+        }
+      ],
+      "pdf_do_druku": null,
+      "pdf_wypelnij_i_wydrukuj": null,
+      "strona_formularza": null,
+      "zalaczniki": [
+        "dokument USC potwierdzający zgon lub martwe urodzenie",
+        "rachunki za koszty pogrzebu"
+      ],
+      "uwagi": [
+        "Ścieżka /jaskolka: spokojny ton, bez wykrzykników.",
+        "Wersja „pobierz i wydrukuj” bez pól AcroForm — do wydruku, bez automatycznego wypełniania."
+      ],
+      "swiadczenia": [
+        "ZASILEK_POGRZEBOWY"
+      ],
+      "plik_lokalny": "wnioski_pdf/Z-12_pdf_do_druku.pdf"
+    },
+    {
+      "kod": "POG",
+      "nazwa": "Pismo ogólne do ZUS",
+      "instytucja": "ZUS",
+      "instytucja_typ": "zus",
+      "adresat_opis": "Wyjaśnienia dla ZUS, np. przy zmianie podstawy składek w ciąży albo prośba o układ ratalny przy zadłużeniu składkowym (JDG)",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
+      "tylko_elektronicznie": false,
+      "wysylka": [
+        "eZUS (formularz POG)",
+        "placówka ZUS",
+        "poczta"
+      ],
+      "terminy": [],
+      "uwagi": [
+        "Treść pisma generuje aplikacja na podstawie aktywnego ryzyka (R_ZMIANA_PODSTAWY, R_ZADLUZENIE_JDG).",
+        "Wysyłka przez PUE/eZUS: formularz POG z załącznikami (instrukcja ZUS „Jak wysłać POG z załącznikami”)."
+      ],
+      "ryzyka": [
+        "R_ZADLUZENIE_JDG",
+        "R_ZMIANA_PODSTAWY"
+      ]
     },
     {
       "kod": "Z-3",
       "nazwa": "Zaświadczenie płatnika składek (pracownicy)",
       "instytucja": "wypełnia pracodawca, trafia do ZUS",
-      "kto": "Nie wypełnia użytkowniczka; aplikacja ODCZYTUJE go z zestawów testowych (parser)",
-      "aktualizacja": "2026-10-24",
+      "instytucja_typ": "platnik",
+      "adresat_opis": "Nie wypełnia użytkowniczka; aplikacja ODCZYTUJE go z zestawów testowych (parser)",
+      "rola": "dokument_zrodlowy",
+      "tryb_aplikacji": "parser_dokumentu",
       "tylko_elektronicznie": false,
-      "rola": "dokument_zrodlowy_do_parsera",
+      "wysylka": [],
+      "terminy": [],
+      "aktualizacja": "2026-10-24",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/12636166/Z-3_do+druku.pdf/388eed46-ea41-6a75-cb21-739c5f83aac7?t=1792762617844",
       "pdf_wypelnij_i_wydrukuj": "https://www.zus.pl/documents/10182/12636166/Z-3_WCAG__do+zapisu.pdf/2dede7ee-dc99-9255-ace7-d950fb7231d0?t=1792762646279",
       "strona_formularza": "https://www.zus.pl/-/zaswiadczenie-zus-z-3"
@@ -161,10 +378,14 @@
       "kod": "Z-3a",
       "nazwa": "Zaświadczenie płatnika składek (niepracownicy, np. zleceniobiorcy)",
       "instytucja": "wypełnia płatnik",
-      "kto": "Dokument źródłowy do parsera",
-      "aktualizacja": "2026-10-24",
+      "instytucja_typ": "platnik",
+      "adresat_opis": "Dokument źródłowy do parsera",
+      "rola": "dokument_zrodlowy",
+      "tryb_aplikacji": "parser_dokumentu",
       "tylko_elektronicznie": false,
-      "rola": "dokument_zrodlowy_do_parsera",
+      "wysylka": [],
+      "terminy": [],
+      "aktualizacja": "2026-10-24",
       "pdf_do_druku": "https://www.zus.pl/documents/10182/4223950/Z-3a_pobierz_plik_do_wydruku.pdf/7dd8fb4c-e8f6-05c8-7f69-92b82fa33571?t=1792762426837",
       "strona_formularza": "https://www.zus.pl/-/zaswiadczenie-zus-z-3a"
     },
@@ -172,17 +393,24 @@
       "kod": "ZAS-12",
       "nazwa": "Zaświadczenie płatnika składek za dalszy okres (zasiłek chorobowy/opiekuńczy)",
       "instytucja": "wypełnia płatnik",
-      "kto": "Dokument źródłowy do parsera",
-      "aktualizacja": "2026-10-26",
+      "instytucja_typ": "platnik",
+      "adresat_opis": "Dokument źródłowy do parsera",
+      "rola": "dokument_zrodlowy",
+      "tryb_aplikacji": "parser_dokumentu",
       "tylko_elektronicznie": false,
-      "rola": "dokument_zrodlowy_do_parsera",
+      "wysylka": [],
+      "terminy": [],
+      "aktualizacja": "2026-10-26",
       "strona_formularza": "https://www.zus.pl/en/wzory-formularzy/zasilki/zasilek-chorobowy/-/asset_publisher/TS3WYPoYHIaG"
     },
     {
       "kod": "SR-7",
       "nazwa": "Wniosek o ustalenie prawa do świadczenia rodzicielskiego (1000 zł)",
       "instytucja": "gmina (MOPS/OPS)",
-      "kto": "Osoby bez prawa do zasiłku macierzyńskiego",
+      "instytucja_typ": "gmina",
+      "adresat_opis": "Osoby bez prawa do zasiłku macierzyńskiego",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
       "tylko_elektronicznie": false,
       "wysylka": [
         "Emp@tia",
@@ -190,15 +418,32 @@
         "urząd gminy",
         "poczta"
       ],
-      "termin": "3 miesiące od urodzenia = świadczenie za cały okres",
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.sr7_mies",
+          "jednostka": "miesiac",
+          "odniesienie": "data_urodzenia",
+          "kierunek": "po",
+          "opis": "3 miesiące od urodzenia = świadczenie za cały okres"
+        }
+      ],
       "strona_formularza": "https://www.gov.pl/attachment/33caa0dd-66f1-4e91-9ea1-04ac83c94129",
-      "uwaga": "Załącznik gov.pl ze wzorem wniosku; sprawdzić format pliku po pobraniu."
+      "uwagi": [
+        "Załącznik gov.pl ze wzorem wniosku; sprawdzić format pliku po pobraniu."
+      ],
+      "swiadczenia": [
+        "SWIADCZENIE_RODZICIELSKIE"
+      ]
     },
     {
       "kod": "BECIKOWE",
       "nazwa": "Wniosek o jednorazową zapomogę z tytułu urodzenia się dziecka (1000 zł)",
       "instytucja": "gmina",
-      "kto": "Dochód do 1922 zł/os., opieka medyczna od 10. tyg. ciąży",
+      "instytucja_typ": "gmina",
+      "adresat_opis": "Dochód do 1922 zł/os., opieka medyczna od 10. tyg. ciąży",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
       "tylko_elektronicznie": false,
       "wysylka": [
         "Emp@tia",
@@ -206,15 +451,32 @@
         "urząd gminy",
         "poczta"
       ],
-      "termin": "12 miesięcy od urodzenia",
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.becikowe_mies",
+          "jednostka": "miesiac",
+          "odniesienie": "data_urodzenia",
+          "kierunek": "po",
+          "opis": "12 miesięcy od urodzenia"
+        }
+      ],
       "strona_formularza": "https://warszawa19115.pl/-/przyznanie-jednorazowej-zapomogi-z-tytulu-urodzenia-sie-dziecka-becikowe",
-      "uwaga": "Wzór ustawowy, ale gminy publikują własne PDF; przykład m.st. Warszawy."
+      "uwagi": [
+        "Wzór ustawowy, ale gminy publikują własne PDF; przykład m.st. Warszawy."
+      ],
+      "swiadczenia": [
+        "BECIKOWE"
+      ]
     },
     {
       "kod": "SR-1",
       "nazwa": "Wniosek o zasiłek rodzinny oraz dodatki (w tym dodatek z tytułu urodzenia dziecka 1000 zł)",
       "instytucja": "gmina",
-      "kto": "Dochód do 674 zł/os. (764 zł przy niepełnosprawności)",
+      "instytucja_typ": "gmina",
+      "adresat_opis": "Dochód do 674 zł/os. (764 zł przy niepełnosprawności)",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
       "tylko_elektronicznie": false,
       "wysylka": [
         "Emp@tia",
@@ -222,14 +484,23 @@
         "urząd gminy",
         "poczta"
       ],
+      "terminy": [],
       "strona_formularza": "https://um.bydgoszcz.pl/sprawa//zasilek-rodzinny-oraz-dodatki-do-zasilku-rodzinnego/",
-      "uwaga": "Wniosek na okres 2026/2027; przykład gminy Bydgoszcz (wzór z rozporządzenia)."
+      "uwagi": [
+        "Wniosek na okres 2026/2027; przykład gminy Bydgoszcz (wzór z rozporządzenia)."
+      ],
+      "swiadczenia": [
+        "ZASILEK_RODZINNY"
+      ]
     },
     {
       "kod": "ZA-ZYCIEM",
       "nazwa": "Wniosek o jednorazowe świadczenie 4000 zł (Za życiem)",
       "instytucja": "gmina",
-      "kto": "Dziecko z ciężkim i nieodwracalnym upośledzeniem lub nieuleczalną chorobą",
+      "instytucja_typ": "gmina",
+      "adresat_opis": "Dziecko z ciężkim i nieodwracalnym upośledzeniem lub nieuleczalną chorobą",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
       "tylko_elektronicznie": false,
       "wysylka": [
         "Emp@tia",
@@ -237,27 +508,51 @@
         "urząd gminy",
         "poczta"
       ],
-      "termin": "12 miesięcy od urodzenia",
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.za_zyciem_mies",
+          "jednostka": "miesiac",
+          "odniesienie": "data_urodzenia",
+          "kierunek": "po",
+          "opis": "12 miesięcy od urodzenia"
+        }
+      ],
       "pdf_do_druku": "https://eli.gov.pl/eli/DU/2023/211/ogl/pol/pdf",
-      "uwaga": "Wzór z rozporządzenia (Dz.U. 2023 poz. 211)."
+      "uwagi": [
+        "Wzór z rozporządzenia (Dz.U. 2023 poz. 211)."
+      ],
+      "swiadczenia": [
+        "ZA_ZYCIEM_4000"
+      ]
     },
     {
       "kod": "KDR",
       "nazwa": "Wniosek o Kartę Dużej Rodziny",
       "instytucja": "gmina",
-      "kto": "Rodziny 3+",
+      "instytucja_typ": "gmina",
+      "adresat_opis": "Rodziny 3+",
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
       "tylko_elektronicznie": false,
       "wysylka": [
         "Emp@tia",
         "urząd gminy"
       ],
-      "strona_formularza": "https://www.gov.pl/web/gov/uzyskaj-karte-duzej-rodziny"
+      "terminy": [],
+      "strona_formularza": "https://www.gov.pl/web/gov/uzyskaj-karte-duzej-rodziny",
+      "swiadczenia": [
+        "KARTA_DUZEJ_RODZINY"
+      ]
     },
     {
       "kod": "ODPIS-AKTU",
       "nazwa": "Wniosek o odpis zupełny lub skrócony aktu urodzenia",
       "instytucja": "USC",
-      "kto": "Rodzic; symulacja wymagana w zadaniu",
+      "instytucja_typ": "usc",
+      "adresat_opis": "Rodzic; symulacja wymagana w zadaniu",
+      "rola": "wniosek",
+      "tryb_aplikacji": "e_usluga_symulacja",
       "tylko_elektronicznie": false,
       "wysylka": [
         "gov.pl (e-usługa)",
@@ -265,127 +560,311 @@
         "dowolny USC",
         "poczta"
       ],
+      "terminy": [],
       "strona_formularza": "https://warszawa19115.pl/artykul/-/asset_publisher/FUHg6jtMOE3r/content/wydanie-odpisu-zupelnego-lub-skroconego-aktu-stanu-cywilnego",
-      "uwaga": "Wzór USC-08-01 (m.st. Warszawa); online: https://www.gov.pl/web/cyfryzacja/rejestr-stanu-cywilnego"
+      "uwagi": [
+        "Wzór USC-08-01 (m.st. Warszawa); online: https://www.gov.pl/web/cyfryzacja/rejestr-stanu-cywilnego"
+      ],
+      "swiadczenia": [
+        "FORMALNOSC_ODPIS_AKTU"
+      ]
     },
     {
       "kod": "ZGLOSZENIE-URODZENIA",
       "nazwa": "Zgłoszenie urodzenia dziecka",
       "instytucja": "USC",
+      "instytucja_typ": "usc",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "link_zewnetrzny",
       "tylko_elektronicznie": false,
-      "pdf": false,
       "wysylka": [
         "gov.pl",
         "mObywatel",
         "wizyta w USC"
       ],
-      "termin": "21 dni od wystawienia karty urodzenia",
-      "strona_formularza": "https://www.gov.pl/web/gov/zglos-urodzenie-dziecka"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.zgloszenie_urodzenia_dni",
+          "jednostka": "dzien",
+          "odniesienie": "wystawienie_karty_urodzenia",
+          "kierunek": "po",
+          "opis": "21 dni od wystawienia karty urodzenia"
+        }
+      ],
+      "strona_formularza": "https://www.gov.pl/web/gov/zglos-urodzenie-dziecka",
+      "swiadczenia": [
+        "FORMALNOSC_ZGLOSZENIE_URODZENIA"
+      ]
     },
     {
       "kod": "800PLUS",
       "nazwa": "Świadczenie wychowawcze 800+",
       "instytucja": "ZUS",
+      "instytucja_typ": "zus",
+      "adresat_opis": null,
+      "rola": "usluga_elektroniczna",
+      "tryb_aplikacji": "deep_link_symulacja",
       "tylko_elektronicznie": true,
-      "pdf": false,
       "wysylka": [
         "eZUS/mZUS",
         "Emp@tia",
         "bankowość elektroniczna"
       ],
-      "termin": "3 miesiące od urodzenia = wyrównanie od urodzenia",
-      "tryb_aplikacji": "ściąga danych + deep link + symulacja"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.800plus_mies",
+          "jednostka": "miesiac",
+          "odniesienie": "data_urodzenia",
+          "kierunek": "po",
+          "opis": "3 miesiące od urodzenia = wyrównanie od urodzenia"
+        }
+      ],
+      "swiadczenia": [
+        "ZASILEK_800PLUS"
+      ]
     },
     {
       "kod": "AKTYWNY-RODZIC",
       "nazwa": "Aktywny rodzic (w pracy, w żłobku, w domu)",
       "instytucja": "ZUS",
+      "instytucja_typ": "zus",
+      "adresat_opis": null,
+      "rola": "usluga_elektroniczna",
+      "tryb_aplikacji": "deep_link_symulacja",
       "tylko_elektronicznie": true,
-      "pdf": false,
       "wysylka": [
         "eZUS/mZUS",
         "Emp@tia",
         "bankowość elektroniczna"
       ],
-      "tryb_aplikacji": "ściąga danych + deep link + symulacja"
+      "terminy": [],
+      "swiadczenia": [
+        "AKTYWNY_RODZIC"
+      ]
     },
     {
       "kod": "URLOP-MAC-ROD",
       "nazwa": "Wniosek o urlop macierzyński i bezpośrednio po nim rodzicielski (jeden wniosek, zasiłek 81,5%)",
       "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
       "tylko_elektronicznie": false,
-      "pdf": "generowany_przez_aplikacje",
       "wysylka": [
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "do 21 dni po porodzie",
-      "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.wniosek_81_5_dni",
+          "jednostka": "dzien",
+          "odniesienie": "data_porodu",
+          "kierunek": "po",
+          "opis": "do 21 dni po porodzie (warunek 81,5%)"
+        }
+      ],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ]
     },
     {
       "kod": "URLOP-ROD",
       "nazwa": "Wniosek o urlop rodzicielski (lub jego część)",
       "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
       "tylko_elektronicznie": false,
-      "pdf": "generowany_przez_aplikacje",
       "wysylka": [
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "21 dni przed rozpoczęciem",
-      "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.urlop_rodzicielski_przed_dni",
+          "jednostka": "dzien",
+          "odniesienie": "rozpoczecie_urlopu",
+          "kierunek": "przed",
+          "opis": "21 dni przed rozpoczęciem"
+        }
+      ],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "swiadczenia": [
+        "ZASILEK_URLOP_RODZICIELSKI"
+      ]
     },
     {
       "kod": "URLOP-OJC",
       "nazwa": "Wniosek o urlop ojcowski",
       "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
       "tylko_elektronicznie": false,
-      "pdf": "generowany_przez_aplikacje",
       "wysylka": [
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "7 dni przed rozpoczęciem; do 12. miesiąca życia dziecka",
-      "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.urlop_ojcowski_przed_dni",
+          "jednostka": "dzien",
+          "odniesienie": "rozpoczecie_urlopu",
+          "kierunek": "przed",
+          "opis": "7 dni przed rozpoczęciem"
+        },
+        {
+          "rodzaj": "wygasniecie_prawa",
+          "param": "urlop.ojcowski_max_wiek_dziecka_mies",
+          "jednostka": "miesiac",
+          "odniesienie": "data_urodzenia",
+          "kierunek": "po",
+          "opis": "do 12. miesiąca życia dziecka"
+        }
+      ],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "swiadczenia": [
+        "ZASILEK_URLOP_OJCOWSKI"
+      ]
     },
     {
       "kod": "URLOP-UZUP",
       "nazwa": "Wniosek o uzupełniający urlop macierzyński",
       "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
       "tylko_elektronicznie": false,
-      "pdf": "generowany_przez_aplikacje",
       "wysylka": [
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "21 dni przed końcem urlopu macierzyńskiego",
-      "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": "termin.urlop_uzup_przed_koncem_dni",
+          "jednostka": "dzien",
+          "odniesienie": "koniec_urlopu_macierzynskiego",
+          "kierunek": "przed",
+          "opis": "21 dni przed końcem urlopu macierzyńskiego"
+        }
+      ],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "swiadczenia": [
+        "ZASILEK_URLOP_UZUPELNIAJACY"
+      ]
     },
     {
       "kod": "URLOP-ROD-PRACA",
       "nazwa": "Wniosek o łączenie urlopu rodzicielskiego z pracą (maks. 0,5 etatu)",
       "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
       "tylko_elektronicznie": false,
-      "pdf": "generowany_przez_aplikacje",
       "wysylka": [
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "razem z wnioskiem o urlop rodzicielski",
-      "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": null,
+          "jednostka": null,
+          "odniesienie": "wniosek_URLOP-ROD",
+          "kierunek": "razem",
+          "opis": "razem z wnioskiem o urlop rodzicielski"
+        }
+      ],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "swiadczenia": [
+        "ZASILEK_URLOP_RODZICIELSKI"
+      ]
     },
     {
       "kod": "REZYGNACJA-MAC",
       "nazwa": "Rezygnacja z dalszej części urlopu macierzyńskiego po 14 tygodniach (przejęcie przez ojca)",
       "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": null,
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
       "tylko_elektronicznie": false,
-      "pdf": "generowany_przez_aplikacje",
       "wysylka": [
         "e-mail ze skrzynki użytkownika",
         "wydruk"
       ],
-      "termin": "przed terminem przejęcia",
-      "podstawa": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)"
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "param": null,
+          "jednostka": null,
+          "odniesienie": "przejecie_urlopu_przez_ojca",
+          "kierunek": "przed",
+          "opis": "przed terminem przejęcia"
+        }
+      ],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_MATKA"
+      ]
+    },
+    {
+      "kod": "URLOP-MAC-OJC",
+      "nazwa": "Wniosek ojca o urlop macierzyński (część przejęta od matki)",
+      "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": "Ojciec-pracownik przejmujący część urlopu macierzyńskiego po 14 tygodniach matki lub w sytuacji szczególnej",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
+      "tylko_elektronicznie": false,
+      "wysylka": [
+        "e-mail ze skrzynki użytkownika",
+        "wydruk"
+      ],
+      "terminy": [],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "uwagi": [
+        "Dodany w wersji 1.0: ścieżka wymaga tego wniosku, a nie było go w katalogu. Wzór do zweryfikowania w rozporządzeniu."
+      ],
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ]
+    },
+    {
+      "kod": "URLOP-MAC-PRZYJECIE",
+      "nazwa": "Wniosek o urlop na warunkach urlopu macierzyńskiego (przyjęcie dziecka na wychowanie)",
+      "instytucja": "pracodawca",
+      "instytucja_typ": "pracodawca",
+      "adresat_opis": "Pracownik przysposabiający dziecko lub rodzina zastępcza niezawodowa",
+      "rola": "wniosek",
+      "tryb_aplikacji": "pdf_generowany",
+      "tylko_elektronicznie": false,
+      "wysylka": [
+        "e-mail ze skrzynki użytkownika",
+        "wydruk"
+      ],
+      "terminy": [],
+      "podstawa_prawna": "Kodeks pracy; rozporządzenie MRPiPS z 11.03.2025 (Dz.U. 2025 poz. 322)",
+      "uwagi": [
+        "Dodany w wersji 1.0: ścieżka wymaga tego wniosku, a nie było go w katalogu. Wzór do zweryfikowania w rozporządzeniu."
+      ],
+      "swiadczenia": [
+        "ZASILEK_ADOPCJA_ZASTEPCZA"
+      ]
     }
   ]
 }

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import db
 from .config import settings
-from .routers import wnioski
+from .routers import silnik, wnioski
 
 
 @asynccontextmanager
@@ -26,6 +26,7 @@ app.add_middleware(
 
 
 app.include_router(wnioski.router)
+app.include_router(silnik.router)
 
 
 @app.get("/health")
