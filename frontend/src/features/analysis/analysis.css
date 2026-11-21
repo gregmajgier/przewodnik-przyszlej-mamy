@@ -2,9 +2,9 @@
   max-width: 30rem;
 }
 .analysis-logo {
-  width: 5.5rem;
+  width: clamp(8.5rem, 38vw, 11rem);
   height: auto;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 .analysis-steps {
   list-style: none;
