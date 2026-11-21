@@ -31,7 +31,7 @@ export function AppShell() {
         </NavLink>
         <nav className="shell-nav" aria-label="Główna">
           {items.map((n) => (
-            <NavLink key={n.path} to={n.path}>
+            <NavLink key={n.path} to={n.path} end={n.path === '/'}>
               {n.label}
             </NavLink>
           ))}

@@ -155,3 +155,33 @@ składkowe przy JDG. Aby zobaczyć je w demo, wgraj plik tekstowy ze zleceniem i
 (zatwierdzone + oczekujące szkice) na rodzica, typy po magic bytes: PDF, PNG, JPEG, tekst. PDF z JavaScriptem /
 `Launch` / załącznikami jest odrzucany. Pliku nie przechowujemy — po ekstrakcji zostają tylko dane zatwierdzone
 przez rodzica. Niezatwierdzone szkice wygasają po 24 h.
+
+## Katalog świadczeń i dopasowanie (plan 03)
+
+**Gdzie są dane:** `backend/app/data/benefits_national.json` (świadczenia krajowe) → `app/seed/benefits.py`
+ładuje je do kolekcji `benefits` przy starcie (`seed_all`, idempotentnie po stałym `id`). Świadczenia lokalne
+tworzy panel jednostek (plan 07) lub seed przykładowy — ten sam model `Benefit` (`app/models/benefit.py`).
+
+**Jak działa dopasowanie** (`app/services/matching.py`, bez LLM): `match_benefit(ctx, benefit)` zwraca
+`fits` / `maybe` / `no` + `reasons` („dlaczego”), `unmet` (powody odrzucenia) i `questions` (tak/nie).
+- Wiek dziecka = pełne ukończone miesiące, granice **włącznie**: „do ukończenia 18 lat” to `child_age_max_months: 215`.
+- Dziecko „w drodze” nie liczy się do wieku ani liczby dzieci (dopiero po urodzeniu); `allow_pregnancy: true`
+  pozwala, by ciąża spełniała też kryterium wieku (zasiłek macierzyński, urlopy).
+- Niespełnione kryterium strukturalne → `no`. Brak danych o dochodzie lub nierozstrzygnięty warunek → `maybe` + pytanie.
+- Odpowiedzi trafiają do `ParentProfile.answers["benefit:{id}:{condition_id}"]` (dochód: `condition_id = "income"`;
+  można też ustawić globalnie `income_per_person`). Odpowiedzi obojga rodziców są łączone, wygrywa pytany.
+- Warunki `auto` czytają fakty po `profile_key`: `family.pregnant`, `family.has_ezla_b`,
+  `family.child_serious_illness`, `family.sickness_insurance` albo klucz bool z `answers`.
+
+**Jak dodać świadczenie krajowe:** dopisz rekord do `benefits_national.json` (pola jak w modelu `Benefit`):
+unikalne `id` (`nat-...`), `source_url` z oficjalnego źródła (https), `form_codes` istniejące w
+`katalog_wnioskow_pdf.json` (albo `[]`), kryteria strukturalne w `criteria`, ewentualne `extra_conditions`
+(`kind: "ask"` z `question`, albo `"auto"` z `profile_key`). Kwoty tylko z oficjalnych źródeł; wątpliwe →
+`"verify": true` (karta pokazuje wtedy „potwierdź w źródle”). `annual_value_estimate` + tag `per_child`
+liczy kwotę × liczba dzieci spełniających kryterium wieku. Test `tests/test_benefits_seed.py` waliduje rekordy.
+
+**API:** `GET /api/benefits`, `GET /api/benefits/{id}`, `POST /api/benefits/{id}/answers`, `GET /api/analysis`,
+`GET /api/summary` (tylko rodzic z rodziną; wszystko po `family_id` wywołującego). Narzędzie MCP: `swiadczenia`.
+
+**Frontend:** `/analiza` (ekran analizy po onboardingu), `/` (dashboard; kafelki z `features/*/widget.tsx`),
+`/swiadczenia` (lista z grupami „pasuje” / „może przysługiwać” / zwijane „pozostałe”).

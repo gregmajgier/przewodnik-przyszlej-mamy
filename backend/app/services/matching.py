@@ -1,0 +1,358 @@
+"""Deterministyczny silnik dopasowania świadczeń (bez LLM).
+
+Zasady:
+- dowolne niespełnione kryterium strukturalne lub odrzucony warunek -> `no` (z powodem),
+- wszystko spełnione i brak nierozstrzygniętych warunków -> `fits`,
+- wszystko spełnione, ale są nierozstrzygnięte warunki (`ask`, brak dochodu) -> `maybe` + pytania tak/nie.
+
+Wiek dziecka = liczba pełnych ukończonych miesięcy; granice kryteriów włącznie.
+Dziecko „w drodze” (`status=expected`) nie liczy się do kryteriów wieku ani liczby dzieci — dopiero po urodzeniu.
+Dzieci w sytuacji `loss` nie są brane pod uwagę.
+"""
+
+from __future__ import annotations
+
+import calendar
+from datetime import date, timedelta
+from typing import Literal
+
+from pydantic import BaseModel, Field
+
+from ..models.benefit import Benefit, Condition
+from ..models.family import Child, FamilyView
+from ..models.profile import Address, ParentProfile
+from .units import units_for
+
+MAJORITY_MONTHS = 18 * 12  # dziecko do ukończenia 18 lat
+
+INSURANCE_LABELS = {"employment": "umowa o pracę", "mandate": "umowa zlecenia", "jdg": "działalność gospodarcza"}
+
+
+class FamilyContext(BaseModel):
+    children: list[Child]
+    parents: list[ParentProfile]
+    today: date
+    address: Address
+    answers: dict = Field(default_factory=dict)
+    unit_ids: list[str] = Field(default_factory=list)  # jednostki obejmujące adres rodziny
+
+
+class Question(BaseModel):
+    condition_id: str
+    text: str
+
+
+class MatchResult(BaseModel):
+    status: Literal["fits", "maybe", "no"]
+    reasons: list[str] = Field(default_factory=list)
+    unmet: list[str] = Field(default_factory=list)
+    questions: list[Question] = Field(default_factory=list)
+    eligible_children: int = 0  # ile dzieci spełnia kryterium wieku (dla świadczeń „na dziecko”)
+
+
+# ---------- pomocnicze ----------
+
+
+def age_in_months(birth: date, today: date) -> int:
+    """Pełne ukończone miesiące (31 stycznia -> 28 lutego to jeszcze 0 miesięcy)."""
+    months = (today.year - birth.year) * 12 + today.month - birth.month
+    if today.day < birth.day:
+        months -= 1
+    return max(months, 0)
+
+
+def _plural(n: int, one: str, few: str, many: str) -> str:
+    if n == 1:
+        return one
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return few
+    return many
+
+
+def age_phrase(months: int) -> str:
+    """„7 lat”, „2 lata”, „11 miesięcy” — poprawna polska odmiana."""
+    if months < 24:
+        return f"{months} {_plural(months, 'miesiąc', 'miesiące', 'miesięcy')}"
+    years = months // 12
+    return f"{years} {_plural(years, 'rok', 'lata', 'lat')}"
+
+
+def _add_months(d: date, months: int) -> date:
+    total = d.year * 12 + (d.month - 1) + months
+    y, m = divmod(total, 12)
+    return date(y, m + 1, min(d.day, calendar.monthrange(y, m + 1)[1]))
+
+
+def _born(ctx: FamilyContext) -> list[Child]:
+    return [c for c in ctx.children if c.status == "born" and c.birth_date and c.situation != "loss"]
+
+
+def _expected(ctx: FamilyContext) -> list[Child]:
+    return [c for c in ctx.children if c.status == "expected" and c.situation != "loss"]
+
+
+def _has_ezla_b(ctx: FamilyContext) -> bool:
+    return any(e.code.upper() == "B" and e.to_date >= ctx.today for p in ctx.parents for e in p.ezla)
+
+
+def _pregnant(ctx: FamilyContext) -> bool:
+    """Dziecko w drodze albo aktywne e-ZLA kod B (chyba że dziecko urodziło się niedawno — ciąża już się skończyła)."""
+    if _expected(ctx):
+        return True
+    recently_born = any((ctx.today - c.birth_date).days <= 270 for c in _born(ctx))  # type: ignore[operator]
+    return _has_ezla_b(ctx) and not recently_born
+
+
+def _sickness_insurance(ctx: FamilyContext) -> bool | None:
+    """Czy ktoś z rodziców ma ubezpieczenie chorobowe (etat: obowiązkowe; zlecenie/JDG: dobrowolne)."""
+    unknown = False
+    for p in ctx.parents:
+        for i in p.insurance:
+            if i.kind == "employment" or i.voluntary_sickness is True:
+                return True
+            if i.voluntary_sickness is None:
+                unknown = True
+    return None if unknown else False
+
+
+def _answer_key(benefit: Benefit, condition_id: str) -> str:
+    return f"benefit:{benefit.id}:{condition_id}"
+
+
+def _fact(ctx: FamilyContext, key: str) -> bool | None:
+    """Wartość warunku `auto` z profilu rodziny; `None` = nie wiadomo."""
+    if key == "family.pregnant":
+        return _pregnant(ctx)
+    if key == "family.has_ezla_b":
+        return _has_ezla_b(ctx)
+    if key == "family.sickness_insurance":
+        return _sickness_insurance(ctx)
+    if key == "family.child_serious_illness":
+        return any(c.serious_illness for c in ctx.children if c.situation != "loss")
+    value = ctx.answers.get(key)
+    return value if isinstance(value, bool) else None
+
+
+def _parse_money(value) -> float | None:
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        return float(str(value).replace(" ", "").replace(",", "."))
+    except ValueError:
+        return None
+
+
+def _fmt_zl(amount: float) -> str:
+    return f"{amount:,.2f}".rstrip("0").rstrip(".").replace(",", " ") if amount % 1 else f"{int(amount):,}".replace(",", " ")
+
+
+# ---------- kontekst ----------
+
+
+def build_context(
+    family_view: FamilyView,
+    profiles: list[ParentProfile],
+    today: date,
+    units: list[dict] | None = None,
+    viewer_id: str | None = None,
+) -> FamilyContext:
+    """Składa kontekst rodziny. Odpowiedzi rodziców są łączone; odpowiedzi `viewer_id` mają pierwszeństwo."""
+    ordered = sorted(profiles, key=lambda p: p.user_id == viewer_id)  # viewer na końcu -> wygrywa
+    answers: dict = {}
+    for p in ordered:
+        answers.update(p.answers)
+    primary = next((p for p in profiles if p.user_id == viewer_id), profiles[0] if profiles else None)
+    address = primary.address if primary else Address(city="", gmina="", powiat="", voivodeship="", postal_code="")
+    return FamilyContext(
+        children=list(family_view.children),
+        parents=list(profiles),
+        today=today,
+        address=address,
+        answers=answers,
+        unit_ids=units_for(address, units or []) if primary else [],
+    )
+
+
+# ---------- dopasowanie ----------
+
+
+def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
+    reasons: list[str] = []
+    unmet: list[str] = []
+    questions: list[Question] = []
+    cr = benefit.criteria
+    eligible = len([c for c in _born(ctx)])
+
+    # --- zasięg terytorialny ---
+    if benefit.scope != "national":
+        if benefit.unit_id and benefit.unit_id in ctx.unit_ids:
+            if benefit.scope == "municipal":
+                reasons.append(f"mieszkasz w gminie {ctx.address.gmina}")
+            else:
+                reasons.append(f"mieszkasz w województwie ({ctx.address.voivodeship.lower()})")
+        else:
+            unmet.append("To świadczenie dotyczy mieszkańców innej gminy lub innego obszaru niż twój adres.")
+
+    # --- wiek dziecka ---
+    if cr.child_age_min_months is not None or cr.child_age_max_months is not None:
+        lo = cr.child_age_min_months if cr.child_age_min_months is not None else 0
+        hi = cr.child_age_max_months
+        in_range = []
+        for c in _born(ctx):
+            months = age_in_months(c.birth_date, ctx.today)  # type: ignore[arg-type]
+            if months >= lo and (hi is None or months <= hi):
+                in_range.append((c, months))
+        eligible = len(in_range)
+        if in_range:
+            reasons.extend(f"{c.name} ma {age_phrase(m)}" for c, m in in_range)
+        elif cr.allow_pregnancy and _pregnant(ctx):
+            reasons.append("w rodzinie jest dziecko w drodze (ciąża)")
+        else:
+            if _expected(ctx) and not _born(ctx):
+                unmet.append("Dostępne po urodzeniu dziecka — dziecko w drodze liczy się dopiero po porodzie.")
+            elif not _born(ctx):
+                unmet.append("W rodzinie nie ma dzieci w wieku, którego dotyczy to świadczenie.")
+            else:
+                unmet.append(f"Żadne dziecko nie mieści się w wieku, w którym przysługuje to świadczenie ({_age_range_text(lo, hi)}).")
+                if _expected(ctx):
+                    unmet.append("Dziecko w drodze zostanie uwzględnione po urodzeniu.")
+
+    # --- liczba dzieci ---
+    if cr.min_children is not None:
+        counted = [
+            c
+            for c in _born(ctx)
+            if age_in_months(c.birth_date, ctx.today) < MAJORITY_MONTHS or c.has_disability  # type: ignore[arg-type]
+        ]
+        if len(counted) >= cr.min_children:
+            reasons.append(f"macie {len(counted)} dzieci (wymagane co najmniej {cr.min_children})")
+        else:
+            msg = f"Potrzeba co najmniej {cr.min_children} dzieci, a w rodzinie jest {len(counted)}."
+            if _expected(ctx) and len(counted) + len(_expected(ctx)) >= cr.min_children:
+                msg += " Dziecko w drodze liczy się po urodzeniu."
+            unmet.append(msg)
+
+    # --- ciąża ---
+    if cr.requires_pregnancy:
+        if _pregnant(ctx):
+            reasons.append("w rodzinie jest dziecko w drodze (ciąża)")
+        else:
+            unmet.append("To świadczenie jest dla osób w ciąży — w rodzinie nie ma dziecka w drodze.")
+
+    # --- niepełnosprawność / rodzina zastępcza ---
+    live = [c for c in ctx.children if c.situation != "loss"]
+    if cr.requires_disability:
+        if any(c.has_disability for c in live):
+            reasons.append("dziecko ma orzeczenie o niepełnosprawności")
+        else:
+            unmet.append(
+                "W danych rodziny żadne dziecko nie ma zaznaczonej niepełnosprawności (możesz to zmienić w zakładce „Rodzina”)."
+            )
+    if cr.requires_foster:
+        if any(c.foster for c in live):
+            reasons.append("dziecko jest w rodzinie zastępczej")
+        else:
+            unmet.append("W danych rodziny nie ma dziecka w rodzinie zastępczej (możesz to zmienić w zakładce „Rodzina”).")
+
+    # --- zatrudnienie ---
+    if cr.employment_kinds:
+        have = {i.kind for p in ctx.parents for i in p.insurance}
+        matching = [k for k in cr.employment_kinds if k in have]
+        if matching:
+            reasons.append("w danych z ZUS widać: " + ", ".join(INSURANCE_LABELS[k] for k in matching))
+        else:
+            wanted = ", ".join(INSURANCE_LABELS[k] for k in cr.employment_kinds)
+            unmet.append(f"W danych z ZUS nie widać wymaganego tytułu ubezpieczenia ({wanted}).")
+
+    # --- dochód ---
+    if cr.max_income_per_person is not None:
+        limit = cr.max_income_per_person
+        limit_txt = _fmt_zl(limit)
+        known = _parse_money(ctx.answers.get("income_per_person"))
+        answered = ctx.answers.get(_answer_key(benefit, "income"))
+        if known is not None:
+            if known <= limit:
+                reasons.append(f"dochód na osobę ({_fmt_zl(known)} zł) nie przekracza {limit_txt} zł")
+            else:
+                unmet.append(f"Dochód na osobę ({_fmt_zl(known)} zł) przekracza próg {limit_txt} zł.")
+        elif answered is True:
+            reasons.append(f"dochód na osobę nie przekracza {limit_txt} zł")
+        elif answered is False:
+            unmet.append(f"Dochód na osobę przekracza próg {limit_txt} zł.")
+        else:
+            questions.append(
+                Question(
+                    condition_id="income",
+                    text=f"Czy dochód na osobę w rodzinie nie przekracza {limit_txt} zł netto miesięcznie?",
+                )
+            )
+
+    # --- warunki dodatkowe ---
+    for cond in benefit.extra_conditions:
+        _check_condition(ctx, benefit, cond, reasons, unmet, questions)
+
+    if unmet:
+        return MatchResult(status="no", reasons=reasons, unmet=unmet, questions=[], eligible_children=eligible)
+    if questions:
+        return MatchResult(status="maybe", reasons=reasons, questions=questions, eligible_children=eligible)
+    return MatchResult(status="fits", reasons=reasons, eligible_children=eligible)
+
+
+def _check_condition(
+    ctx: FamilyContext,
+    benefit: Benefit,
+    cond: Condition,
+    reasons: list[str],
+    unmet: list[str],
+    questions: list[Question],
+) -> None:
+    value: bool | None = None
+    if cond.kind == "auto" and cond.profile_key:
+        value = _fact(ctx, cond.profile_key)
+    if value is None:  # `ask` albo `auto`, którego nie da się sprawdzić po profilu
+        stored = ctx.answers.get(_answer_key(benefit, cond.id))
+        value = stored if isinstance(stored, bool) else None
+    if value is True:
+        reasons.append(cond.text[:1].lower() + cond.text[1:])
+    elif value is False:
+        unmet.append(f"Warunek niespełniony: {cond.text}.")
+    else:
+        questions.append(Question(condition_id=cond.id, text=cond.question or cond.text))
+
+
+def _age_range_text(lo: int, hi: int | None) -> str:
+    if hi is None:
+        return f"od {age_phrase(lo)}"
+    if lo <= 0:
+        return f"do {age_phrase(hi)} włącznie"
+    return f"od {age_phrase(lo)} do {age_phrase(hi)} włącznie"
+
+
+# ---------- terminy ----------
+
+
+def next_deadline(benefit: Benefit, ctx: FamilyContext) -> date | None:
+    """Najbliższy termin (nie wcześniejszy niż dziś) wyliczony z `benefit.deadline` względem dzieci rodziny."""
+    d = benefit.deadline
+    if d is None:
+        return None
+    candidates: list[date] = []
+    if d.anchor == "fixed":
+        if d.fixed_date:
+            candidates.append(d.fixed_date)
+    else:
+        for c in ctx.children:
+            if c.situation == "loss":
+                continue
+            if d.anchor == "due":
+                base = c.due_date if c.status == "expected" else None
+            elif d.anchor == "birth":
+                base = c.birth_date if c.status == "born" else c.due_date
+            else:  # child_age
+                base = c.birth_date if c.status == "born" else None
+            if base is None:
+                continue
+            when = _add_months(base, d.offset_months) if d.offset_months else base
+            candidates.append(when + timedelta(days=d.offset_days or 0))
+    upcoming = [x for x in candidates if x >= ctx.today]
+    return min(upcoming) if upcoming else None
