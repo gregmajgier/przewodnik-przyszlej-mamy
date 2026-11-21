@@ -18,7 +18,7 @@
   font-size: clamp(1.75rem, 5vw, 3.5rem);
   line-height: 1.3;
 }
-.hero-copy p { margin: 0; }
+.hero-copy p { margin: 0; font-weight: 600; }
 .wordmark {
   display: inline-flex;
   align-items: baseline;
@@ -74,7 +74,6 @@
   padding: 1.25rem clamp(1.25rem, 4vw, 3rem);
   color: var(--bg);
 }
-.header-logo-svg { display: block; height: 3rem; width: auto; }
 .site-header nav { display: flex; gap: clamp(1rem, 3vw, 2.25rem); }
 .site-header nav a {
   color: var(--bg);
@@ -250,3 +249,40 @@ h2 {
   text-align: center;
 }
 .final-cta h2 { margin: 0; }
+
+/* Header wordmark: static logo + "Rodzina" */
+.header-wordmark { font-size: 2rem; color: var(--bg); }
+
+/* Floating hero icons */
+.hero-icons { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.hero-icon {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  --size: var(--size-w);
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  color: var(--bg);
+  opacity: 0.7;
+  filter: drop-shadow(0 3px 5px rgb(25 25 25 / 0.18));
+  transform: rotate(var(--rot));
+}
+.hero-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: drift var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate(calc(var(--dx) * -1), calc(var(--dy) * -1)) rotate(calc(var(--dr) * -1)); }
+  to { transform: translate(var(--dx), var(--dy)) rotate(var(--dr)); }
+}
+@media (max-width: 640px) {
+  .hero-icon { left: var(--mx); top: var(--my); --size: 56px; }
+  .hero-icon.wide-only { display: none; }
+  .header-wordmark { font-size: 1.6rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-icon svg { animation: none; }
+}

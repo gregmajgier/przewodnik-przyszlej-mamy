@@ -1,5 +1,6 @@
 import { Logo } from './components/Logo'
 import { ScrollRibbons } from './components/ScrollRibbons'
+import { HeroIcons } from './components/HeroIcons'
 import { Timeline } from './components/Timeline'
 import './App.css'
 
@@ -25,7 +26,10 @@ function App() {
     <>
       <header className="site-header">
         <a href="#top" className="header-logo" aria-label="mRodzina">
-          <Logo className="header-logo-svg" color="var(--bg)" />
+          <span className="wordmark header-wordmark">
+            <Logo className="wordmark-logo" color="var(--bg)" animate={false} />
+            <span className="wordmark-name">Rodzina</span>
+          </span>
         </a>
         <nav>
           <a href="#film">O projekcie</a>
@@ -35,6 +39,7 @@ function App() {
       </header>
       <main id="top">
         <section className="hero">
+          <HeroIcons />
           <div className="hero-copy">
             <p>Mamo! Tato! Masz wiele na głowie...</p>
             <p className="pitch">
