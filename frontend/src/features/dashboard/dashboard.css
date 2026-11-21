@@ -1,0 +1,61 @@
+/* Pas nagłówka: pełny kolor akcentu, tekst w kolorze tła (marka mRodzina). */
+.dash-hero {
+  background: var(--primary);
+  color: var(--bg);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
+}
+.dash-hero h1 {
+  font-weight: 800;
+}
+.dash-alert {
+  margin: 0;
+  font-weight: 700;
+}
+.dash-summary {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  margin: 0;
+}
+.dash-summary dt {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.dash-summary dd {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+.dash-deadline-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.dash-params {
+  border-radius: 1.5rem;
+}
+.dash-params-head {
+  justify-content: space-between;
+}
+.dash-params-head h2 {
+  margin: 0;
+}
+.params-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  background: var(--fg);
+  color: var(--bg);
+  border-radius: 999px;
+  padding: 0.15rem 0.8rem;
+}
+.dash-rates {
+  margin-top: 0.75rem;
+}
+.dash-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+}

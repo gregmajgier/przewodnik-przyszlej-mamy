@@ -38,7 +38,7 @@ function Tree() {
   return (
     <Routes>
       <Route path="/start" element={<OnboardingPage />} />
-      <Route path="/" element={<p>Strona główna</p>} />
+      <Route path="/analiza" element={<p>Strona analizy</p>} />
       <Route path="/rodzina" element={<p>Strona rodziny</p>} />
       <Route path="/dolacz" element={<p>Strona dołączania</p>} />
     </Routes>
@@ -100,6 +100,6 @@ describe('OnboardingPage', () => {
     // brak znanych dzieci => krok 2 pomija się od razu
     expect(await screen.findByText('ABCD2345')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /wychowuję dziecko samodzielnie/i }))
-    expect(await screen.findByText('Strona główna')).toBeInTheDocument()
+    expect(await screen.findByText('Strona analizy')).toBeInTheDocument() // po onboardingu: analiza, potem panel
   })
 })
