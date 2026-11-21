@@ -1,1 +1,6 @@
 materialy
+.venv/
+node_modules/
+__pycache__/
+.DS_Store
+.env
