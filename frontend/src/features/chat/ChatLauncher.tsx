@@ -13,7 +13,7 @@ export function ChatLauncher() {
 
   function ask(question: string) {
     const q = question.trim()
-    navigate(q ? `/czat?q=${encodeURIComponent(q)}` : '/czat')
+    navigate('/czat', q ? { state: { q } } : undefined)
   }
 
   function submit(e: FormEvent) {

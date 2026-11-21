@@ -200,19 +200,28 @@ describe('ChatPage', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('pytanie z adresu ?q= jest wysyłane raz', async () => {
-    fetchMock.mockResolvedValue(streamResponse([sse('token', { text: 'odp' }), sse('done', { session_id: 's' })]))
+  it('pytanie z adresu ?q= nigdy nie jest wysyłane automatycznie ani wpisywane', async () => {
     renderChat('/czat?q=Jak%20dzia%C5%82a%20urlop')
-    await screen.findByText('odp')
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    expect(JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string).message).toBe('Jak działa urlop')
+    expect(screen.getByLabelText('Twoje pytanie')).toHaveValue('')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('pytanie przekazane w router state trafia tylko do pola i czeka na wysłanie', async () => {
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/czat', state: { q: 'Ile trwa urlop?' } }]}>
+        <ChatPage />
+      </MemoryRouter>,
+    )
+    expect(screen.getByLabelText('Twoje pytanie')).toHaveValue('Ile trwa urlop?')
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })
 
 describe('kafelek dashboardu', () => {
   function Where() {
     const loc = useLocation()
-    return <p data-testid="where">{loc.pathname + loc.search}</p>
+    return <p data-testid="where">{loc.pathname + ((loc.state as { q?: string } | null)?.q ? `|${(loc.state as { q: string }).q}` : '')}</p>
   }
 
   function renderLauncher() {
@@ -234,13 +243,13 @@ describe('kafelek dashboardu', () => {
     const user = userEvent.setup()
     await user.type(screen.getByLabelText('Twoje pytanie'), 'Ile trwa urlop?')
     await user.click(screen.getByRole('button', { name: 'Zapytaj' }))
-    expect(screen.getByTestId('where')).toHaveTextContent('/czat?q=Ile%20trwa%20urlop%3F')
+    expect(screen.getByTestId('where')).toHaveTextContent('/czat|Ile trwa urlop?')
   })
 
   it('przykład działa jednym kliknięciem', async () => {
     renderLauncher()
     await userEvent.setup().click(screen.getByRole('button', { name: 'Jak działa urlop macierzyński?' }))
-    expect(screen.getByTestId('where')).toHaveTextContent('/czat?q=Jak%20dzia%C5%82a%20urlop%20macierzy%C5%84ski%3F')
+    expect(screen.getByTestId('where')).toHaveTextContent('/czat|Jak działa urlop macierzyński?')
   })
 
   it('jest zarejestrowany jako widget (order 5) i pozycja nawigacji', () => {

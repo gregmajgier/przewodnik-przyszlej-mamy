@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Message } from './Message'
 import { MAX_MESSAGE_CHARS, useChatStream } from './useChatStream'
 import './chat.css'
@@ -9,20 +9,14 @@ const EXAMPLE_QUESTIONS = ['Jak działa urlop macierzyński?', 'Jak zapisać dzi
 
 export default function ChatPage() {
   const { messages, sending, banner, error, send, reset } = useChatStream()
-  const [draft, setDraft] = useState('')
-  const [params, setParams] = useSearchParams()
+  // Pytanie z kafelka dashboardu trafia tylko do pola (router state) — nigdy nie wysyłamy niczego
+  // automatycznie, a parametry adresu URL są ignorowane (link z zewnątrz nie może zużyć budżetu AI).
+  const location = useLocation()
+  const [draft, setDraft] = useState(() => {
+    const q = (location.state as { q?: unknown } | null)?.q
+    return typeof q === 'string' ? q.slice(0, MAX_MESSAGE_CHARS) : ''
+  })
   const logRef = useRef<HTMLDivElement>(null)
-  const started = useRef(false)
-
-  // Pytanie z kafelka na dashboardzie (`/czat?q=…`): wysyłamy raz, a adres czyścimy.
-  useEffect(() => {
-    const q = params.get('q')
-    if (q && !started.current) {
-      started.current = true
-      setParams({}, { replace: true })
-      void send(q)
-    }
-  }, [params, send, setParams])
 
   useEffect(() => {
     const el = logRef.current
