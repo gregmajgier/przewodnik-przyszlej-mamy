@@ -51,6 +51,11 @@ export const SHORT: Record<string, string> = {
   'SR-1': 'Zasiłek rodzinny',
 }
 
+/** Tytuł z kalendarza („Wniosek ZAM”) z kodem formularza zamienionym na krótką, ludzką nazwę. */
+export function humanizeTitle(text: string): string {
+  return text.replace(/\b(?:Wniosek )?([A-Z0-9]+(?:-[A-Z0-9]+)+|ZAM|KDR|BECIKOWE|800PLUS)\b/g, (m, code: string) => SHORT[code] ?? m)
+}
+
 export function isOpen(status: AppStatus): boolean {
   return status !== 'accepted' && status !== 'rejected' && status !== 'cancelled'
 }
@@ -117,10 +122,7 @@ export function useApplications(enabled = true) {
   const nameOf = useCallback((code: string) => catalog?.forms.find((f) => f.code === code)?.name ?? code, [catalog])
   const titleOf = useCallback((code: string) => SHORT[code] ?? nameOf(code), [nameOf])
   /** Tytuł z kalendarza („Wniosek ZAM”) z kodem zamienionym na krótką nazwę. */
-  const humanize = useCallback(
-    (text: string) => text.replace(/\b(?:Wniosek )?([A-Z0-9]+(?:-[A-Z0-9]+)+|ZAM|KDR|BECIKOWE|800PLUS)\b/g, (m, code: string) => SHORT[code] ?? m),
-    [],
-  )
+  const humanize = humanizeTitle
   const threadOf = useCallback((id: string) => threads.find((t) => t.application.id === id), [threads])
 
   return { apps, catalog, threads, error, syncing, syncedAt, load, sync, nameOf, titleOf, humanize, threadOf }

@@ -1,7 +1,28 @@
 import { formatDate } from '../../lib/format'
+import { Icon } from '../../ui/Icon'
+import { Pill } from '../../ui/controls'
 import './calendar.css'
+import { parseDay, relativeDay, weekdayShort } from './dates'
+import { KIND_META, tidy } from './labels'
 import { isAtRisk, KIND_LABEL } from './types'
 import type { CalendarEvent } from './types'
+
+/** Okrągły „odhacz” zamiast natywnego checkboxa. */
+function CheckButton({ event, title, busy, onToggle }: { event: CalendarEvent; title: string; busy: boolean; onToggle: (e: CalendarEvent, done: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={event.done}
+      aria-label={`Zrobione: ${title}`}
+      className="check-btn"
+      disabled={busy}
+      onClick={() => onToggle(event, !event.done)}
+    >
+      <Icon name="check" size={18} stroke={2.6} />
+    </button>
+  )
+}
 
 export default function EventCard({
   event,
@@ -13,42 +34,63 @@ export default function EventCard({
   busy?: boolean
 }) {
   const risk = isAtRisk(event)
+  const title = tidy(event.title)
+  const meta = KIND_META[event.kind]
+  const urgent = event.kind === 'warning' && event.severity === 'high' && !event.done && !event.muted
+  const cls = ['agenda-item', `kind-${event.kind}`, event.done && 'is-done', risk && 'is-risk', event.muted && 'is-muted'].filter(Boolean).join(' ')
+
   return (
-    <article
-      className={`event-card stack${event.done ? ' is-done' : ''}${risk ? ' is-risk' : ''}${event.muted ? ' is-muted' : ''}`}
-      style={{ gap: '0.4rem' }}
-      aria-label={event.title}
-    >
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <span className="row" style={{ gap: '0.5rem' }}>
-          <span className="event-tag">{KIND_LABEL[event.kind]}</span>
-          {event.overdue && !event.done && <span className="event-tag event-tag-risk">po terminie</span>}
-          {event.kind === 'warning' && event.severity === 'high' && !event.done && !event.muted && (
-            <span className="event-tag event-tag-risk">pilne</span>
-          )}
-        </span>
-        {event.due_date && <strong>{formatDate(event.due_date)}</strong>}
+    <article className={cls} aria-label={title}>
+      <div className="agenda-date" aria-hidden="true">
+        {event.due_date ? (
+          <>
+            <span className="agenda-day">{parseDay(event.due_date).getDate()}</span>
+            <span className="agenda-wd">{weekdayShort(event.due_date)}</span>
+          </>
+        ) : (
+          <Icon name={meta.icon} size={20} />
+        )}
       </div>
-      <h3 style={{ margin: 0 }}>{event.title}</h3>
-      <p style={{ margin: 0 }}>{event.summary}</p>
-      {(event.actor_name || event.recipient || event.effect_until) && (
-        <p className="event-meta" style={{ margin: 0 }}>
-          {event.actor_name && <>Kto: {event.actor_name}. </>}
-          {event.recipient && <>Do: {event.recipient}. </>}
-          {event.effect_until && <>Efekt do: {formatDate(event.effect_until)}.</>}
-        </p>
-      )}
-      {onToggle && (
-        <label className="event-done">
-          <input
-            type="checkbox"
-            checked={event.done}
-            disabled={busy}
-            onChange={(e) => onToggle(event, e.target.checked)}
-          />
-          Zrobione
-        </label>
-      )}
+
+      <div className="agenda-body">
+        <div className="agenda-tags">
+          <Pill tone={event.done ? 'neutral' : meta.tone}>
+            <Icon name={meta.icon} size={13} /> {KIND_LABEL[event.kind]}
+          </Pill>
+          {event.overdue && !event.done && <Pill tone="pink">Po terminie</Pill>}
+          {urgent && <Pill tone="pink">Pilne</Pill>}
+          {event.muted && <Pill>Wstrzymane</Pill>}
+          {event.due_date && (
+            <span className="agenda-when">
+              <span className="sr-only">{formatDate(event.due_date)}, </span>
+              {event.done ? 'zrobione' : relativeDay(event.due_date)}
+            </span>
+          )}
+        </div>
+        <h3 className="agenda-title">{title}</h3>
+        {event.summary && <p className="agenda-summary">{tidy(event.summary)}</p>}
+        {(event.actor_name || event.recipient || event.effect_until) && (
+          <ul className="agenda-meta">
+            {event.actor_name && (
+              <li>
+                <Icon name="user" size={14} /> {event.actor_name}
+              </li>
+            )}
+            {event.recipient && (
+              <li>
+                <Icon name="mail" size={14} /> {event.recipient}
+              </li>
+            )}
+            {event.effect_until && (
+              <li>
+                <Icon name="clock" size={14} /> Obowiązuje do {formatDate(event.effect_until)}
+              </li>
+            )}
+          </ul>
+        )}
+      </div>
+
+      {onToggle && <CheckButton event={event} title={title} busy={busy} onToggle={onToggle} />}
     </article>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Doodles } from '../../brand/Doodles'
 import { Ribbons } from '../../brand/Ribbons'
-import { Logo } from '../../components/Logo'
+import { BrandMark } from '../../brand/Splash'
 import { api, ApiError } from '../../lib/api'
 import { formatPln } from '../../lib/format'
 import { prefersReducedMotion } from '../../lib/motion'
@@ -66,7 +66,7 @@ export default function AnalysisPage() {
       <div className="flow-body flow-center">
         {!finished ? (
           <>
-            <Logo className="analysis-logo" color="#fff" duration={1500} />
+            <BrandMark className="analysis-brand" duration={1500} />
             <h1 className="flow-title">Sprawdzam, co Wam przysługuje</h1>
             <p className="flow-lead">Czytam Wasze dane i porównuję je z przepisami i bazą świadczeń.</p>
           </>
