@@ -238,3 +238,20 @@ def test_tool_ryzyka(env, store):
     ctx = ToolContext(Principal("user-nowak-anna", "parent", fam), store, date.today())
     out = asyncio.run(call_tool("ryzyka", {}, ctx))
     assert out["risks"][0]["severity"] == "high"
+
+
+def test_demo_mode_scans_sample_pdf_end_to_end(client):
+    """Bez Azure (DemoLLM): przykładowa umowa Anny -> szkic bez braków -> zatwierdzenie -> profil."""
+    from pathlib import Path
+
+    sample = Path(__file__).resolve().parent.parent / "app" / "seed" / "sample_umowa_anna_nowak.pdf"
+    anna = login(client, "persona-nowak-anna")
+    client.post("/api/families", headers=anna)
+    r = scan(client, anna, content=sample.read_bytes(), ctype="application/pdf", name=sample.name)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["draft"]["missing"] == []
+    assert body["draft"]["employer_name"] == "Krakowskie Centrum Usług Wspólnych Sp. z o.o."
+    r = client.post(f"/api/contracts/{body['draft_id']}/confirm", json=body["draft"], headers=anna)
+    assert r.status_code == 200
+    assert len(client.get("/api/profile/me", headers=anna).json()["insurance"]) == 1  # scalone z wpisem ZUS

@@ -109,3 +109,32 @@ proporcjonalnie (dla demo: jedna replika lub sticky ingress). Budżet tokenów j
 wspólny, ale rezerwacja jest atomowa tylko w obrębie procesu (`asyncio.Lock`; `Store` nie ma atomowego inkrementu).
 Przy wielu replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — inaczej możliwe przekroczenie
 budżetu rzędu liczby replik × rezerwacja. Limit równoległych żądań (`AI_MAX_INFLIGHT`) też jest per proces.
+
+## Umowy i ostrzeżenia o ryzyku (plan 04)
+
+- Rodzic wgrywa umowę (`/umowy` albo opcjonalny krok `/start/umowy`): `POST /api/contracts/scan` (multipart
+  `file`, PDF/PNG/JPG/TXT, maks. 5 MB, za `ai_guard("contract_scan")`) → szkic (`confirmed=false`) z listą
+  `missing`. Dane trafiają do profilu dopiero po `POST /api/contracts/{id}/confirm` (scalane z wpisem
+  ubezpieczenia z ZUS o tym samym płatniku i rodzaju). Maks. 5 zatwierdzonych umów na rodzica.
+- Typ pliku sprawdzamy po magic bytes (musi zgadzać się z `Content-Type`); PDF z JavaScriptem/załącznikami
+  jest odrzucany. Sam plik nie jest przechowywany — zapisujemy tylko nazwę, widoczną wyłącznie dla właściciela;
+  partner widzi zatwierdzone dane. Tekst umowy jest przycinany do `AI_MAX_INPUT_CHARS`.
+- `GET /api/risks` — ostrzeżenia obojga rodziców (`services/risk.py`: umowa terminowa kończąca się przed
+  porodem, zlecenie bez dobrowolnego chorobowego, zadłużenie JDG). Narzędzie MCP: `ryzyka`.
+  Ryzyka pojawiają się tylko, gdy w rodzinie jest dziecko „w drodze” z terminem porodu.
+
+**Skan w trybie demo (bez Azure):** `DemoLLM` odczytuje umowę regexami (`app/seed/demo_handlers.py`) — działa
+dla plików tekstowych/PDF z etykietami „Pracodawca:”, „Stanowisko:”, „Wynagrodzenie:” itd. (zdjęć w demo nie
+odczytamy). Przykładowa umowa Anny Nowak jest w repo: `backend/app/seed/sample_umowa_anna_nowak.pdf`.
+Wygenerowanie jej od nowa (wymaga `fpdf2` z `requirements-dev.txt` i czcionki TTF z polskimi znakami):
+
+```bash
+cd backend && .venv/bin/python scripts/make_sample_contract.py   # opcjonalnie --font /ścieżka/do.ttf
+```
+
+Test ręczny: zaloguj się jako Anna, załóż rodzinę, wejdź w „Umowy”, wgraj ten PDF, zatwierdź — umowa pojawi się
+w „Moich danych”. Żeby zobaczyć ostrzeżenie, wgraj plik `.txt` z „UMOWA ZLECENIA”, „Zleceniodawca: …”,
+„Dobrowolne ubezpieczenie chorobowe: nie” (dziecko w drodze musi być dodane w „Rodzina”).
+
+**Node:** frontend (vite 8 / rolldown) wymaga Node **≥ 22.12** — na 22.9 `npm ci` pomija natywny binding
+i testy nie startują („Cannot find native binding”).

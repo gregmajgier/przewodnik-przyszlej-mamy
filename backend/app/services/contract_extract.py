@@ -17,13 +17,13 @@ from typing import Literal
 from pydantic import Field
 
 from ..ai.llm import LLM, LLMError, LLMMessage
+from ..config import settings
 from ..errors import DomainError
 from ..models.contract import ContractDraft
 
 logger = logging.getLogger("mrodzina.contracts")
 
 FEATURE = "contract_scan"
-MAX_TEXT_CHARS = 20_000  # dłuższe umowy przycinamy (kluczowe dane są na początku)
 MIN_TEXT_CHARS = 40  # mniej tekstu = skan bez warstwy tekstowej albo pusty plik
 
 UNREADABLE = (
@@ -173,12 +173,12 @@ def _messages(filename: str, ftype: FileType, content: bytes) -> list[LLMMessage
         )
         return [system, user]
     text = pdf_text(content) if ftype == "pdf" else content.decode("utf-8-sig")
-    text = text.strip()
+    text = text.strip()  # dłuższe umowy przycinamy do AI_MAX_INPUT_CHARS (kluczowe dane są na początku)
     if len(text) < MIN_TEXT_CHARS:
         raise ContractUnreadable(UNREADABLE)
     user = LLMMessage(
         role="user",
-        content=f"Plik: {filename}\nTreść umowy:\n<umowa>\n{text[:MAX_TEXT_CHARS]}\n</umowa>",
+        content=f"Plik: {filename}\nTreść umowy:\n<umowa>\n{text[: settings.ai_max_input_chars]}\n</umowa>",
     )
     return [system, user]
 
