@@ -5,12 +5,16 @@ on:
   pull_request:
     branches: [main]
 
+permissions: {}
+
 jobs:
   check-source:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          if [ "${{ github.head_ref }}" != "dev" ]; then
-            echo "::error::Only dev can be merged into main (got '${{ github.head_ref }}')"
+      - env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "dev" ]; then
+            echo "::error::Only dev can be merged into main (got '$HEAD_REF')"
             exit 1
           fi
