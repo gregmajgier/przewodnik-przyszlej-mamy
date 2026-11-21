@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import pkgutil
 from contextlib import asynccontextmanager
@@ -9,6 +10,7 @@ from fastapi.responses import JSONResponse
 from . import db, routers
 from .config import settings
 from .errors import DomainError
+from .mail.poller import poll_loop
 from .security import validate_startup_config
 from .seed import seed_all
 from .storage import CosmosStore, MemoryStore, Store
@@ -37,7 +39,12 @@ def create_app(store: Store | None = None) -> FastAPI:
             await db.init_db()
             app.state.store = CosmosStore(db.get_database())
         await seed_all(app.state.store)
+        # plan 09: cykliczne sprawdzanie poczty (MAIL_POLL_S > 0; w testach 0)
+        poll = asyncio.create_task(poll_loop(app)) if settings.mail_poll_s > 0 else None
+        app.state.mail_poll_task = poll
         yield
+        if poll is not None:
+            poll.cancel()
         if use_cosmos:
             await db.close_db()
 
