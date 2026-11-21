@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "nazwa": "Schematy pól makiet portali (eZUS/PUE, Emp@tia) sterowanych przez agenta",
+    "uwagi": [
+      "Te same `id` pól są używane przez makiety we frontendzie (/sim/ezus/:portalId, /sim/empatia/:portalId) i przez plan agenta.",
+      "`extends_form` oznacza, że schemat pól jest taki sam jak mapa formularza PDF o tym kodzie.",
+      "To symulacje — to nie są prawdziwe portale; układ pól jest uproszczony."
+    ]
+  },
+  "portals": {
+    "ezus_800plus": {
+      "title": "eZUS — Wniosek o świadczenie wychowawcze 800+",
+      "kind": "ezus",
+      "form_code": "800PLUS",
+      "fields": [
+        {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
+        {"id": "applicant_last_name", "label": "Nazwisko wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.last_name"},
+        {"id": "applicant_pesel", "label": "PESEL wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.pesel", "format": "pesel"},
+        {"id": "street", "label": "Ulica", "type": "text", "required": true, "source_key": "answers.street"},
+        {"id": "house_no", "label": "Numer domu", "type": "text", "required": true, "source_key": "answers.house_no"},
+        {"id": "postal_code", "label": "Kod pocztowy", "type": "text", "required": true, "source_key": "applicant.postal_code"},
+        {"id": "city", "label": "Miejscowość", "type": "text", "required": true, "source_key": "applicant.city"},
+        {"id": "citizenship", "label": "Obywatelstwo", "type": "choice", "required": true, "source_key": null, "choices": ["polskie", "inne"], "default": "polskie"},
+        {"id": "account_number", "label": "Numer rachunku bankowego", "type": "text", "required": true, "source_key": "answers.account_number", "format": "digits"},
+        {"id": "child_first_name", "label": "Imię dziecka", "type": "text", "required": true, "source_key": "child.first_name"},
+        {"id": "child_last_name", "label": "Nazwisko dziecka", "type": "text", "required": true, "source_key": "child.last_name"},
+        {"id": "child_birth_date", "label": "Data urodzenia dziecka", "type": "date", "required": true, "source_key": "child.birth_date"},
+        {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"}
+      ]
+    },
+    "ezus_aktywny_rodzic": {
+      "title": "eZUS — Wniosek „Aktywny rodzic”",
+      "kind": "ezus",
+      "form_code": "AKTYWNY-RODZIC",
+      "fields": [
+        {"id": "variant", "label": "Wariant świadczenia", "type": "choice", "required": true, "source_key": null, "choices": ["w_pracy", "w_zlobku", "w_domu"]},
+        {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
+        {"id": "applicant_last_name", "label": "Nazwisko wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.last_name"},
+        {"id": "applicant_pesel", "label": "PESEL wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.pesel", "format": "pesel"},
+        {"id": "street", "label": "Ulica", "type": "text", "required": true, "source_key": "answers.street"},
+        {"id": "house_no", "label": "Numer domu", "type": "text", "required": true, "source_key": "answers.house_no"},
+        {"id": "postal_code", "label": "Kod pocztowy", "type": "text", "required": true, "source_key": "applicant.postal_code"},
+        {"id": "city", "label": "Miejscowość", "type": "text", "required": true, "source_key": "applicant.city"},
+        {"id": "account_number", "label": "Numer rachunku bankowego", "type": "text", "required": true, "source_key": "answers.account_number", "format": "digits"},
+        {"id": "child_first_name", "label": "Imię dziecka", "type": "text", "required": true, "source_key": "child.first_name"},
+        {"id": "child_last_name", "label": "Nazwisko dziecka", "type": "text", "required": true, "source_key": "child.last_name"},
+        {"id": "child_birth_date", "label": "Data urodzenia dziecka", "type": "date", "required": true, "source_key": "child.birth_date"},
+        {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"}
+      ]
+    },
+    "ezus_zam": {
+      "title": "eZUS — Wniosek o zasiłek macierzyński (ZAM)",
+      "kind": "ezus",
+      "form_code": "ZAM",
+      "extends_form": "ZAM"
+    },
+    "emp_kdr": {
+      "title": "Emp@tia — Wniosek o Kartę Dużej Rodziny",
+      "kind": "empatia",
+      "form_code": "KDR",
+      "fields": [
+        {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
+        {"id": "applicant_last_name", "label": "Nazwisko wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.last_name"},
+        {"id": "applicant_pesel", "label": "PESEL wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.pesel", "format": "pesel"},
+        {"id": "street", "label": "Ulica", "type": "text", "required": true, "source_key": "answers.street"},
+        {"id": "house_no", "label": "Numer domu", "type": "text", "required": true, "source_key": "answers.house_no"},
+        {"id": "postal_code", "label": "Kod pocztowy", "type": "text", "required": true, "source_key": "applicant.postal_code"},
+        {"id": "city", "label": "Miejscowość", "type": "text", "required": true, "source_key": "applicant.city"},
+        {"id": "children_count", "label": "Liczba dzieci w rodzinie", "type": "text", "required": true, "source_key": "calc.children_count"}
+      ]
+    },
+    "emp_za_zyciem": {
+      "title": "Emp@tia — Wniosek o jednorazowe świadczenie „Za życiem”",
+      "kind": "empatia",
+      "form_code": "ZA-ZYCIEM",
+      "fields": [
+        {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
+        {"id": "applicant_last_name", "label": "Nazwisko wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.last_name"},
+        {"id": "applicant_pesel", "label": "PESEL wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.pesel", "format": "pesel"},
+        {"id": "street", "label": "Ulica", "type": "text", "required": true, "source_key": "answers.street"},
+        {"id": "house_no", "label": "Numer domu", "type": "text", "required": true, "source_key": "answers.house_no"},
+        {"id": "postal_code", "label": "Kod pocztowy", "type": "text", "required": true, "source_key": "applicant.postal_code"},
+        {"id": "city", "label": "Miejscowość", "type": "text", "required": true, "source_key": "applicant.city"},
+        {"id": "child_first_name", "label": "Imię dziecka", "type": "text", "required": true, "source_key": "child.first_name"},
+        {"id": "child_last_name", "label": "Nazwisko dziecka", "type": "text", "required": true, "source_key": "child.last_name"},
+        {"id": "child_birth_date", "label": "Data urodzenia dziecka", "type": "date", "required": true, "source_key": "child.birth_date"},
+        {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"},
+        {"id": "certificate_confirmed", "label": "Mam zaświadczenie lekarskie, o którym mowa w ustawie „Za życiem”", "type": "bool", "required": true, "source_key": "answers.za_zyciem_certificate"}
+      ]
+    }
+  }
+}
