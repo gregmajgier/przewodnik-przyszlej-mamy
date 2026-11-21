@@ -120,3 +120,38 @@ proporcjonalnie (dla demo: jedna replika lub sticky ingress). Budżet tokenów j
 wspólny, ale rezerwacja jest atomowa tylko w obrębie procesu (`asyncio.Lock`; `Store` nie ma atomowego inkrementu).
 Przy wielu replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — inaczej możliwe przekroczenie
 budżetu rzędu liczby replik × rezerwacja. Limit równoległych żądań (`AI_MAX_INFLIGHT`) też jest per proces.
+
+## Skan umów i ostrzeżenia o ryzyku (plan 04)
+
+Backend: `routers/contracts.py`, `services/contract_extract.py` (plik → tekst/obraz → `LLM.structured`),
+`services/contracts.py` (szkice, zatwierdzanie, profil), `services/risk.py` (czyste reguły ryzyka),
+narzędzie MCP `ryzyka`. Frontend: `features/contracts/` (trasy `/umowy`, `/start/umowy`, widżet, sekcja profilu).
+
+**Przykładowa umowa i skan w trybie demo (bez Azure):**
+
+```bash
+cd backend
+.venv/bin/pip install -r requirements-dev.txt          # fpdf2 do generowania PDF
+.venv/bin/python scripts/make_sample_contract.py       # -> app/seed/sample_umowa_anna_nowak.pdf
+# (czcionka z polskimi znakami: DejaVu/Arial/Liberation są wykrywane; inaczej --font /ścieżka/plik.ttf)
+.venv/bin/uvicorn app.main:app --reload
+```
+
+W UI: zaloguj się jako Anna Nowak → załóż rodzinę → „Umowy” → wgraj `sample_umowa_anna_nowak.pdf`.
+Bez `AZURE_OPENAI_*` działa `DemoLLM`: handler `contract_scan` (`app/seed/demo_handlers.py`) czyta etykiety
+„Pracodawca:”, „Stanowisko:”, „Wynagrodzenie:” itd. prostymi regexami, więc własny plik tekstowy z takimi
+etykietami (np. „Umowa zlecenie… Zleceniodawca: …”) też zadziała; brak słowa „umowa” = „Nie udało się
+odczytać umowy”. Przez curl:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" -F "file=@app/seed/sample_umowa_anna_nowak.pdf" localhost:8000/api/contracts/scan
+```
+
+Ostrzeżenia (`GET /api/risks`) liczą się dla rodziny z dzieckiem w drodze (status „expected”): zlecenie bez
+dobrowolnego chorobowego, umowa o pracę na czas określony kończąca się przed terminem porodu, zadłużenie
+składkowe przy JDG. Aby zobaczyć je w demo, wgraj plik tekstowy ze zleceniem i zatwierdź z „Nie mam” chorobowego.
+
+**Limity uploadu:** 5 MB/plik (sprawdzane po `Content-Length` przed parsowaniem multipart i po odczycie), 5 umów
+(zatwierdzone + oczekujące szkice) na rodzica, typy po magic bytes: PDF, PNG, JPEG, tekst. PDF z JavaScriptem /
+`Launch` / załącznikami jest odrzucany. Pliku nie przechowujemy — po ekstrakcji zostają tylko dane zatwierdzone
+przez rodzica. Niezatwierdzone szkice wygasają po 24 h.
