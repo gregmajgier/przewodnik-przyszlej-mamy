@@ -48,6 +48,7 @@ class LLMMessage(BaseModel):
     content: str | None = None
     tool_calls: list[ToolCall] = []
     tool_call_id: str | None = None
+    images: list[str] = []  # data URL-e (np. "data:image/png;base64,..."); część obrazowa wiadomości użytkownika
 
 
 class Usage(BaseModel):
@@ -164,7 +165,12 @@ def _to_openai_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
         if m.role == "tool":
             out.append({"role": "tool", "tool_call_id": m.tool_call_id, "content": m.content or ""})
             continue
-        item: dict[str, Any] = {"role": m.role, "content": m.content}
+        content: Any = m.content
+        if m.images:
+            content = [{"type": "text", "text": m.content or ""}] + [
+                {"type": "image_url", "image_url": {"url": url}} for url in m.images
+            ]
+        item: dict[str, Any] = {"role": m.role, "content": content}
         if m.role == "assistant" and m.tool_calls:
             item["tool_calls"] = [
                 {
