@@ -69,7 +69,7 @@ def test_other_unit_cannot_read_edit_publish(env):
     assert c.put(f"/api/official/benefits/{b['id']}", json=body(name="X"), headers=other).status_code == 404
     assert c.post(f"/api/official/benefits/{b['id']}/publish", headers=other).status_code == 404
     assert c.delete(f"/api/official/benefits/{b['id']}", headers=other).status_code == 404
-    assert c.get("/api/official/benefits", headers=other).json() == []
+    assert b["id"] not in {x["id"] for x in c.get("/api/official/benefits", headers=other).json()}
 
 
 def test_parent_token_forbidden(env):

@@ -16,7 +16,8 @@ from pydantic import BaseModel, Field
 from ..ai.limits import GuardContext, ai_guard, enforce_max_input, record_usage
 from ..ai.llm import LLM, Usage, get_llm, track_usage
 from ..errors import DomainError
-from ..mocks.benefit import Benefit, Condition, Criteria  # MOCK planu 03 — patrz NOTES-MOCKS.md
+from ..mocks.benefit import Condition, Criteria  # MOCK planu 03 — patrz NOTES-MOCKS.md
+from ..models.official_benefit import OfficialBenefit
 from ..models.unit import Unit
 from ..models.user import User
 from ..security import Principal, require_official
@@ -34,14 +35,6 @@ router = APIRouter(prefix="/api/official", tags=["official"])
 
 NOT_FOUND = "Nie znaleziono takiego świadczenia w Twojej jednostce."
 SCOPE_BY_LEVEL = {"gmina": "municipal", "powiat": "municipal", "voivodeship": "regional"}
-
-
-class OfficialBenefit(Benefit):
-    """Świadczenie w panelu: `Benefit` + stan zatwierdzenia warunków i metadane edycji."""
-
-    conditions_approved: bool = False
-    created_by: str | None = None
-    updated_at: datetime | None = None
 
 
 class BenefitIn(BaseModel):
