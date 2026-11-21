@@ -109,3 +109,97 @@ proporcjonalnie (dla demo: jedna replika lub sticky ingress). Budżet tokenów j
 wspólny, ale rezerwacja jest atomowa tylko w obrębie procesu (`asyncio.Lock`; `Store` nie ma atomowego inkrementu).
 Przy wielu replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — inaczej możliwe przekroczenie
 budżetu rzędu liczby replik × rezerwacja. Limit równoległych żądań (`AI_MAX_INFLIGHT`) też jest per proces.
+
+## Świadczenia (plan 03)
+
+**Katalog.** Świadczenia krajowe są w `backend/app/data/benefits_national.json` (22 pozycje), ładuje je `seed_all`
+(`app/seed/benefits.py`, upsert po stałym `id`). Model: `app/models/benefit.py` (`Benefit`, `Criteria`, `Condition`,
+`Deadline`). Świadczenia gminne i wojewódzkie dodaje urzędnik (plan 07) do tej samej kolekcji `benefits`;
+rodzina widzi tylko te, które obejmują jej adres (`services/units.py`: gmina → tylko własna, województwo → wszystkie
+gminy województwa).
+
+**Jak dodać świadczenie krajowe** — nowy obiekt w `benefits_national.json`:
+
+| Pole | Uwagi |
+|---|---|
+| `id`, `name`, `scope: "national"`, `category` | `id` unikalne i stałe (`nat-...`); `category`: `benefit` (pieniądze, wlicza się do szacunku rocznego) albo `perk` (uprawnienie/ulga). |
+| `criteria` | Kryteria strukturalne sprawdzane kodem. Wiek dziecka w **pełnych ukończonych miesiącach**, obie granice włącznie: „do ukończenia 18 lat” = `child_age_max_months: 215` (w dniu 18. urodzin wiek to już 216 → nie pasuje). Brak danych o dochodzie → `maybe` + pytanie, nigdy `no`. |
+| `extra_conditions` | Warunki dodatkowe: `kind: "auto"` (sprawdzane po `profile_key`) albo `"ask"` (pytanie tak/nie; odpowiedź zapisuje się w `profile.answers["benefit:<id>:<warunek>"]`, więc nie pytamy drugi raz). |
+| `amount_text`, `annual_value_estimate`, `deadline` | Kwota opisowa, szacunek roczny w zł (tylko dla `benefit`) i termin (`anchor`: `birth`/`due`/`child_age`/`fixed`). |
+| `form_codes` | Kody z `katalog_wnioskow_pdf.json` (lub puste). Kod z kreatorem wniosków (patrz niżej) daje przycisk „Złóż wniosek” działający od razu; pozostałe kody pokażą wyjaśnienie i link do pustego formularza. |
+| `source_url` | **Obowiązkowy**, `https://`, oficjalne źródło (ZUS, gov.pl, MRPiPS, ISAP). Wątpliwe dane oznacz `"verify": true`. |
+
+`backend/tests/test_benefits_seed.py` waliduje każdy rekord (model, `https`, unikalne `id`, istniejące `form_codes`,
+co najmniej 16 pozycji) i scenariusz rodziny Nowaków — po dodaniu wpisu uruchom `pytest -q`.
+
+**Silnik** (`services/matching.py`) to czysta, deterministyczna funkcja `match_benefit(ctx, benefit)`; **LLM nie bierze
+udziału w dopasowaniu**. Wynik: `fits` (pasuje), `maybe` (spełnione kryteria, ale są nierozstrzygnięte pytania) albo
+`no` (z powodem w `unmet`); każdy wynik ma ludzkie uzasadnienia w `reasons`.
+
+**API** (rodzic): `GET /api/benefits` (opublikowane, obejmujące adres rodziny), `GET /api/benefits/{id}`,
+`POST /api/benefits/{id}/answers {condition_id, answer}`, `GET /api/analysis` (kroki ekranu analizy + liczby),
+`GET /api/summary` (agregat dla dashboardu + `parameters_label`). Narzędzie MCP `swiadczenia` (`app/tools/benefits.py`)
+zwraca te same dopasowania asystentowi czatu.
+
+**Frontend:** po onboardingu rodzic trafia na `/analiza` (kroki ujawniane co ~700 ms; przy `prefers-reduced-motion`
+wszystko od razu), potem na `/` — dashboard (nagłówek z podsumowaniem, stawki z `GET /api/parametry` z etykietą
+„Parametry ZUS 2026 – aktywne” i siatka kafelków). Kafelek dokłada każda funkcja plikiem
+`features/<nazwa>/widget.tsx` (`{ order, Component }`) — dashboard ich nie zna z nazwy. Lista świadczeń: `/swiadczenia`.
+
+## Wnioski, agent i makiety portali (plan 08)
+
+**Kanały** (`services/applications.py::channels_for`, dane z `katalog_wnioskow_pdf.json`):
+
+| Wniosek | Kanały |
+|---|---|
+| do pracodawcy (`URLOP-*`, `REZYGNACJA-MAC`) | `employer_email` (PDF generowany + e-mail) lub `pdf_download` |
+| ZUS/gmina z makietą portalu (`ZAM`, `KDR`, `ZA-ZYCIEM`) | `portal_agent`; `ZAM` także `pdf_download` (AcroForm) |
+| tylko elektroniczne (`800PLUS`, `AKTYWNY-RODZIC`) | wyłącznie `portal_agent` (PDF → 422) |
+| ZUS z samym PDF (`ZAS-53`, `ZAS-26`, …) | `pdf_download` |
+
+Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy, potem `ZAM`; zlecenie/JDG → od razu `ZAM`
+(`prefill.recommend_flow`, zwracane w `GET /api/applications/forms`).
+
+**Przepływ:** `POST /api/applications {form_code, child_id?, channel?}` → szkic z prefillem (`services/prefill.py`:
+profil ZUS, odpowiedzi zapisane w profilu, dziecko) → `needs_input` + lista `missing`, gdy czegoś brakuje (nigdy puste pole
+w PDF) → `POST /{id}/answers` (odpowiedź zapisuje się w profilu; PESEL dziecka przy dziecku) → `GET /{id}/pdf` (podgląd) →
+`POST /{id}/sign` (**symulowany** Profil Zaufany) → `POST /{id}/submit`. Zasady:
+
+- Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje (403).
+  Cudzy wniosek lub dziecko cudzej rodziny → 404.
+- Podpis obejmuje **odcisk danych** (kanał, adresat, wartości). Zmiana czegokolwiek po podpisie (także danych dziecka)
+  unieważnia go — `submit` odpowie 409 „podpisz ponownie”.
+- `submit` jest **idempotentny po `application.id`** (blokada na wniosek + status): podwójne kliknięcie = jedna wiadomość.
+  Blokada jest per proces (jak limity AI); przy wielu replikach potrzebny byłby warunkowy zapis w bazie.
+- Poczta: `app/mail/provider.py` — `MailProvider` (protokół) i `SimMailProvider`, który **nie wysyła prawdziwych
+  e-maili**, tylko zapisuje wiadomość w `mail_messages` (folder `sent`, w bazie tylko nazwa i rozmiar załącznika).
+  Prawdziwego dostawcę podpinasz, podmieniając zależność `get_mail`.
+- Tryb straty: `cancel_drafts_for_child(store, child_id)` (`services/applications.py`, dostępne też z
+  `routers/applications`) anuluje niewysłane wnioski dziecka; tworzenie/podpis/wysyłka dla takiego dziecka → 409.
+
+**Agent w makiecie portalu.** `POST /api/applications/{id}/agent-plan` (za `ai_guard("agent_plan")`) zwraca kroki
+`pole → wartość + uzasadnienie` i listę `blocked` (pytania o braki). Model dostaje **tylko schemat pól**
+(id, etykieta, typ, „czy wartość jest znana”) — żadnych danych osobowych; wartości zawsze pochodzą z prefillu i są
+walidowane typem/wyborem, więc model nie może ich zmyślić ani podmienić. Pole spoza schematu lub niepoprawna wartość
+nie trafia do planu; brak wymaganej wartości → `blocked`, nigdy zgadywanie. Bez Foundry działa deterministyczny
+handler demo (`app/seed/demo_agent.py`).
+
+Frontend (`features/portal-sim`): makiety `/sim/ezus/:portalId` i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
+znacznik „SYMULACJA”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
+`<iframe>`, wykonuje plan krok po kroku z widocznym kursorem, zatrzymuje się na brakach (pyta rodzica) i przed wysyłką;
+dopiero „Zatwierdzam i wysyłam” wysyła, a po `submitted` woła `portal-submitted`. Protokół `postMessage`
+(`agentBridge.ts`): aplikacja → makieta `fill`/`submit`, makieta → aplikacja `ready`/`ack`/`edited`/`invalid`/`submitted`.
+Obie strony przyjmują wiadomości **tylko z tego samego originu i od właściwego okna**, walidują ich kształt i wysyłają
+z jawnym `targetOrigin`. Makieta odrzuca pola spoza schematu i wartości niezgodne z typem.
+
+**Jak dodać wniosek z kreatorem**
+1. Wniosek z PDF-em AcroForm: zbadaj pola (`pypdf.PdfReader(...).get_fields()`), dodaj mapę
+   `backend/app/data/form_field_maps/<KOD>.json` (pole PDF → `source_key`) — `test_map_fields_exist_in_pdf` wykryje
+   rozjazd mapy z PDF-em.
+2. Wniosek przez makietę portalu: dodaj wpis w `backend/app/data/portal_schemas.json` i kod w `CODE_TO_PORTAL`
+   (`services/prefill.py`).
+3. Kod musi istnieć w `katalog_wnioskow_pdf.json`; kanały wynikają z powyższej tabeli.
+
+**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis, poczta
+i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
+`/poczta`) działają dopiero po wdrożeniu planu 09.
