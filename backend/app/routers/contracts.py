@@ -2,7 +2,8 @@
 
 from datetime import date
 
-from fastapi import APIRouter, Depends, File, Response, UploadFile
+from fastapi import APIRouter, Depends, Request, Response
+from starlette.datastructures import UploadFile
 
 from ..ai.limits import GuardContext, ai_guard, record_usage
 from ..ai.llm import LLM, Usage, get_llm, track_usage
@@ -10,18 +11,46 @@ from ..errors import DomainError
 from ..models.contract import Contract, ContractDraft, Risk
 from ..security import Principal, require_parent
 from ..services import contracts as svc
-from ..services.contract_extract import extract_contract
+from ..services.contract_extract import extract_contract, safe_filename
 from ..storage import Store, get_store
 
 router = APIRouter(prefix="/api", tags=["contracts"])
 
 MAX_FILE_BYTES = 5 * 1024 * 1024
 TOO_LARGE = "Plik jest za duży — maksymalnie 5 MB."
+MULTIPART_OVERHEAD = 64 * 1024
+
+
+async def _read_upload(request: Request) -> tuple[str, bytes, str]:
+    """Czyta pojedynczy plik z pola `file`. Rozmiar sprawdzamy po Content-Length, zanim zaczniemy parsować
+    multipart (parser nie ma limitu rozmiaru pliku), i jeszcze raz po faktycznym odczycie."""
+    try:
+        declared_len = int(request.headers.get("content-length", ""))
+    except ValueError:
+        raise DomainError(411, "Brak informacji o rozmiarze pliku. Spróbuj ponownie.") from None
+    if declared_len > MAX_FILE_BYTES + MULTIPART_OVERHEAD:
+        raise DomainError(413, TOO_LARGE)
+    if not request.headers.get("content-type", "").lower().startswith("multipart/form-data"):
+        raise DomainError(422, "Wyślij plik w polu „file”.")
+    try:
+        form = await request.form(max_files=1, max_fields=1)
+    except Exception:  # noqa: BLE001 - zepsuty multipart; treści nie logujemy
+        raise DomainError(422, "Nie udało się odebrać pliku. Spróbuj ponownie.") from None
+    try:
+        upload = form.get("file")
+        if not isinstance(upload, UploadFile):
+            raise DomainError(422, "Wyślij plik w polu „file”.")
+        content = await upload.read(MAX_FILE_BYTES + 1)
+        if len(content) > MAX_FILE_BYTES:
+            raise DomainError(413, TOO_LARGE)
+        return safe_filename(upload.filename), content, upload.content_type or ""
+    finally:
+        await form.close()
 
 
 @router.post("/contracts/scan")
 async def scan(
-    file: UploadFile = File(...),
+    request: Request,
     p: Principal = Depends(require_parent),
     ctx: GuardContext = Depends(ai_guard("contract_scan")),
     llm: LLM = Depends(get_llm),
@@ -31,12 +60,9 @@ async def scan(
     usage = Usage()
     try:
         await svc.ensure_capacity(store, p.user_id)
-        content = await file.read(MAX_FILE_BYTES + 1)
-        if len(content) > MAX_FILE_BYTES:
-            raise DomainError(413, TOO_LARGE)
-        filename = (file.filename or "umowa").rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+        filename, content, content_type = await _read_upload(request)
         with track_usage() as usage:
-            draft = await extract_contract(llm, filename, content, file.content_type or "")
+            draft = await extract_contract(llm, filename, content, content_type)
     except BaseException:
         # model zdążył odpowiedzieć (np. „to nie umowa”) -> rozliczamy zużycie; inaczej zwracamy rezerwację
         if usage.total:

@@ -111,6 +111,32 @@ def check_declared_type(declared: str | None, detected: FileType | None) -> File
     return detected
 
 
+def _has_active_content(reader) -> bool:
+    """Strukturalna kontrola aktywnej zawartości PDF (pypdf dekoduje nazwy zapisane szesnastkowo, więc
+    obchodzenie samego wyszukiwania po bajtach nie wystarcza). Błąd parsowania = traktujemy jak groźny."""
+    try:
+        root = reader.trailer["/Root"]
+        if "/AA" in root:
+            return True
+        opening = root.get("/OpenAction")
+        # OpenAction jako tablica to zwykły cel (otwarcie na stronie); akcja-słownik inna niż GoTo to ryzyko
+        if opening is not None and hasattr(opening.get_object(), "get") and opening.get_object().get("/S") != "/GoTo":
+            return True
+        names = root.get("/Names")
+        if names is not None and "/JavaScript" in names.get_object():
+            return True
+        for page in reader.pages[:20]:
+            if "/AA" in page:
+                return True
+            for annot in page.get("/Annots") or []:
+                action = annot.get_object().get("/A")
+                if action is not None and action.get_object().get("/S") in ("/JavaScript", "/Launch"):
+                    return True
+    except Exception:  # noqa: BLE001 - niespójna struktura = traktujemy jak nieczytelną
+        return True
+    return False
+
+
 def pdf_text(content: bytes) -> str:
     if _PDF_DANGEROUS.search(content):
         raise ContractUnreadable(DANGEROUS)
@@ -120,6 +146,8 @@ def pdf_text(content: bytes) -> str:
         reader = PdfReader(io.BytesIO(content))
         if reader.is_encrypted:
             raise ContractUnreadable(UNREADABLE)
+        if _has_active_content(reader):
+            raise ContractUnreadable(DANGEROUS)
         parts = [(page.extract_text() or "") for page in reader.pages[:20]]
     except ContractUnreadable:
         raise
@@ -161,6 +189,15 @@ def finalize(raw: ContractDraft) -> ContractDraft:
 # --- ekstrakcja --------------------------------------------------------------------------------
 
 
+_FILENAME_JUNK = re.compile(r"[\x00-\x1f\x7f<>]")
+
+
+def safe_filename(raw: str | None) -> str:
+    """Nazwa pliku tylko do wyświetlenia i do promptu: bez katalogów, znaków sterujących i nawiasów ostrych."""
+    name = (raw or "").replace("\\", "/").rsplit("/", 1)[-1]
+    return _FILENAME_JUNK.sub("", name).strip()[:120] or "umowa"
+
+
 def _messages(filename: str, ftype: FileType, content: bytes) -> list[LLMMessage]:
     system = LLMMessage(role="system", content=SYSTEM_PROMPT)
     if ftype in ("png", "jpeg"):
@@ -186,7 +223,7 @@ def _messages(filename: str, ftype: FileType, content: bytes) -> list[LLMMessage
 async def extract_contract(llm: LLM, filename: str, content: bytes, content_type: str) -> ContractDraft:
     """Plik -> `ContractDraft` z listą `missing`. Rzuca `ContractUnreadable` (422) bez zapisu."""
     ftype = check_declared_type(content_type, detect_type(content))
-    messages = _messages(filename, ftype, content)
+    messages = _messages(safe_filename(filename), ftype, content)
     try:
         result = await llm.structured(messages, ExtractionResult, feature=FEATURE)
     except LLMError:
