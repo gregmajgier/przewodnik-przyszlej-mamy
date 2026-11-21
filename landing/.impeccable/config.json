@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "bounce",
+        "createdAt": "2026-11-21T12:31:56.903Z",
+        "reason": "user confirmed: asked for a bouncing arrow hinting at scroll in the hero"
+      }
+    ]
+  }
+}

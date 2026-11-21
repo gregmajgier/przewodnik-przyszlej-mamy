@@ -109,6 +109,7 @@ function App() {
         <Timeline />
 
         <section id="cta" className="final-cta">
+          <HeroIcons variant="cta" />
           <a className="cta" href={APP_URL}>
             Sprawdź, co możemy dla ciebie zrobić.
           </a>
