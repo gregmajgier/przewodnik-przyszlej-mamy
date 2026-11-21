@@ -1,21 +1,28 @@
 """Pobiera wszystkie PDF-y z katalog_wnioskow_pdf.json do folderu app/data/wnioski_pdf
-i zapisuje nazwy pól formularzy (AcroForm) do app/data/wnioski_pdf/pola_formularzy.json.
+i (jeśli zainstalowano pypdf) zapisuje nazwy pól formularzy do
+app/data/wnioski_pdf/pola_formularzy.json.
 
-Użycie:
-    pip install requests pypdf
-    cd backend && python scripts/pobierz_pdfy.py
+Działa na samej bibliotece standardowej Pythona; pypdf jest opcjonalny.
+
+Użycie (z folderu backend):
+    python scripts/pobierz_pdfy.py
 """
 import json
 import pathlib
 import re
+import urllib.request
 
-import requests
-from pypdf import PdfReader
+try:
+    from pypdf import PdfReader
+except ImportError:  # pypdf opcjonalny: bez niego tylko pobieramy pliki
+    PdfReader = None
 
 DATA = pathlib.Path(__file__).resolve().parents[1] / "app" / "data"
 KATALOG = DATA / "katalog_wnioskow_pdf.json"
 OUT = DATA / "wnioski_pdf"
 OUT.mkdir(exist_ok=True)
+
+HEADERS = {"User-Agent": "Mozilla/5.0 (przewodnik-przyszlej-mamy; hackathon)"}
 
 katalog = json.loads(KATALOG.read_text(encoding="utf-8"))
 pola = {}
@@ -28,19 +35,26 @@ for w in katalog["wnioski"]:
         nazwa = re.sub(r"[^A-Za-z0-9_-]+", "_", f"{w['kod']}_{wariant}") + ".pdf"
         plik = OUT / nazwa
         try:
-            r = requests.get(url, timeout=30)
-            r.raise_for_status()
-            if not r.content.startswith(b"%PDF"):
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=30) as r:
+                dane = r.read()
+            if not dane.startswith(b"%PDF"):
                 print(f"[!] {w['kod']} {wariant}: to nie jest PDF (sprawdź stronę formularza)")
                 continue
-            plik.write_bytes(r.content)
-            fields = PdfReader(plik).get_fields() or {}
-            pola[nazwa] = sorted(fields.keys())
-            print(f"[ok] {nazwa}: {len(fields)} pól")
+            plik.write_bytes(dane)
+            if PdfReader:
+                fields = PdfReader(plik).get_fields() or {}
+                pola[nazwa] = sorted(fields.keys())
+                print(f"[ok] {nazwa}: {len(fields)} pól")
+            else:
+                print(f"[ok] {nazwa}")
         except Exception as e:
             print(f"[x] {w['kod']} {wariant}: {e}")
 
-(OUT / "pola_formularzy.json").write_text(
-    json.dumps(pola, ensure_ascii=False, indent=2), encoding="utf-8"
-)
-print("Gotowe. Nazwy pól w wnioski_pdf/pola_formularzy.json")
+if PdfReader:
+    (OUT / "pola_formularzy.json").write_text(
+        json.dumps(pola, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print("Gotowe. Nazwy pól w app/data/wnioski_pdf/pola_formularzy.json")
+else:
+    print("Gotowe. Aby wypisać pola formularzy, zainstaluj pypdf i uruchom ponownie.")

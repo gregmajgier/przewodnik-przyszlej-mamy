@@ -7,15 +7,17 @@ type Props = {
   className?: string
   color?: string
   duration?: number
+  /** Set to false for a static logo (no draw-in). */
+  animate?: boolean
 }
 
 /** mRodzina ribbon logo. Draws itself in from the bottom-left on every mount. */
-export function Logo({ className, color = 'currentColor', duration = 1800 }: Props) {
+export function Logo({ className, color = 'currentColor', duration = 1800, animate = true }: Props) {
   const pathRef = useRef<SVGPathElement>(null)
 
   useLayoutEffect(() => {
     const path = pathRef.current
-    if (!path) return
+    if (!path || !animate) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const length = path.getTotalLength()
     const anim = path.animate(
@@ -24,12 +26,12 @@ export function Logo({ className, color = 'currentColor', duration = 1800 }: Pro
     )
     path.style.strokeDasharray = `${length}`
     return () => anim.cancel()
-  }, [duration])
+  }, [duration, animate])
 
   return (
     <svg
       className={className}
-      viewBox="60 110 392 320"
+      viewBox="80 92 352 326"
       role="img"
       aria-label="m"
       fill="none"

@@ -51,14 +51,17 @@ Brand tokens (from `brand/colors_and_fonts.md`):
 - Background color: `#f8fbef`
 - Main font color: `#191919`
 - Primary accent color: `#ef4363`
-- Decorative font: **Momo Signature**
+- Decorative font: **Sniglet** (regular weight), used only for the wordmark
+- Body font: **Nunito**
 
 ### 2.1 Hero section (fullscreen)
 
 - Fills the entire viewport (100vh), background is the **primary accent
   color** (`#ef4363`).
-- All text is **white-ish, using the page background color** (`#f8fbef`),
-  set in the **decorative font** (Momo Signature).
+- All text is **white-ish, using the page background color** (`#f8fbef`).
+  Body copy and the CTA are set in a soft, readable font (**Nunito**);
+  the decorative font (Sniglet) is reserved for the **mRodzina
+  wordmark** only (the "Rodzina" part), since it is hard to read at length.
 - Copy, centered, top to bottom:
   1. "Mamo! Tato! Masz wiele na głowie..."
   2. "Pozwól, że" followed by the **mRodzina wordmark**, then "pomoże."
@@ -76,10 +79,35 @@ Brand tokens (from `brand/colors_and_fonts.md`):
 - At the bottom of the viewport: a **bouncing arrow** hinting that the page
   can be scrolled down.
 
-### 2.2 Project info section
+### 2.0 Header
 
-- Below the hero, there will be information about the project.
-- **Deferred.** Not defined yet; leave empty for now.
+- Logo only at the top-left (draw-in animation), three placeholder nav items
+  on the right (Nunito, white). Absolutely positioned over the hero.
+- The browser tab favicon is the "m" logo on the brand background
+  (`public/favicon.svg`, from `brand/logo-rodzina.svg`).
+
+### 2.2 Sections below the hero
+
+In order (all placeholders, content to be decided later):
+
+1. **Video**: 16:9 placeholder for a YouTube embed.
+2. **"Pomożemy ci z:"**: auto-scrolling carousel (pauses on hover) of topics
+   (ZUS with its logo, school recruitment, ...).
+3. **Features**: placeholder cards.
+4. **Timeline**: figure pinned to the viewport; vertical scroll moves it
+   horizontally, from before the child is born (maternity/paternity leave)
+   to adulthood (18). Examples to be filled in later.
+5. **Final CTA**: "Sprawdź, co możemy dla ciebie zrobić." in a rounded box
+   with margin, linking to the same URL as the hero CTA.
+
+### 2.3 Background ribbons
+
+- Three thin, opaque ribbons (same shape language as the logo) come out of the
+  hero, in the hero's own colour so they are invisible on it, and wander down
+  the page (sometimes past the screen edges, with rare loops).
+- They are drawn progressively with scroll. Once the hero is fully out of view
+  they lighten to a pale pink. All share one colour so crossings merge
+  (no alpha overlap).
 
 ### Language
 

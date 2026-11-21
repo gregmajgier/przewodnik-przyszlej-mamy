@@ -2,7 +2,8 @@
   --bg: #f8fbef;
   --text: #191919;
   --accent: #ef4363;
-  --font-decorative: 'Momo Signature', cursive;
+  --font-decorative: 'Sniglet', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -10,5 +11,5 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-decorative);
+  font-family: var(--font-body);
 }
