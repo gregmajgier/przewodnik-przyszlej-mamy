@@ -49,7 +49,8 @@
   (eksport `BASE_URL`), `docs/dev.md`.
 
 ## Frontend
-- Kafelek (`widget.tsx`, order 5) przenosi do `/czat?q=…`; `ChatPage` wysyła pytanie raz i czyści adres.
+- Kafelek (`widget.tsx`, order 5) przenosi do `/czat` z pytaniem w router state; `ChatPage` tylko wstawia je do pola
+  (rodzic sam wysyła). Parametry URL (`?q=`) są ignorowane — link z zewnątrz nie może zużyć budżetu AI (przegląd bezpieczeństwa).
   Id sesji w `localStorage` (`chat.session`); po odświeżeniu historia jest odtwarzana z API.
 - Brak „pływającego” launchera na każdej stronie — tylko kafelek dashboardu i pozycja w nawigacji.
 

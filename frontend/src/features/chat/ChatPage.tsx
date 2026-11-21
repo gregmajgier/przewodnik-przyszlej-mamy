@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent, KeyboardEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { api } from '../../lib/api'
 import './chat.css'
 import { EXAMPLE_QUESTIONS } from './examples'
@@ -11,10 +11,14 @@ const MAX_CHARS = 2000
 
 export default function ChatPage() {
   const { messages, sending, notice, activity, send, reset } = useChatStream()
-  const [draft, setDraft] = useState('')
+  // Pytanie z kafelka dashboardu trafia tylko do pola (router state) — nigdy nie wysyłamy niczego
+  // automatycznie, a parametry adresu URL są ignorowane (link z zewnątrz nie może zużyć budżetu AI).
+  const location = useLocation()
+  const [draft, setDraft] = useState(() => {
+    const q = (location.state as { q?: unknown } | null)?.q
+    return typeof q === 'string' ? q.slice(0, MAX_CHARS) : ''
+  })
   const [demo, setDemo] = useState(false)
-  const [params, setParams] = useSearchParams()
-  const autoSent = useRef(false)
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -28,16 +32,6 @@ export default function ChatPage() {
       cancelled = true
     }
   }, [])
-
-  // Pytanie z kafelka na dashboardzie (?q=...): wysyłamy raz, potem czyścimy adres.
-  useEffect(() => {
-    const q = params.get('q')
-    if (q && !autoSent.current) {
-      autoSent.current = true
-      setParams({}, { replace: true })
-      void send(q)
-    }
-  }, [params, send, setParams])
 
   useEffect(() => {
     endRef.current?.scrollIntoView?.({ block: 'end' })

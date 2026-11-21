@@ -1,8 +1,9 @@
-import { act, renderHook, screen, waitFor } from '@testing-library/react'
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../../lib/api'
+import { SessionContext } from '../../lib/session'
 import { makeSession, renderWithSession } from '../../test/utils'
 import ChatLauncher from './ChatLauncher'
 import ChatPage from './ChatPage'
@@ -185,12 +186,23 @@ describe('ChatPage', () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).message).toBe('Jak zapisać dziecko do przedszkola?')
   })
 
-  it('pytanie z kafelka (?q=) jest wysyłane od razu, raz', async () => {
-    fetchMock.mockResolvedValueOnce(sseResponse(happyStream()))
+  it('test_url_q_param_is_not_sent_automatically', async () => {
     renderWithSession(<ChatPage />, { route: '/czat?q=Co%20mi%20przys%C5%82uguje%3F' })
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
-    expect(JSON.parse(fetchMock.mock.calls[0][1].body).message).toBe('Co mi przysługuje?')
-    expect(await screen.findByText(/Urlop macierzyński trwa/)).toBeInTheDocument()
+    await screen.findByLabelText('Twoje pytanie')
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Twoje pytanie')).toHaveValue('')
+  })
+
+  it('test_launcher_question_prefills_draft_without_sending', async () => {
+    render(
+      <SessionContext.Provider value={makeSession()}>
+        <MemoryRouter initialEntries={[{ pathname: '/czat', state: { q: 'Co mi przysługuje?' } }]}>
+          <ChatPage />
+        </MemoryRouter>
+      </SessionContext.Provider>,
+    )
+    expect(screen.getByLabelText('Twoje pytanie')).toHaveValue('Co mi przysługuje?')
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('pokazuje etykietę trybu demo', async () => {
@@ -212,11 +224,11 @@ describe('ChatPage', () => {
 })
 
 describe('ChatLauncher', () => {
-  it('pokazuje pole i przykłady, a wysłanie przenosi do /czat z pytaniem', async () => {
+  it('pokazuje pole i przykłady, a wysłanie przenosi do /czat bez wysyłania pytania', async () => {
     renderWithSession(
       <Routes>
         <Route path="/" element={<ChatLauncher />} />
-        <Route path="/czat" element={<p>strona czatu</p>} />
+        <Route path="/czat" element={<ChatPage />} />
       </Routes>,
       { session: makeSession() },
     )
@@ -224,6 +236,7 @@ describe('ChatLauncher', () => {
     expect(screen.getByRole('button', { name: 'Jak zapisać dziecko do przedszkola?' })).toBeInTheDocument()
     await userEvent.type(screen.getByLabelText('Zadaj pytanie'), 'Co mi przysługuje po urlopie?')
     await userEvent.click(screen.getByRole('button', { name: 'Zapytaj' }))
-    expect(await screen.findByText('strona czatu')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Twoje pytanie')).toHaveValue('Co mi przysługuje po urlopie?')
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

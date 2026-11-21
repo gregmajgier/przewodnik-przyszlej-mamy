@@ -4,14 +4,15 @@ import { useNavigate } from 'react-router-dom'
 import './chat.css'
 import { EXAMPLE_QUESTIONS } from './examples'
 
-/** Kafelek dashboardu „Zapytaj mRodzinę”: pole pytania + przykłady; przenosi do /czat z pytaniem. */
+/** Kafelek dashboardu „Zapytaj mRodzinę”: pole pytania + przykłady; przenosi do /czat z pytaniem wpisanym
+ * w pole (router state) — rodzic sam je wysyła. */
 export default function ChatLauncher() {
   const [q, setQ] = useState('')
   const navigate = useNavigate()
 
   const ask = (question: string) => {
     const text = question.trim()
-    if (text) navigate(`/czat?q=${encodeURIComponent(text)}`)
+    if (text) navigate('/czat', { state: { q: text } })
   }
 
   function submit(e: FormEvent) {
