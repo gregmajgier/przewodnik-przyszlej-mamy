@@ -22,8 +22,11 @@ class Settings(BaseSettings):
     # AI (plan 02). Bez endpointu i klucza działa DemoLLM (offline).
     azure_openai_endpoint: str = ""
     azure_openai_api_key: str = ""
-    azure_openai_deployment: str = "gpt-4o-mini"
-    azure_openai_api_version: str = "2024-10-21"
+    azure_openai_deployment: str = "gpt-5.4-nano"
+    azure_openai_api_version: str = "2025-04-01-preview"
+    # Modele z rozumowaniem (gpt-5.x): minimal | low | medium | high. Puste = parametr nie jest wysyłany
+    # (np. dla gpt-4o-mini / gpt-4.1-nano, które go nie obsługują).
+    azure_openai_reasoning_effort: str = "low"
     ai_max_output_tokens: int = 1500
 
     # Limity zapytań AI (spec §14). IP z X-Forwarded-For wg TRUST_PROXY_HOPS.
@@ -46,6 +49,9 @@ class Settings(BaseSettings):
     # Poczta symulowana (plan 09): opóźnienie predefiniowanych odpowiedzi i cykl pobierania (0 = wyłączony).
     mail_sim_reply_delay_s: int = 20
     mail_poll_s: int = 30
+
+    # Przykładowe wnioski „w toku” dla rodziny demo (seed/demo_applications.py). Testy: DEMO_APPLICATIONS=0.
+    demo_applications: bool = True
 
     # Tryb jaskółki (plan 10): ile dni od zgłoszenia można je cofnąć.
     undo_window_days: int = 7

@@ -66,11 +66,11 @@ function renderAt(path: string, element: ReactElement, route: string) {
   )
 }
 
-describe('makieta portalu (SYMULACJA)', () => {
-  it('pokazuje wyraźny znacznik symulacji i pola ze schematu', async () => {
+describe('formularz online (eZUS / Emp@tia)', () => {
+  it('pokazuje nazwę portalu i pola ze schematu', async () => {
     renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
-    expect(await screen.findByText('SYMULACJA')).toBeInTheDocument()
-    expect(screen.getByRole('note')).toHaveTextContent(/to nie jest prawdziwy portal eZUS/i)
+    expect(await screen.findByText('eZUS')).toBeInTheDocument()
+    expect(screen.queryByText(/symulacja/i)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /800\+/ })).toBeInTheDocument()
     expect(screen.getByLabelText(/ulica/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/obywatelstwo/i)).toHaveValue('polskie') // wartość domyślna ze schematu
@@ -80,7 +80,7 @@ describe('makieta portalu (SYMULACJA)', () => {
   it('wersja Emp@tia ma własną nazwę portalu', async () => {
     routeApi({ 'GET /api/applications/portals/emp_kdr': { ...SCHEMA, portal_id: 'emp_kdr', kind: 'empatia', title: 'Emp@tia — KDR' } })
     renderAt('/sim/empatia/emp_kdr', <EmpatiaForm />, '/sim/empatia/:portalId')
-    expect(await screen.findByRole('note')).toHaveTextContent(/prawdziwy portal Emp@tia/i)
+    expect(await screen.findByText('Emp@tia')).toBeInTheDocument()
   })
 
   it('zgłasza gotowość dopiero po załadowaniu schematu', async () => {
@@ -145,7 +145,7 @@ describe('makieta portalu (SYMULACJA)', () => {
     fromAgent({ type: 'fill', fieldId: 'consent', value: true })
     fromAgent({ type: 'submit' })
     expect(bridge.posted).toContainEqual({ type: 'submitted' })
-    expect(await screen.findByText(/wniosek złożony \(symulacja\)/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /wniosek złożony/i })).toBeInTheDocument()
   })
 
   it('bez zalogowania prosi o logowanie, inne błędy pokazuje jako komunikat', async () => {

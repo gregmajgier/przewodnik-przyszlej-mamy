@@ -48,34 +48,39 @@ function Tree() {
 describe('OnboardingPage', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('krok 1: bez rodziny można założyć rodzinę albo dołączyć', async () => {
+  it('krok 1: domyślnie „Zakładam rodzinę” — Dalej zakłada rodzinę i przechodzi do dzieci', async () => {
     const mocked = routeApi({
       'POST /api/families': FAMILY_VIEW,
       'GET /api/profile/me': PROFILE,
     })
     const session = makeSession()
     renderWithSession(<Tree />, { route: '/start', session })
-    expect(screen.getByRole('link', { name: /dołącz do rodziny/i })).toHaveAttribute('href', '/dolacz')
-    await userEvent.click(screen.getByRole('button', { name: /załóż rodzinę/i }))
+    expect(screen.getByRole('button', { name: /zakładam rodzinę/i })).toHaveAttribute('aria-pressed', 'true')
+    await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))
     await waitFor(() => expect(mocked).toHaveBeenCalledWith('/api/families', { method: 'POST', body: {} }))
     expect(session.refresh).toHaveBeenCalled()
-    expect(await screen.findByRole('heading', { name: /dzieci/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /wasze dzieci/i })).toBeInTheDocument()
   })
 
-  it('krok 2: dzieci prefilowane z known_children, zatwierdzenie zapisuje wybrane', async () => {
+  it('krok 1: „Dołączam do rodziny” prowadzi do wpisania kodu', async () => {
+    routeApi({})
+    renderWithSession(<Tree />, { route: '/start', session: makeSession() })
+    await userEvent.click(screen.getByRole('button', { name: /dołączam do rodziny/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))
+    expect(await screen.findByText('Strona dołączania')).toBeInTheDocument()
+  })
+
+  it('krok 2: dzieci z rejestrów są zaznaczone, zapisujemy tylko wybrane', async () => {
     const mocked = routeApi({
       'GET /api/profile/me': PROFILE,
       'POST /api/families/me/children': { id: 'c1' },
     })
-    renderWithSession(<Tree />, {
-      route: '/start',
-      session: makeSession({ family: FAMILY_VIEW }),
-    })
-    expect(await screen.findByLabelText(/Maja/)).toBeChecked()
-    const drodze = screen.getByLabelText(/Dziecko w drodze/)
-    expect(drodze).toBeChecked()
-    await userEvent.click(screen.getByLabelText(/Maja/)) // odznacz Maję
-    await userEvent.click(screen.getByRole('button', { name: /zatwierdź dzieci/i }))
+    renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
+    const maja = await screen.findByRole('checkbox', { name: /Maja/ })
+    expect(maja).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('checkbox', { name: /Dziecko w drodze/ })).toHaveAttribute('aria-checked', 'true')
+    await userEvent.click(maja) // odznacz Maję
+    await userEvent.click(screen.getByRole('button', { name: /dodaj dzieci \(1\)/i }))
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/families/me/children', {
         method: 'POST',
@@ -86,20 +91,33 @@ describe('OnboardingPage', () => {
       '/api/families/me/children',
       expect.objectContaining({ body: expect.objectContaining({ name: 'Maja' }) }),
     )
-    expect(await screen.findByRole('heading', { name: /drugi rodzic/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /zaproś drugiego rodzica/i })).toBeInTheDocument()
   })
 
-  it('krok 3: pokazuje kod i pozwala pominąć drugiego rodzica', async () => {
+  it('krok 3 i 4: kod zaproszenia, potem połączenie Gmaila i przejście do analizy', async () => {
     routeApi({
       'GET /api/profile/me': { ...PROFILE, known_children: [] },
+      'GET /api/mail/status': { connected: true, address: 'anna.nowak@gmail.com' },
     })
-    renderWithSession(<Tree />, {
-      route: '/start',
-      session: makeSession({ family: FAMILY_VIEW }),
-    })
-    // brak znanych dzieci => krok 2 pomija się od razu
-    expect(await screen.findByText('ABCD2345')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /wychowuję dziecko samodzielnie/i }))
-    expect(await screen.findByText('Strona analizy')).toBeInTheDocument() // po onboardingu: analiza, potem panel
+    renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
+    await userEvent.click(await screen.findByRole('button', { name: /^dalej/i })) // brak dzieci w rejestrach
+    expect(await screen.findByText('Kod zaproszenia: ABCD2345')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /wychowuję dzieci samodzielnie/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))
+
+    expect(await screen.findByRole('heading', { name: /połącz skrzynkę gmail/i })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /połącz z gmail/i }))
+    expect(await screen.findByText(/połączono: anna.nowak@gmail.com/i)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /sprawdź, co wam przysługuje/i }))
+    expect(await screen.findByText('Strona analizy')).toBeInTheDocument()
+  })
+
+  it('Gmail można pominąć', async () => {
+    routeApi({ 'GET /api/profile/me': { ...PROFILE, known_children: [] } })
+    renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
+    await userEvent.click(await screen.findByRole('button', { name: /^dalej/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /^dalej/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /pomiń na razie/i }))
+    expect(await screen.findByText('Strona analizy')).toBeInTheDocument()
   })
 })

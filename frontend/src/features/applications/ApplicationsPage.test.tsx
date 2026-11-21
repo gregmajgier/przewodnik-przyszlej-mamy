@@ -1,11 +1,11 @@
-import { screen, within } from '@testing-library/react'
-import { Route, Routes } from 'react-router-dom'
+import { screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../lib/api'
 import { ANNA, makeSession, renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import ApplicationsPage from './ApplicationsPage'
-import widget from './widget'
+import type { MailThread } from './mailTypes'
 import { ANNA_ID, FORMS, makeApp, makeFamily, PIOTR } from './testData'
 
 vi.mock('../../lib/api', async (orig) => ({
@@ -17,106 +17,101 @@ const FAMILY = makeFamily(ANNA)
 
 const APPS = [
   makeApp({ id: 'app-1', status: 'needs_input' }),
-  makeApp({ id: 'app-2', form_code: 'ZAM', channel: 'portal_agent', applicant_id: PIOTR.id, child_id: 'c-maja', status: 'sent', created_at: '2026-11-20T10:00:00Z' }),
+  makeApp({ id: 'app-2', form_code: 'ZAM', channel: 'portal_agent', applicant_id: PIOTR.id, child_id: 'c-maja', status: 'received', sent_at: '2026-11-20T10:00:00Z' }),
+  makeApp({ id: 'app-3', form_code: '800PLUS', channel: 'portal_agent', child_id: 'c-maja', status: 'accepted', sent_at: '2026-11-01T10:00:00Z' }),
 ]
 
+const THREADS: MailThread[] = [
+  {
+    application: { id: 'app-2', form_code: 'ZAM', status: 'received', applicant_id: PIOTR.id, applicant_name: 'Piotr Nowak', recipient_email: 'wnioski@zus.pl', sent_at: '2026-11-20T10:00:00Z' },
+    needs_review: false,
+    messages: [
+      {
+        id: 'm1', folder: 'inbox', from_addr: 'zasilki@zus.pl', to_addr: '', subject: 'Potwierdzenie', body: '…', received_at: '2026-11-21T09:00:00Z',
+        classification_status: 'received', classification_confidence: 0.9, classification_summary: 'ZUS potwierdził przyjęcie wniosku.', needs_review: false,
+      },
+    ],
+  },
+]
+
+function routes(over: Record<string, unknown> = {}) {
+  return routeApi({
+    'GET /api/applications': APPS,
+    'GET /api/applications/forms': FORMS,
+    'GET /api/mail/threads': THREADS,
+    'POST /api/mail/sync': { new_messages: 0, status_changes: 0 },
+    ...over,
+  })
+}
+
 function renderList(user = ANNA) {
-  return renderWithSession(
-    <Routes>
-      <Route path="/wnioski" element={<ApplicationsPage />} />
-      <Route path="/start" element={<p>Start</p>} />
-    </Routes>,
-    { route: '/wnioski', session: makeSession({ family: FAMILY, user }) },
-  )
+  return renderWithSession(<ApplicationsPage />, { route: '/wnioski', session: makeSession({ family: FAMILY, user }) })
 }
 
 beforeEach(() => vi.clearAllMocks())
 
 describe('ApplicationsPage', () => {
-  it('pokazuje wnioski całej rodziny ze statusem, dzieckiem i informacją, kto składa', async () => {
-    routeApi({ 'GET /api/applications': APPS, 'GET /api/applications/forms': FORMS })
+  it('„W toku”: krótki tytuł, status, kto składa, którego dziecka dotyczy; zakończone w osobnej zakładce', async () => {
+    routes()
     renderList()
-    const rows = await screen.findAllByRole('listitem')
-    expect(rows).toHaveLength(2)
-
-    const mine = rows[0]
-    expect(within(mine).getByRole('link', { name: /urlop macierzyński i rodzicielski/i })).toHaveAttribute('href', '/wnioski/app-1')
+    const cards = await screen.findAllByRole('link', { name: /urlop|zasiłek|800/i })
+    expect(cards).toHaveLength(2)
+    const mine = cards[0]
+    expect(mine).toHaveAttribute('href', '/wnioski/app-1')
+    expect(within(mine).getByRole('heading', { name: 'Urlop macierzyński i rodzicielski' })).toBeInTheDocument()
     expect(within(mine).getByText('Brakuje danych')).toBeInTheDocument()
-    expect(within(mine).getByText(/składa: Ty/)).toBeInTheDocument()
-    expect(within(mine).getByText(/dziecko: Dziecko w drodze/)).toBeInTheDocument()
-    expect(within(mine).getByRole('link', { name: 'Kontynuuj' })).toBeInTheDocument()
+    expect(within(mine).getByText('Ty')).toBeInTheDocument()
+    expect(within(mine).getByText(/dot\. Maleństwo/)).toBeInTheDocument()
+    expect(within(mine).getByText(/dokończ i podpisz/i)).toBeInTheDocument()
 
-    const partner = rows[1]
-    expect(within(partner).getByText('Wysłany')).toBeInTheDocument()
-    expect(within(partner).getByText(/składa: Piotr Nowak/)).toBeInTheDocument()
-    expect(within(partner).getByRole('link', { name: 'Zobacz' })).toHaveAttribute('href', '/wnioski/app-2')
+    expect(within(cards[1]).getByText('Piotr')).toBeInTheDocument()
+    expect(within(cards[1]).getAllByText('Odebrany').length).toBeGreaterThan(0) // pigułka statusu i etap na osi
+
+    await userEvent.click(screen.getByRole('tab', { name: /zakończone/i }))
+    expect(await screen.findByRole('link', { name: /świadczenie 800\+/i })).toHaveAttribute('href', '/wnioski/app-3')
   })
 
-  it('z punktu widzenia drugiego rodzica „Ty” to on, a Anna jest wymieniona z imienia', async () => {
-    routeApi({ 'GET /api/applications': APPS, 'GET /api/applications/forms': FORMS })
+  it('pokazuje ostatnią odpowiedź z Gmaila (podsumowanie asystenta) przy wniosku', async () => {
+    routes()
+    renderList()
+    const card = await screen.findByRole('link', { name: /zasiłek macierzyński/i })
+    expect(within(card).getByText('ZUS')).toBeInTheDocument()
+    expect(within(card).getByText('ZUS potwierdził przyjęcie wniosku.')).toBeInTheDocument()
+  })
+
+  it('przy wejściu synchronizuje pocztę, a przycisk pozwala sprawdzić ją ponownie', async () => {
+    const mocked = routes()
+    renderList()
+    await waitFor(() => expect(mocked).toHaveBeenCalledWith('/api/mail/sync', { method: 'POST' }))
+    await screen.findByText(/zsynchronizowano/i)
+    await userEvent.click(screen.getByRole('button', { name: /sprawdź pocztę teraz/i }))
+    await waitFor(() => expect(mocked.mock.calls.filter(([p]) => p === '/api/mail/sync')).toHaveLength(2))
+  })
+
+  it('z punktu widzenia drugiego rodzica „Ty” to on', async () => {
+    routes()
     renderList(PIOTR)
-    const rows = await screen.findAllByRole('listitem')
-    expect(within(rows[0]).getByText(/składa: Anna Nowak/)).toBeInTheDocument()
-    expect(within(rows[1]).getByText(/składa: Ty/)).toBeInTheDocument()
+    const cards = await screen.findAllByRole('link', { name: /urlop|zasiłek/i })
+    expect(within(cards[0]).getByText('Anna')).toBeInTheDocument()
+    expect(within(cards[1]).getByText('Ty')).toBeInTheDocument()
     expect(ANNA_ID).toBe('user-nowak-anna')
   })
 
-  it('podpowiada polecaną kolejność z linkami do kreatora', async () => {
-    routeApi({ 'GET /api/applications': [], 'GET /api/applications/forms': FORMS })
+  it('bez wniosków: pusty stan i polecane wnioski z linkami do kreatora', async () => {
+    routes({ 'GET /api/applications': [], 'GET /api/mail/threads': [] })
     renderList()
-    const flow = await screen.findByRole('region', { name: /polecana kolejność/i })
-    const links = within(flow).getAllByRole('link')
-    expect(links.map((l) => l.getAttribute('href'))).toEqual(['/wnioski/nowy?form=URLOP-MAC-ROD', '/wnioski/nowy?form=ZAM'])
-    expect(screen.getByText(/nie macie jeszcze żadnych wniosków/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Nowy wniosek' })).toHaveAttribute('href', '/wnioski/nowy')
-  })
-
-  it('bez katalogu pokazuje kody wniosków zamiast nazw', async () => {
-    routeApi({ 'GET /api/applications': [APPS[0]], 'GET /api/applications/forms': new ApiError(500, 'błąd') })
-    renderList()
-    expect(await screen.findByRole('link', { name: 'URLOP-MAC-ROD' })).toBeInTheDocument()
+    expect(await screen.findByText(/nie macie wniosków w toku/i)).toBeInTheDocument()
+    const next = screen.getByRole('region', { name: /polecane następne/i })
+    expect(within(next).getAllByRole('link').map((l) => l.getAttribute('href'))).toEqual([
+      '/wnioski/nowy?form=URLOP-MAC-ROD',
+      '/wnioski/nowy?form=ZAM',
+    ])
+    expect(screen.getByRole('link', { name: /nowy/i, exact: false } as never)).toHaveAttribute('href', '/wnioski/nowy')
   })
 
   it('błąd listy pokazuje komunikat', async () => {
-    routeApi({ 'GET /api/applications': new ApiError(404, 'Nie należysz jeszcze do żadnej rodziny.'), 'GET /api/applications/forms': FORMS })
+    routes({ 'GET /api/applications': new ApiError(500, 'Coś poszło nie tak po naszej stronie.') })
     renderList()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Nie należysz jeszcze do żadnej rodziny.')
-  })
-
-  it('bez rodziny przekierowuje na /start', async () => {
-    routeApi({})
-    renderWithSession(
-      <Routes>
-        <Route path="/wnioski" element={<ApplicationsPage />} />
-        <Route path="/start" element={<p>Start</p>} />
-      </Routes>,
-      { route: '/wnioski', session: makeSession({ family: null }) },
-    )
-    expect(await screen.findByText('Start')).toBeInTheDocument()
-  })
-})
-
-describe('kafelek „Wnioski” na dashboardzie', () => {
-  const Widget = widget.Component
-
-  it('pokazuje tylko rozpoczęte wnioski i link do nowego', async () => {
-    routeApi({ 'GET /api/applications': APPS, 'GET /api/applications/forms': FORMS })
-    renderWithSession(<Widget />, { session: makeSession({ family: FAMILY }) })
-    expect(await screen.findByRole('link', { name: /urlop macierzyński i rodzicielski/i })).toHaveAttribute('href', '/wnioski/app-1')
-    expect(screen.getByText(/brakuje danych/i)).toBeInTheDocument()
-    expect(screen.queryByText(/zasiłek macierzyński$/i)).not.toBeInTheDocument() // wysłany nie jest „w toku”
-    expect(screen.getByRole('link', { name: 'Nowy wniosek' })).toBeInTheDocument()
-  })
-
-  it('bez rozpoczętych wniosków pokazuje pusty stan', async () => {
-    routeApi({ 'GET /api/applications': [APPS[1]], 'GET /api/applications/forms': FORMS })
-    renderWithSession(<Widget />, { session: makeSession({ family: FAMILY }) })
-    expect(await screen.findByText(/nie masz rozpoczętych wniosków/i)).toBeInTheDocument()
-  })
-
-  it('błąd ładowania nie psuje panelu', async () => {
-    routeApi({ 'GET /api/applications': new ApiError(500, 'błąd'), 'GET /api/applications/forms': FORMS })
-    renderWithSession(<Widget />, { session: makeSession({ family: FAMILY }) })
-    expect(await screen.findByText(/nie udało się wczytać wniosków/i)).toBeInTheDocument()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Coś poszło nie tak po naszej stronie.')
   })
 })

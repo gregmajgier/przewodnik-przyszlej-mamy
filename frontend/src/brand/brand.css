@@ -1,0 +1,180 @@
+/* ---------- Splash ---------- */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--pink);
+  color: #fff;
+  overflow: hidden;
+}
+.splash-mark {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.06em;
+  font-family: var(--font-wordmark);
+  font-size: clamp(3.25rem, 13vw, 5.5rem);
+  line-height: 1;
+}
+.splash-logo {
+  height: 0.82em;
+  width: auto;
+  position: relative;
+  top: 0.06em;
+}
+.splash-word {
+  animation: splash-word 0.9s var(--ease) 0.55s both;
+}
+@keyframes splash-word {
+  from {
+    opacity: 0;
+    transform: translateX(-0.25em);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+.splash-dots {
+  position: absolute;
+  bottom: calc(3rem + env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  gap: 0.45rem;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+.splash-dots i {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.85);
+  animation: dot 1.2s var(--ease) infinite;
+}
+.splash-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.splash-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+/* ---------- Wstążki ---------- */
+.ribbons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.ribbon {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: clamp(4.5rem, 16vw, 13rem);
+  overflow: visible;
+}
+.ribbon-left {
+  left: 0;
+}
+.ribbon-right {
+  right: 0;
+}
+.ribbon path {
+  stroke-width: 11px;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ribbon-draw 2.4s var(--ease) 0.15s forwards;
+  opacity: 0.95;
+}
+.ribbon-right path {
+  animation-delay: 0.45s;
+}
+@keyframes ribbon-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.ribbon {
+  animation: ribbon-sway 9s ease-in-out infinite alternate;
+}
+.ribbon-right {
+  animation-duration: 11s;
+  animation-direction: alternate-reverse;
+}
+@keyframes ribbon-sway {
+  from {
+    transform: translateY(-1.5%);
+  }
+  to {
+    transform: translateY(1.5%);
+  }
+}
+@media (max-width: 560px) {
+  .ribbon {
+    width: 3.25rem;
+    opacity: 0.9;
+  }
+}
+
+/* ---------- Rysunkowe ikony ---------- */
+.doodles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+.doodle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  color: #fff;
+  filter: drop-shadow(0 3px 5px rgb(25 25 25 / 0.15));
+  transform: rotate(var(--rot));
+  animation: fade 0.9s var(--ease) both;
+  animation-delay: calc(var(--n) * 90ms + 200ms);
+}
+.doodle svg {
+  width: 100%;
+  height: 100%;
+  animation: drift var(--dur) ease-in-out var(--delay) infinite alternate;
+}
+@keyframes drift {
+  from {
+    transform: translate(calc(var(--dx) * -1), calc(var(--dy) * -1)) rotate(calc(var(--dr) * -1));
+  }
+  to {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--dr));
+  }
+}
+@media (max-width: 640px) {
+  .doodle {
+    --s: 44px !important;
+  }
+  .doodle-wide {
+    display: none;
+  }
+}
+
+.wordmark-light {
+  color: #fff;
+}

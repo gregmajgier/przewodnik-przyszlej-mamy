@@ -7,7 +7,7 @@ interface Props {
   onCancel: () => void
 }
 
-/** Symulowany podpis Profilem Zaufanym — w prawdziwej aplikacji tu byłoby przekierowanie do gov.pl. */
+/** Podpis Profilem Zaufanym: potwierdzenie, że dane we wniosku się zgadzają. */
 export default function SignModal({ busy, error, onConfirm, onCancel }: Props) {
   const confirmRef = useRef<HTMLButtonElement>(null)
 
@@ -24,11 +24,11 @@ export default function SignModal({ busy, error, onConfirm, onCancel }: Props) {
     <div className="modal-backdrop">
       <div className="modal card stack" role="dialog" aria-modal="true" aria-labelledby="sign-h">
         <h2 id="sign-h">
-          Podpisz Profilem Zaufanym <span className="badge-sim">SYMULACJA</span>
+          Podpisz Profilem Zaufanym
         </h2>
         <p>
-          To symulacja podpisu. Nic nie wysyłamy do gov.pl — potwierdzasz tylko, że dane we wniosku się zgadzają i
-          chcesz go podpisać.
+          Potwierdzasz, że dane we wniosku są prawdziwe i chcesz go podpisać. Po podpisaniu zmiana danych wymaga
+          ponownego podpisu.
         </p>
         {error && (
           <p role="alert" className="alert">

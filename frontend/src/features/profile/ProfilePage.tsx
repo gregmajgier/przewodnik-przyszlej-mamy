@@ -3,6 +3,7 @@ import { api, ApiError } from '../../lib/api'
 import { describeChild, formatDate, maskPesel } from '../../lib/format'
 import type { MemberProfile } from '../../lib/types'
 import { profileSections } from '../registry'
+import { PageHeader } from '../../ui/controls'
 
 const KIND_LABEL = {
   employment: 'umowa o pracę',
@@ -16,7 +17,7 @@ function ZusSection({ m }: { m: MemberProfile }) {
   return (
     <section className="stack" aria-label={`ZUS i mObywatel — ${m.user_name}`}>
       <h3>
-        ZUS i mObywatel <span className="badge-sim">symulacja</span>
+        Dane z ZUS i mObywatela
       </h3>
       <dl className="facts">
         <dt>PESEL</dt>
@@ -125,8 +126,8 @@ export default function ProfilePage() {
   if (!members) return <p role="status">Ładowanie…</p>
 
   return (
-    <div className="stack">
-      <h1>Moje dane</h1>
+    <div className="page page-narrow stack">
+      <PageHeader title="Moje dane" eyebrow="Profil" />
       <p className="muted">
         Dane rodziców i dzieci w jednym miejscu. Nie pytamy o to, co już wiemy z ZUS i mObywatela.
       </p>

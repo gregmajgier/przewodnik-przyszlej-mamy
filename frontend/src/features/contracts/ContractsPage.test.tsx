@@ -7,7 +7,7 @@ import { routeApi } from '../../test/routeApi'
 import ContractsPage from './ContractsPage'
 import RisksPanel from './RisksPanel'
 import type { Contract, ScanResult } from './types'
-import widget from './widget'
+import { RisksWidget } from './RisksPanel'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
@@ -122,14 +122,13 @@ describe('ContractsPage', () => {
   })
 })
 
-describe('RisksPanel / widget', () => {
+describe('RisksPanel', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('bez ryzyk pokazuje „Brak ostrzeżeń”', async () => {
     routeApi({ 'GET /api/risks': [] })
-    renderWithSession(<widget.Component />)
+    renderWithSession(<RisksWidget />)
     expect(await screen.findByText(/Brak ostrzeżeń/)).toBeInTheDocument()
-    expect(widget.order).toBe(20)
   })
 
   it('pokazuje ryzyko z akcją i terminem', async () => {

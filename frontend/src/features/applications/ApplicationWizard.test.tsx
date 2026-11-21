@@ -65,7 +65,7 @@ describe('ApplicationWizard — krok 1: brakujące dane', () => {
 
   it('zadaje pytania po jednym, a puste pole blokuje przejście dalej', async () => {
     renderWizard(needsInput)
-    expect(await screen.findByRole('heading', { name: /brakuje jeszcze danych/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /brakuje jeszcze 2 informacji/i })).toBeInTheDocument()
     expect(currentStep()).toContain('Dane')
     expect(screen.getByText(/pytanie 1 z 2/i)).toBeInTheDocument()
     expect(screen.getByLabelText('Adres e-mail pracodawcy (dział kadr)')).toBeInTheDocument()
@@ -89,7 +89,7 @@ describe('ApplicationWizard — krok 1: brakujące dane', () => {
     )
     expect(await screen.findByLabelText('Początek urlopu macierzyńskiego')).toHaveValue('') // czyste pole na nowe pytanie
 
-    await userEvent.type(screen.getByLabelText('Początek urlopu macierzyńskiego'), '2027-01-20')
+    await userEvent.type(screen.getByLabelText('Początek urlopu macierzyńskiego'), '20012027') // DD.MM.RRRR
     await userEvent.click(screen.getByRole('button', { name: /dalej/i }))
     expect(await screen.findByRole('heading', { name: /sprawdź wniosek/i })).toBeInTheDocument()
     expect(currentStep()).toContain('Podgląd')
@@ -141,11 +141,11 @@ describe('ApplicationWizard — krok 2: podgląd', () => {
 
   it('zmiana kanału (e-mail → PDF) idzie przez PATCH i odświeża podgląd', async () => {
     const mocked = renderWizard(makeApp(), { [`PATCH ${BASE}`]: makeApp({ channel: 'pdf_download', recipient_email: null, recipient_domain: null }) })
-    const pdf = await screen.findByLabelText(/pdf do pobrania/i)
-    expect(screen.getByLabelText(/e-mail do pracodawcy/i)).toBeChecked()
+    const pdf = await screen.findByRole('radio', { name: /pdf do pobrania/i })
+    expect(screen.getByRole('radio', { name: /e-mail do pracodawcy/i })).toHaveAttribute('aria-checked', 'true')
     await userEvent.click(pdf)
     await waitFor(() => expect(mocked).toHaveBeenCalledWith(BASE, { method: 'PATCH', body: { channel: 'pdf_download' } }))
-    await waitFor(() => expect(screen.getByLabelText(/pdf do pobrania/i)).toBeChecked())
+    await waitFor(() => expect(screen.getByRole('radio', { name: /pdf do pobrania/i })).toHaveAttribute('aria-checked', 'true'))
   })
 
   it('wniosek przez portal nie pobiera PDF (nie ma wersji PDF)', async () => {
@@ -158,10 +158,10 @@ describe('ApplicationWizard — krok 2: podgląd', () => {
 
 describe('ApplicationWizard — krok 3: podpis i wysyłka', () => {
   async function toSendStep() {
-    await userEvent.click(await screen.findByRole('button', { name: /^dalej$/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /wszystko się zgadza/i }))
   }
 
-  it('podpis w modalu (SYMULACJA), a potem „Wyślij” wyłącza się po kliknięciu i wysyła tylko raz', async () => {
+  it('podpis w modalu Profilu Zaufanego, a potem „Wyślij” wyłącza się po kliknięciu i wysyła tylko raz', async () => {
     const signed = makeApp({ status: 'ready', signed_at: '2026-11-21T10:05:00Z' })
     let release: (a: Application) => void = () => {}
     const submit = vi.fn(() => new Promise<Application>((resolve) => (release = resolve)))
@@ -174,11 +174,11 @@ describe('ApplicationWizard — krok 3: podpis i wysyłka', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /podpisz profilem zaufanym/i }))
     const dialog = screen.getByRole('dialog', { name: /podpisz profilem zaufanym/i })
-    expect(within(dialog).getByText('SYMULACJA')).toBeInTheDocument()
+    expect(within(dialog).queryByText(/symulacja/i)).not.toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Podpisz' }))
     await waitFor(() => expect(mocked).toHaveBeenCalledWith(`${BASE}/sign`, { method: 'POST' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-    expect(screen.getByText(/podpisano \(symulacja\)/i)).toBeInTheDocument()
+    expect(screen.getByText(/podpisano profilem zaufanym/i)).toBeInTheDocument()
 
     const send = screen.getByRole('button', { name: 'Wyślij' })
     await userEvent.click(send)
@@ -188,10 +188,8 @@ describe('ApplicationWizard — krok 3: podpis i wysyłka', () => {
 
     release(makeApp({ status: 'sent', signed_at: signed.signed_at, sent_at: '2026-11-21T10:06:00Z', thread_id: 'thread-1' }))
     expect(await screen.findByRole('heading', { name: /wniosek złożony/i })).toBeInTheDocument()
-    expect(currentStep()).toContain('Gotowe')
     expect(screen.getByText('kcuw.example.pl')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /kalendarz/i })).toHaveAttribute('href', '/kalendarz')
-    expect(screen.getByRole('link', { name: /pocztę/i })).toHaveAttribute('href', '/poczta')
   })
 
   it('anulowanie modalu (przycisk i Escape) nic nie podpisuje', async () => {
@@ -231,7 +229,7 @@ describe('ApplicationWizard — krok 3: podpis i wysyłka', () => {
     await toSendStep()
     expect(screen.queryByRole('button', { name: /podpisz profilem zaufanym/i })).not.toBeInTheDocument() // portal podpisuje się w makiecie
     await userEvent.click(screen.getByRole('button', { name: /agent: złóż w makiecie/i }))
-    expect(await screen.findByText(/złożyliśmy go w makiecie portalu/i)).toBeInTheDocument()
+    expect(await screen.findByText(/złożyliśmy go przez formularz online/i)).toBeInTheDocument()
   })
 
   it('można wrócić z kroku wysyłki do podglądu', async () => {
@@ -262,9 +260,20 @@ describe('ApplicationWizard — stany szczególne', () => {
     expect(screen.queryByRole('button', { name: /dalej|zmień|podpisz|wyślij/i })).not.toBeInTheDocument()
   })
 
-  it('cudzy lub nieistniejący wniosek (404) pokazuje komunikat', async () => {
+  it('cudzy lub nieistniejący wniosek (404) pokazuje stan „Tego wniosku już nie ma” z drogą dalej', async () => {
     routeApi({ [`GET ${BASE}`]: new ApiError(404, 'Nie znaleziono takiego wniosku.'), 'GET /api/applications/forms': FORMS })
     renderWithSession(<ApplicationWizard applicationId="app-1" />, { session: session() })
-    expect(await screen.findByRole('alert')).toHaveTextContent('Nie znaleziono takiego wniosku.')
+    expect(await screen.findByRole('heading', { name: /tego wniosku już nie ma/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /wróć do wniosków/i })).toHaveAttribute('href', '/wnioski')
+  })
+
+  it('wniosek zniknął w trakcie podpisu (404) — zamiast błędu w oknie podpisu ten sam stan', async () => {
+    renderWizard(makeApp(), { [`POST ${BASE}/sign`]: new ApiError(404, 'Nie znaleziono takiego wniosku.') })
+    await userEvent.click(await screen.findByRole('button', { name: /wszystko się zgadza/i }))
+    await userEvent.click(screen.getByRole('button', { name: /podpisz profilem zaufanym/i }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Podpisz' }))
+    expect(await screen.findByRole('heading', { name: /tego wniosku już nie ma/i })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /nowy wniosek/i })).toHaveAttribute('href', '/wnioski/nowy?form=URLOP-MAC-ROD')
   })
 })

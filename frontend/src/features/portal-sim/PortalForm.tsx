@@ -33,10 +33,10 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
         if (cancelled) return
         setError(
           e instanceof ApiError && e.status === 401
-            ? 'Zaloguj się w mRodzinie, żeby zobaczyć makietę portalu.'
+            ? 'Zaloguj się w mRodzinie, żeby zobaczyć formularz.'
             : e instanceof ApiError
               ? e.detail
-              : 'Nie udało się wczytać makiety.',
+              : 'Nie udało się wczytać formularza.',
         )
       })
     return () => {
@@ -124,7 +124,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
   if (!schema) {
     return (
       <p role="status" className="sim sim-page">
-        Ładowanie makiety…
+        Ładowanie formularza…
       </p>
     )
   }
@@ -132,9 +132,6 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
   const name = KIND_NAME[kind]
   return (
     <div className={`sim sim-page sim-${kind}`} data-portal={portalId}>
-      <p className="sim-banner" role="note">
-        <span className="badge-sim">SYMULACJA</span> To nie jest prawdziwy portal {name}. Dane nigdzie nie są wysyłane.
-      </p>
       <header className="sim-header">
         <span className="sim-brand">{name}</span>
         <h1>{schema.title}</h1>
@@ -142,8 +139,8 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
 
       {submitted ? (
         <section className="sim-done" role="status" aria-live="polite">
-          <h2>Wniosek złożony (symulacja)</h2>
-          <p>W prawdziwym portalu pojawiłby się tu numer sprawy. Możesz wrócić do mRodziny.</p>
+          <h2>Wniosek złożony</h2>
+          <p>Potwierdzenie i decyzja trafią na Twoją skrzynkę — mRodzina pokaże je przy wniosku.</p>
         </section>
       ) : (
         <form

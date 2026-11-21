@@ -26,6 +26,12 @@ function Tree() {
   )
 }
 
+/** Ekran powitania → „Zaloguj przez mObywatel” → lista profili. */
+async function openAccounts() {
+  await userEvent.click(screen.getByRole('button', { name: /zaczynamy/i }))
+  await userEvent.click(screen.getByRole('button', { name: /zaloguj przez mobywatel/i }))
+}
+
 describe('LoginPage', () => {
   beforeEach(() => {
     routeApi({ 'GET /api/auth/personas': PERSONAS })
@@ -34,6 +40,8 @@ describe('LoginPage', () => {
   it('pokazuje persony i po kliknięciu loguje oraz przekierowuje na /start (brak rodziny)', async () => {
     const session = makeSession({ user: null, token: null })
     renderWithSession(<Tree />, { route: '/logowanie', session })
+    expect(screen.getByText(/mamo! tato!/i)).toBeInTheDocument()
+    await openAccounts()
     const anna = await screen.findByRole('button', { name: /Anna Nowak/ })
     expect(screen.getByRole('button', { name: /Piotr Nowak/ })).toBeInTheDocument()
     await userEvent.click(anna)
@@ -51,6 +59,7 @@ describe('LoginPage', () => {
       })),
     })
     renderWithSession(<Tree />, { route: '/logowanie', session })
+    await openAccounts()
     await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
     expect(await screen.findByText('Strona główna')).toBeInTheDocument()
   })
@@ -64,7 +73,19 @@ describe('LoginPage', () => {
       }),
     })
     renderWithSession(<Tree />, { route: '/logowanie', session })
+    await openAccounts()
     await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(/nie udało się zalogować/i))
+  })
+})
+
+
+describe('LoginPage — zalogowany', () => {
+  it('zalogowany rodzic z rodziną nie widzi logowania, tylko panel', () => {
+    renderWithSession(<Tree />, {
+      route: '/logowanie',
+      session: makeSession({ family: { family: {}, members: [], children: [], pending_requests: [] } as never }),
+    })
+    expect(screen.getByText('Strona główna')).toBeInTheDocument()
   })
 })

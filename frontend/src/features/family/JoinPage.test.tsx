@@ -37,10 +37,10 @@ describe('JoinPage', () => {
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/families/join', {
         method: 'POST',
-        body: { code: 'abcd2345' },
+        body: { code: 'ABCD2345' }, // kod wpisujemy wielkimi literami, jak w aplikacji drugiego rodzica
       }),
     )
-    expect(await screen.findByText(/czekaj na akceptację/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /prośba wysłana/i })).toBeInTheDocument()
   })
 
   it('"Sprawdź status" odświeża sesję', async () => {

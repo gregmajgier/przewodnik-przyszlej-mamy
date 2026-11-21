@@ -1,0 +1,141 @@
+.matters-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+.matters-hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.matters-sub {
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.matters .section h2 {
+  margin-bottom: 0.75rem;
+}
+.matter-card {
+  padding: 0.4rem;
+}
+.matter-card .list > li + li {
+  border-top: 1px solid var(--line);
+}
+.matter-card .list-row {
+  border-radius: calc(var(--radius-lg) - 0.4rem);
+}
+.matter-amount {
+  font-weight: 900;
+  color: var(--ink);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.guides {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .guides {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.guide {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 0 0 1px var(--line);
+}
+.guide-urgent {
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 0 0 2px var(--pink-200);
+}
+.guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+.guide h3 {
+  margin-bottom: 0.35rem;
+}
+.guide p {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 0.95rem;
+}
+.guide-src {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.ask-card {
+  padding: 1.25rem;
+  border-radius: var(--radius-xl);
+  background: var(--ink);
+  color: #fff;
+}
+.ask-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.ask-card-head h2 {
+  margin: 0 !important;
+  font-size: 1.2rem;
+}
+.ask-card-icon {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 999px;
+  background: var(--pink);
+}
+.ask-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ask-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.3s var(--ease);
+}
+.ask-chip:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+.ask-chip svg {
+  flex: none;
+  opacity: 0.7;
+}
+
+.ask-card-sub {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.88rem;
+  color: rgb(255 255 255 / 0.7);
+  font-weight: 700;
+}

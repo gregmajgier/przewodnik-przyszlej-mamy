@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { apiUrl, getToken } from '../../lib/api'
+import { api, apiUrl, getToken } from '../../lib/api'
 
 export const MAX_MESSAGE_CHARS = 2000
 
@@ -151,6 +151,41 @@ export function useChatStream() {
     [patchLast],
   )
 
+  /** Przerywa bieżącą odpowiedź (zostaje to, co już przyszło). */
+  const stop = useCallback(() => {
+    abort.current?.abort()
+    busy.current = false
+    setSending(false)
+  }, [])
+
+  /** Wczytuje zapisaną rozmowę (historia). */
+  const open = useCallback(async (id: string) => {
+    abort.current?.abort()
+    busy.current = false
+    setSending(false)
+    setBanner(null)
+    setError(null)
+    try {
+      const doc = await api<{ id: string; messages: { role: string; content: string; sources?: ChatSource[] }[] }>(
+        `/api/chat/sessions/${encodeURIComponent(id)}`,
+      )
+      sessionId.current = doc.id
+      setMessages(
+        doc.messages
+          .filter((m) => m.role === 'user' || m.role === 'assistant')
+          .map((m) => ({
+            id: nextId.current++,
+            role: m.role as 'user' | 'assistant',
+            text: m.content,
+            sources: m.sources ?? [],
+            tools: [],
+          })),
+      )
+    } catch {
+      setError('Nie udało się wczytać rozmowy.')
+    }
+  }, [])
+
   const reset = useCallback(() => {
     abort.current?.abort()
     busy.current = false
@@ -161,5 +196,5 @@ export function useChatStream() {
     setSending(false)
   }, [])
 
-  return { messages, sending, banner, error, send, reset }
+  return { messages, sending, banner, error, send, reset, stop, open, sessionId }
 }

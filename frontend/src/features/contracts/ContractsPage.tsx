@@ -9,6 +9,7 @@ import RisksPanel from './RisksPanel'
 import './contracts.css'
 import { KIND_LABEL } from './types'
 import type { Contract, ScanResult } from './types'
+import { PageHeader } from '../../ui/controls'
 
 const money = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' })
 
@@ -78,8 +79,8 @@ export default function ContractsPage() {
     family?.members.find((m) => m.id === uid)?.name ?? (uid === user?.id ? user.name : 'Drugi rodzic')
 
   return (
-    <div className="stack">
-      <h1>Umowy</h1>
+    <div className="page page-narrow stack">
+      <PageHeader title="Umowy" eyebrow="Praca i ubezpieczenie" />
       <p className="muted">
         Z umów wiemy, jakie świadczenia Wam przysługują i co może je zablokować. Oboje rodzice widzą
         zatwierdzone dane, ale plik z umową widzi tylko osoba, która go wgrała.

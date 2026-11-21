@@ -201,3 +201,18 @@ async def test_usage_tracker_collects_usage_from_chat_and_structured():
         await llm.chat(user("1"), feature="t")
         await llm.structured(user("2"), Answer, feature="t")
     assert total.prompt_tokens == 13 and total.completion_tokens == 7
+
+
+async def test_foundry_sends_reasoning_effort_for_reasoning_models(monkeypatch):
+    """gpt-5.x (np. gpt-5.4-nano) — wysiłek rozumowania z konfiguracji; puste = parametr pominięty (gpt-4.1-nano)."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "azure_openai_reasoning_effort", "low")
+    client = _FakeOpenAI(_Completion(_Msg("ok", None)))
+    await FoundryLLM(client=client, deployment="gpt-5.4-nano").chat([LLMMessage(role="user", content="?")], feature="chat")
+    assert client.kwargs[0]["reasoning_effort"] == "low"
+
+    monkeypatch.setattr(settings, "azure_openai_reasoning_effort", "")
+    client = _FakeOpenAI(_Completion(_Msg("ok", None)))
+    await FoundryLLM(client=client, deployment="gpt-4.1-nano").chat([LLMMessage(role="user", content="?")], feature="chat")
+    assert "reasoning_effort" not in client.kwargs[0]
