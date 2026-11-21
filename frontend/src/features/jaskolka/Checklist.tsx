@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { ChecklistItem, ChecklistKind, SituationDetail } from './jaskolkaApi'
 
 const KIND_LABEL: Record<ChecklistKind, string> = {
@@ -63,10 +63,6 @@ function Item({ item, checked, onToggle }: { item: ChecklistItem; checked: boole
 
 export function Checklist({ situation }: { situation: SituationDetail }) {
   const [checked, setChecked] = useState<string[]>(() => readChecked(situation.id))
-
-  useEffect(() => {
-    setChecked(readChecked(situation.id))
-  }, [situation.id])
 
   function toggle(id: string) {
     setChecked((prev) => {

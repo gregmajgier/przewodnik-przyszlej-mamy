@@ -37,6 +37,9 @@ class _ChildFields(BaseModel):
     situation: Literal["loss"] | None = None
     situation_kind: Literal["poronienie", "martwe-urodzenie", "smierc-dziecka"] | None = None
     situation_at: datetime | None = None
+    # Rodzic wyszedł z trybu jaskółki („Wróć do zwykłego widoku”); dziecko zachowuje `situation` (świadczenia
+    # i przypomnienia o nim pozostają ukryte), ale rodzina nie jest już w trybie. Ustawia tylko plan 10.
+    situation_exited_at: datetime | None = None
     serious_illness: bool = False
 
     @model_validator(mode="after")
@@ -67,9 +70,7 @@ class ChildPatch(BaseModel):
     pesel: str | None = None
     has_disability: bool | None = None
     foster: bool | None = None
-    situation: Literal["loss"] | None = None
-    situation_kind: Literal["poronienie", "martwe-urodzenie", "smierc-dziecka"] | None = None
-    situation_at: datetime | None = None
+    # `situation*` zmienia się tylko przez serwis sytuacji (plan 10: efekty uboczne, okno cofnięcia).
     serious_illness: bool | None = None
 
 

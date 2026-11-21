@@ -309,3 +309,18 @@ h2 {
 }
 
 .final-cta .cta { position: relative; z-index: 2; margin-top: 0; }
+
+/* Quiet link to /jaskolka: small text on the accent band uses the dark text colour for AA contrast */
+.final-cta .support-link {
+  position: relative;
+  z-index: 2;
+  margin-top: 1.5rem;
+  max-width: 32rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.final-cta .support-link:hover { text-decoration-thickness: 2px; }
+.final-cta .support-link:focus-visible { outline: 3px solid var(--text); outline-offset: 4px; border-radius: 0.25rem; }

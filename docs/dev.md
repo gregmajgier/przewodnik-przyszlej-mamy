@@ -109,3 +109,68 @@ proporcjonalnie (dla demo: jedna replika lub sticky ingress). Budżet tokenów j
 wspólny, ale rezerwacja jest atomowa tylko w obrębie procesu (`asyncio.Lock`; `Store` nie ma atomowego inkrementu).
 Przy wielu replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — inaczej możliwe przekroczenie
 budżetu rzędu liczby replik × rezerwacja. Limit równoległych żądań (`AI_MAX_INFLIGHT`) też jest per proces.
+
+## /jaskolka — ścieżka publiczna (plan 05)
+
+Spokojna, monochromatyczna ścieżka **bez logowania**, ciasteczek i analityki: wybór sytuacji → checklista
+uprawnień i dokumentów → baza fundacji. Dane i frontend:
+
+- Treść: `backend/app/data/jaskolka.json` (5 sytuacji: `martwe-urodzenie`, `poronienie`, `wczesniak`,
+  `ciezka-choroba`, `smierc-dziecka`; ≥15 fundacji). Każdy punkt ma `source_url`, niepewne `verify: true`.
+- API (publiczne, bez tokena): `GET /api/jaskolka/situations`, `GET /api/jaskolka/situations/{id}`,
+  `GET /api/jaskolka/foundations?situation=ID`. Nieznana sytuacja → 404 po polsku.
+- Frontend: trasy `/jaskolka` i `/jaskolka/:situationId` (`features/jaskolka`, `handle: { public: true }`,
+  ładowane leniwie, motyw `mono`). Odhaczenia checklisty żyją tylko w `sessionStorage`.
+- Link z landingu: stopka sekcji CTA wskazuje na `${VITE_APP_URL}/jaskolka`.
+- Sprawdzenie linków fundacji (wymaga sieci): `python backend/scripts/check_jaskolka_urls.py`
+  — wypisuje kod HTTP każdego adresu; uruchamiaj przed demo i po zmianach w danych.
+- Dodanie sytuacji/fundacji = edycja samego JSON-a (testy sprawdzają źródła, HTTPS i spójność filtrów).
+
+## Czat „Zapytaj mRodzinę” (plan 06)
+
+Rozmowę prowadzi backend: LLM (plan 02) ↔ narzędzia ↔ odpowiedź strumieniowana przez SSE. Narzędzia model dostaje
+z serwera MCP w procesie backendu (`app/mcp_server.py`, SDK `mcp`); backend jest jego klientem. Narzędzia z rejestru
+`app/ai/tools.py` pojawiają się automatycznie — własne: `profil_rodziny`, `szukaj_w_przepisach`, `szukaj_w_sieci`
+(`app/tools/chat_tools.py`); `swiadczenia`, `ryzyka`, `kalendarz` z innych planów wystarczy zarejestrować `@tool`.
+
+- **API:** `POST /api/chat {session_id|null, message}` → `text/event-stream` (zdarzenia `tool`, `token`, `sources`,
+  `done` z `session_id`, `error`); `GET /api/chat/sessions`, `GET|DELETE /api/chat/sessions/{id}` (tylko własne
+  sesje rodzica). Wiadomość ≤ 2000 znaków (422), historia do modelu ≤ 20 wiadomości, maks. 5 wywołań narzędzi na
+  turę, `ai_guard("chat")` (429 + `Retry-After`).
+- **Tryb demo (bez Azure):** `DemoLLM` przez handler `app/seed/demo_chat.py` wyszukuje przepisy narzędziem MCP i wypisuje
+  3 najtrafniejsze artykuły z linkami (bez interpretacji). Po ustawieniu `AZURE_OPENAI_*` działa prawdziwy model.
+- **Indeks przepisów:** dane w `backend/app/data/laws/*.json` (8 aktów, ~450 artykułów, commitowane). Odświeżenie
+  (wymaga sieci): `cd backend && .venv/bin/python scripts/build_laws_index.py [kp zasilkowa …]` — skrypt wyszukuje
+  aktualny tekst jednolity w API Sejmu (ELI `…/eli/acts/search`), pobiera PDF, dzieli po „Art. N.”, naprawia
+  rozdzielone znaki diakrytyczne i przepisuje JSON. Wyszukiwanie to własny BM25 (`app/services/laws.py`) z normalizacją
+  polskich znaków i stemmingiem prefiksowym (5 znaków). Zmiana limitu artykułów dla aktu: `ACTS` w skrypcie.
+- **Web search:** zmienne `WEB_SEARCH_PROVIDER` (`none`|`brave`|`serper`) i `WEB_SEARCH_API_KEY`. Wyniki są
+  rankingowane (domeny urzędowe — gov.pl, BIP, zus.pl, PUP, urzędy gmin — najpierw). Bez dostawcy narzędzie zwraca
+  błąd, a model odpowiada na podstawie przepisów lub kieruje do urzędu.
+- **Bezpieczeństwo:** wyniki narzędzi trafiają do modelu w `<wynik_narzedzia>` jako dane (znaczniki wewnątrz wyniku są
+  neutralizowane), tożsamość pochodzi z tokena (nie z argumentów modelu), `profil_rodziny` nie zawiera PESEL ani
+  zarobków, a tura jest zapisywana do `chat_sessions` dopiero po zakończeniu (przerwane połączenie nic nie zostawia).
+- **Frontend:** `features/chat` — trasa `/czat`, kafelek `widget.tsx` (order 5, pole pytania + przykłady → `/czat?q=…`),
+  `useChatStream` czyta SSE (`fetch` + `ReadableStream`).
+
+## Tryb jaskółki i „Za życiem” (plan 10)
+
+Zgłoszenie straty dziecka przełącza **całą rodzinę** w spokojny, monochromatyczny tryb; oznaczenie „Za życiem” dodaje
+świadczenia bez trybu. Serwis: `backend/app/services/situations.py`, API: `backend/app/routers/situations.py`.
+
+- **API (parent):** `POST|DELETE /api/families/me/children/{id}/situation {kind}` (`poronienie` | `martwe-urodzenie` |
+  `smierc-dziecka`; DELETE = cofnięcie), `POST /api/families/me/mode/exit` („Wróć do zwykłego widoku”, 204),
+  `PATCH /api/families/me/children/{id}/serious-illness {value}`, `GET /api/me/mode → {mode, since, undo_until, child_id}`.
+  Zwykłe `PATCH /children/{id}` **nie** zmienia już `situation*` (tylko serwis ma skutki uboczne).
+- **Skutki zgłoszenia (obojga rodziców, bez powiadomień):** szkice wniosków o to dziecko → `status: "cancelled"`
+  (nie wracają po cofnięciu); wysłane → `child_loss_note`; dziecko zostaje w profilu. Zgłoszenie jest idempotentne
+  (pierwsze wygrywa, także przy jednoczesnym zgłoszeniu przez oboje rodziców).
+- **Cofnięcie:** do `UNDO_WINDOW_DAYS` (7) dni — potem 409 po polsku; w trybie zostaje tylko ręczne wyjście. Z trybu
+  nie wychodzi się automatycznie.
+- **Reguły dla innych modułów** (czyste funkcje w `situations.py`): `family_mode(children)`, `event_policy(children)`
+  (`skip` dla dziecka w sytuacji, `mute` dla pozostałych w trybie — dla `calendar_gen`), `loss_support_applies(tags, children)`
+  (świadczenia z tagiem `loss_support`, dane w `backend/app/data/benefits_loss.json` — dla seedu i dopasowania).
+- **Frontend:** `features/situations` — `useFamilyMode` (kontekst z `/api/me/mode`), `SituationMenu` (jedno kliknięcie, bez
+  potwierdzeń; na karcie dziecka w `FamilyPage`), `JaskolkaHome` (lista „Dla Was”; `AppShell` podstawia ją pod `/` w
+  trybie i ustawia `data-theme="mono"`), trasa `/dla-was`.
+- **Scenariusz całości:** `backend/tests/test_e2e_nowak.py` (czytaj jak dokumentację).

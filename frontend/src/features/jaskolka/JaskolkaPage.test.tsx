@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { render, screen, waitFor, within } from '@testing-library/react'
@@ -178,17 +179,18 @@ describe('/jaskolka bez logowania', () => {
 describe('marka: tylko tokeny motywu', () => {
   const dir = __dirname
   const files = readdirSync(dir).filter((f) => /\.(tsx?|css)$/.test(f) && !/\.test\./.test(f))
+  const read = (f: string) => readFileSync(join(dir, f), 'utf8')
 
   it('w komponentach i arkuszu /jaskolka nie ma wpisanych kolorów hex', () => {
     expect(files).toContain('jaskolka.css')
     for (const f of files) {
-      const src = readFileSync(join(dir, f), 'utf8')
+      const src = read(f)
       expect(src, `${f} zawiera kolor hex`).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
     }
   })
 
   it('arkusz używa tokenów motywu i kształtów marki', () => {
-    const css = readFileSync(join(dir, 'jaskolka.css'), 'utf8')
+    const css = read('jaskolka.css')
     for (const token of ['var(--bg)', 'var(--fg)', 'var(--primary)', 'var(--surface)', 'var(--border)']) {
       expect(css).toContain(token)
     }

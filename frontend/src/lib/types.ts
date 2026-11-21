@@ -40,6 +40,8 @@ export interface Child {
   situation: 'loss' | null
   situation_kind: 'poronienie' | 'martwe-urodzenie' | 'smierc-dziecka' | null
   situation_at: string | null
+  /** rodzic wyszedł z trybu jaskółki (plan 10); dziecko zachowuje `situation` */
+  situation_exited_at?: string | null
   serious_illness: boolean
 }
 

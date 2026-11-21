@@ -2,6 +2,11 @@ export const TOKEN_KEY = 'token'
 
 const BASE_URL: string = import.meta.env.VITE_API_URL ?? ''
 
+/** Pełny adres endpointu (dla funkcji, które same czytają odpowiedź, np. strumień SSE czatu). */
+export function apiUrl(path: string): string {
+  return `${BASE_URL}${path}`
+}
+
 export class ApiError extends Error {
   readonly status: number
   readonly detail: string

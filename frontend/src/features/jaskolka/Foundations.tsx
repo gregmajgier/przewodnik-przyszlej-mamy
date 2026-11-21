@@ -11,9 +11,6 @@ export function Foundations({ situationId }: { situationId: string }) {
 
   useEffect(() => {
     let cancelled = false
-    setItems(null)
-    setError(null)
-    setRegion(ALL)
     fetchFoundations(situationId)
       .then((data) => {
         if (!cancelled) setItems(data)

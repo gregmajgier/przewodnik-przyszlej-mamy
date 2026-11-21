@@ -1,12 +1,29 @@
+import { useEffect } from 'react'
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
 import { navItems } from '../features/registry'
+import JaskolkaHome from '../features/situations/JaskolkaHome'
+import { FamilyModeContext, useFamilyModeState } from '../features/situations/useFamilyMode'
 import { useSession } from '../lib/session'
 import { Logo } from './Logo'
 
 // Powłoka aplikacji: nagłówek + nawigacja z plików nav.ts funkcji + <Outlet/>. Wymaga sesji.
 export function AppShell() {
-  const { user, loading, logout } = useSession()
+  const { user, family, loading, logout } = useSession()
   const location = useLocation()
+  // Tryb jaskółki (plan 10): motyw monochromatyczny i jedna lista „Dla Was” zamiast dashboardu.
+  const familyMode = useFamilyModeState(user?.role === 'parent' && family !== null)
+  const inJaskolkaMode = familyMode.mode.mode === 'jaskolka'
+
+  useEffect(() => {
+    if (!inJaskolkaMode) return
+    const root = document.documentElement
+    const previous = root.dataset.theme
+    root.dataset.theme = 'mono'
+    return () => {
+      if (previous === undefined) delete root.dataset.theme
+      else root.dataset.theme = previous
+    }
+  }, [inJaskolkaMode])
 
   if (loading) {
     return (
@@ -43,9 +60,9 @@ export function AppShell() {
           </button>
         </div>
       </header>
-      <main className="shell-main">
-        <Outlet />
-      </main>
+      <FamilyModeContext.Provider value={familyMode}>
+        <main className="shell-main">{inJaskolkaMode && location.pathname === '/' ? <JaskolkaHome /> : <Outlet />}</main>
+      </FamilyModeContext.Provider>
     </>
   )
 }

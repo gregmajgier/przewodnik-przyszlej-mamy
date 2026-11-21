@@ -40,6 +40,13 @@ class Settings(BaseSettings):
     ai_reserve_tokens: int = 4000
     ai_max_inflight: int = 20
 
+    # Wyszukiwarka dla czatu (plan 06): none | brave | serper. `none` = czat nie ma dostępu do sieci.
+    web_search_provider: str = "none"
+    web_search_api_key: str = ""
+
+    # Tryb jaskółki (plan 10): ile dni od zgłoszenia można je cofnąć.
+    undo_window_days: int = 7
+
     @property
     def is_production(self) -> bool:
         """Produkcja = ENV != dev albo podłączony Cosmos (prawdziwe dane)."""
