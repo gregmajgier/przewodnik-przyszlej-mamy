@@ -17,7 +17,7 @@
 
 ## Review Focus
 - Równoległe żądania tego samego użytkownika nie przekraczają limitu (atomowość licznika).
-- IP za proxy: używaj `X-Forwarded-For` (pierwszy adres) tylko gdy `TRUST_PROXY=true`.
+- IP za proxy: używaj `X-Forwarded-For` wg `TRUST_PROXY_HOPS` (N-ty wpis od prawej; zmienione po przeglądzie bezpieczeństwa).
 - Budżet tokenów odświeża się o północy (strefa Europe/Warsaw) i przeżywa restart (zapis w `ai_usage` w Store).
 - Przekroczony limit → HTTP 429 z `detail` po polsku i nagłówkiem `Retry-After`, nie 500.
 - Model zwraca niepoprawny JSON → `structured()` próbuje 1 raz ponownie, potem `LLMError`, nie wyjątek surowy.

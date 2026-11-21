@@ -31,10 +31,11 @@ from .llm import Usage
 logger = logging.getLogger("mrodzina.ai.limits")
 
 WARSAW = ZoneInfo("Europe/Warsaw")
-Scope = Literal["user", "ip", "budget"]
+Scope = Literal["user", "ip", "budget", "busy"]
 
 MSG_RATE = "Zbyt wiele zapytań do asystenta. Spróbuj za chwilę."
 MSG_BUDGET = "Asystent AI jest dziś przeciążony. Spróbuj jutro — reszta aplikacji działa normalnie."
+MSG_BUSY = "Asystent AI jest teraz mocno obciążony. Spróbuj za chwilę."
 MSG_UNAVAILABLE = "Asystent AI jest chwilowo niedostępny. Spróbuj ponownie za chwilę."
 
 
@@ -46,7 +47,7 @@ class AILimitExceeded(Exception):
 
     @property
     def detail(self) -> str:
-        return MSG_BUDGET if self.scope == "budget" else MSG_RATE
+        return {"budget": MSG_BUDGET, "busy": MSG_BUSY}.get(self.scope, MSG_RATE)
 
 
 Rule = tuple[str, int, int, Scope]  # (key, limit, window_s, scope)
@@ -141,13 +142,72 @@ class TokenBudget:
             raise AILimitExceeded("budget", self._seconds_to_reset())
 
     async def record(self, tokens: int) -> None:
-        if tokens <= 0:
-            return
+        """Dolicza zużycie bez rezerwacji (np. gdy wywołujący nie użył `ai_guard`)."""
+        if tokens > 0:
+            await self._adjust(tokens)
+
+    async def _adjust(self, delta: int, *, reserve_limit: int | None = None) -> None:
+        """Atomowo (pod blokadą procesu) zmienia licznik dnia. Z `reserve_limit`: odmawia, gdy
+        po zmianie licznik przekroczyłby limit (check+increment w jednym kroku).
+
+        Uwaga: `Store` nie ma atomowego inkrementu, więc atomowość dotyczy jednego procesu. Przy wielu
+        replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — patrz docs/dev.md.
+        """
         async with self._lock:
             day = self._today().isoformat()
             doc = await self._store.get("ai_usage", day) or {"id": day, "date": day, "tokens": 0}
-            doc["tokens"] = int(doc.get("tokens", 0)) + tokens
+            current = int(doc.get("tokens", 0))
+            if reserve_limit is not None and current + delta > reserve_limit:
+                raise AILimitExceeded("budget", self._seconds_to_reset())
+            doc["tokens"] = max(0, current + delta)
             await self._store.put("ai_usage", doc)
+
+    async def reserve(self, estimated_tokens: int) -> Reservation:
+        """Atomowo sprawdza budżet i rezerwuje `estimated_tokens`; po odpowiedzi `settle(real)`,
+        przy błędzie `release()`. Odmowa (`AILimitExceeded`) niczego nie obciąża."""
+        n = max(0, int(estimated_tokens))
+        await self._adjust(n, reserve_limit=self._limit)
+        return Reservation(self, n)
+
+
+class Reservation:
+    """Zarezerwowane tokeny; rozliczane dokładnie raz (`settle` albo `release`)."""
+
+    def __init__(self, budget: TokenBudget, tokens: int) -> None:
+        self._budget = budget
+        self.tokens = tokens
+        self._done = False
+
+    @property
+    def done(self) -> bool:
+        return self._done
+
+    async def settle(self, actual_tokens: int) -> None:
+        if self._done:
+            return
+        self._done = True  # także gdy zapis się nie uda: nie rozliczamy dwa razy
+        await self._budget._adjust(max(0, int(actual_tokens)) - self.tokens)
+
+    async def release(self) -> None:
+        if self._done:
+            return
+        self._done = True
+        await self._budget._adjust(-self.tokens)
+
+
+class InflightGate:
+    """Limit równoległych żądań AI (jeden proces; operacje bez `await`, więc atomowe w asyncio)."""
+
+    def __init__(self) -> None:
+        self.current = 0
+
+    def acquire(self, max_inflight: int) -> None:
+        if self.current >= max_inflight:
+            raise AILimitExceeded("busy", 5)
+        self.current += 1
+
+    def release(self) -> None:
+        self.current = max(0, self.current - 1)
 
 
 @dataclass
@@ -156,18 +216,32 @@ class GuardContext:
     ip: str
     feature: str
     budget: TokenBudget | None = None
+    reservation: Reservation | None = None
+
+    async def release(self) -> None:
+        """Zwraca rezerwację tokenów (wołać, gdy wywołanie modelu się nie odbyło/nie powiodło)."""
+        if self.reservation is not None:
+            try:
+                await self.reservation.release()
+            except Exception as e:  # noqa: BLE001
+                logger.error("Nie zwrócono rezerwacji tokenów (feature=%s): %s", self.feature, type(e).__name__)
 
 
 def client_ip(request: Request) -> str:
-    """IP klienta; `X-Forwarded-For` (pierwszy poprawny adres) tylko gdy TRUST_PROXY=true."""
+    """IP klienta. `X-Forwarded-For` tylko przy TRUST_PROXY_HOPS=N>0: bierzemy N-ty wpis od PRAWEJ
+    (dopisany przez nasze zaufane proxy); wpisy z lewej kontroluje klient i są ignorowane.
+    Za mało wpisów lub niepoprawny adres -> adres połączenia."""
     peer = request.client.host if request.client else "unknown"
-    if settings.trust_proxy:
-        first = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-        try:
-            return str(ipaddress.ip_address(first))
-        except ValueError:
-            return peer
-    return peer
+    hops = settings.trust_proxy_hops
+    if hops <= 0:
+        return peer
+    parts = [p.strip() for line in request.headers.getlist("x-forwarded-for") for p in line.split(",")]
+    if len(parts) < hops:
+        return peer
+    try:
+        return str(ipaddress.ip_address(parts[-hops]))
+    except ValueError:
+        return peer
 
 
 def get_limiter(request: Request) -> RateLimiter:
@@ -175,6 +249,13 @@ def get_limiter(request: Request) -> RateLimiter:
     if limiter is None:
         limiter = request.app.state.ai_limiter = RateLimiter()
     return limiter
+
+
+def get_gate(request: Request) -> InflightGate:
+    gate = getattr(request.app.state, "ai_inflight", None)
+    if gate is None:
+        gate = request.app.state.ai_inflight = InflightGate()
+    return gate
 
 
 def get_budget(request: Request) -> TokenBudget:
@@ -192,16 +273,23 @@ def enforce_max_input(*texts: str | None) -> None:
         )
 
 
-def ai_guard(feature: str) -> Callable:
-    """Zależność FastAPI: budżet tokenów -> limity użytkownika i IP. Fail-closed (503 przy błędzie)."""
+def ai_guard(feature: str, reserve_tokens: int | None = None) -> Callable:
+    """Zależność FastAPI (z `yield`): limit równoległych żądań -> rezerwacja tokenów budżetu -> limity
+    użytkownika i IP. Fail-closed (503 przy dowolnym błędzie). Po żądaniu zwalnia slot równoległości;
+    niezrealizowana rezerwacja tokenów zostaje (ostrożnie) — endpoint woła `record_usage` albo `ctx.release()`."""
 
-    async def guard(
-        request: Request, principal: Principal = Depends(current_principal)
-    ) -> GuardContext:
+    async def guard(request: Request, principal: Principal = Depends(current_principal)):
         ip = client_ip(request)
+        gate = acquired = reservation = None
         try:
+            gate = get_gate(request)
+            gate.acquire(settings.ai_max_inflight)
+            acquired = True
             budget = get_budget(request)
-            await budget.check()  # najpierw budżet: odrzucone żądanie nie zużywa limitu użytkownika
+            # najpierw budżet: odmowa budżetu nie zużywa limitów użytkownika/IP
+            reservation = await budget.reserve(
+                settings.ai_reserve_tokens if reserve_tokens is None else reserve_tokens
+            )
             await get_limiter(request).hit_all(
                 [
                     (f"user:{principal.user_id}:m", settings.ai_user_rpm, 60, "user"),
@@ -210,21 +298,38 @@ def ai_guard(feature: str) -> Callable:
                     (f"ip:{ip}:d", settings.ai_ip_daily, 86400, "ip"),
                 ]
             )
-        except AILimitExceeded:
-            raise
-        except Exception as e:  # noqa: BLE001 - fail-closed: nieznany błąd limitera = odmowa
+        except BaseException as e:
+            # każda odmowa/błąd po drodze: zwróć rezerwację i slot
+            if reservation is not None:
+                try:
+                    await reservation.release()
+                except Exception as re:  # noqa: BLE001
+                    logger.error("Nie zwrócono rezerwacji (feature=%s): %s", feature, type(re).__name__)
+            if acquired:
+                gate.release()
+            if isinstance(e, AILimitExceeded) or not isinstance(e, Exception):
+                raise
+            # fail-closed: nieznany błąd limitera = odmowa
             logger.error("Błąd limitera AI (feature=%s): %s", feature, type(e).__name__)
             raise HTTPException(503, MSG_UNAVAILABLE, headers={"Retry-After": "30"}) from None
-        return GuardContext(principal.user_id, ip, feature, budget)
+        try:
+            yield GuardContext(principal.user_id, ip, feature, budget, reservation)
+        finally:
+            gate.release()
 
     return guard
 
 
 async def record_usage(ctx: GuardContext, usage: Usage) -> None:
-    """Dolicza zużycie tokenów do dziennego budżetu. Nie rzuca (odpowiedź jest już policzona)."""
+    """Rozlicza zużycie tokenów: dopasowuje rezerwację do rzeczywistości (albo dolicza, gdy brak
+    rezerwacji). Nie rzuca (odpowiedź jest już policzona)."""
     if ctx.budget is None:
         return
+    total = usage.prompt_tokens + usage.completion_tokens
     try:
-        await ctx.budget.record(usage.prompt_tokens + usage.completion_tokens)
+        if ctx.reservation is not None:
+            await ctx.reservation.settle(total)
+        else:
+            await ctx.budget.record(total)
     except Exception as e:  # noqa: BLE001
         logger.error("Nie zapisano zużycia tokenów (feature=%s): %s", ctx.feature, type(e).__name__)

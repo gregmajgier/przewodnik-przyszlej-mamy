@@ -26,14 +26,19 @@ class Settings(BaseSettings):
     azure_openai_api_version: str = "2024-10-21"
     ai_max_output_tokens: int = 1500
 
-    # Limity zapytań AI (spec §14). Pierwszy adres z X-Forwarded-For tylko gdy TRUST_PROXY=true.
+    # Limity zapytań AI (spec §14). IP z X-Forwarded-For wg TRUST_PROXY_HOPS.
     ai_user_rpm: int = 20
     ai_user_daily: int = 300
     ai_ip_rpm: int = 60
     ai_ip_daily: int = 1000
     ai_daily_tokens: int = 500000
     ai_max_input_chars: int = 8000
-    trust_proxy: bool = False
+    # Ile zaufanych proxy stoi przed aplikacją. 0 = ignoruj X-Forwarded-For; N = bierz N-ty wpis od PRAWEJ
+    # (Azure Container Apps ingress: 1). Nigdy nie ufamy wpisom z lewej (kontroluje je klient).
+    trust_proxy_hops: int = 0
+    # Szacunek tokenów rezerwowany na żądanie AI (rozliczany po odpowiedzi) i limit równoległych żądań AI.
+    ai_reserve_tokens: int = 4000
+    ai_max_inflight: int = 20
 
     @property
     def is_production(self) -> bool:
