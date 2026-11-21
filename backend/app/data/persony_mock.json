@@ -1,0 +1,1272 @@
+{
+  "meta": {
+    "opis": "Fikcyjne, zanonimizowane persony testowe zgodne z zmienne_uzytkownika.json v1.1. PESEL-e mają poprawną sumę kontrolną, ale są wymyślone. Firmy i adresy przykładowe.",
+    "data_oceny": "2026-11-21"
+  },
+  "persony": [
+    {
+      "id": "P1_MAMA_UOP_81_5",
+      "opis": "Mama na UoP (płatnik > 20 ubezpieczonych), 1 dziecko, wniosek o 81,5% w terminie, 9 tyg. rodzicielskiego dla ojca.",
+      "profil": {
+        "wnioskodawca": {
+          "etap": "po_porodzie",
+          "rola": "matka",
+          "imie": "Anna",
+          "nazwisko": "Przykładowa",
+          "pesel": "93051208466",
+          "obywatelstwo": "PL",
+          "legalny_pobyt_w_polsce": true,
+          "status_ukr": false,
+          "aktywnosc_zawodowa_ukr": null,
+          "adres_zamieszkania": {
+            "ulica": "Przykładowa",
+            "nr_domu": "1",
+            "nr_lokalu": null,
+            "kod_pocztowy": "00-001",
+            "miejscowosc": "Testowo",
+            "gmina": "Testowo",
+            "teryt_gminy": "1465011",
+            "powiat": "testowski",
+            "wojewodztwo": "mazowieckie",
+            "kraj": "PL"
+          },
+          "email": null,
+          "numer_rachunku": "PL61109010140000071219812874",
+          "stan_cywilny": "malzenstwo"
+        },
+        "rodzina": {
+          "sklad": [
+            {
+              "imie": "A"
+            },
+            {
+              "imie": "B"
+            },
+            {
+              "imie": "C"
+            }
+          ],
+          "dochod_rok_bazowy": {
+            "rok": 2025,
+            "dochody_opodatkowane": 150000,
+            "dochody_nieopodatkowane": 0,
+            "dochody_utracone": 0,
+            "dochody_uzyskane": 0
+          },
+          "samotne_wychowywanie": false,
+          "uznanie_ojcostwa": null,
+          "wspolne_gospodarstwo_domowe": true,
+          "opieka_naprzemienna": false,
+          "inne_pobierane_swiadczenia": [],
+          "swiadczenie_za_granica": false,
+          "poniesiono_koszty_pogrzebu": false
+        },
+        "zdrowie": {
+          "ezla": [],
+          "okres_zasilkowy_wykorzystany_dni": 0,
+          "zasilek_opiekunczy_wykorzystany_dni": 0
+        },
+        "matka": {
+          "stan": "zyje"
+        },
+        "wnioski_zlozone": [
+          {
+            "kod": "URLOP-MAC-ROD",
+            "data_zlozenia": "2026-11-15",
+            "status": "zlozony"
+          }
+        ],
+        "ubezpieczenie": {
+          "tytul": "umowa_o_prace",
+          "chorobowe": "obowiazkowe",
+          "data_objecia_chorobowym": "2019-03-01",
+          "okresy": [
+            {
+              "od": "2019-03-01",
+              "do": null,
+              "tytul": "umowa_o_prace",
+              "chorobowe": "obowiazkowe",
+              "platnik_nip": "0000000000"
+            }
+          ],
+          "data_ustania": null,
+          "platnik": {
+            "nazwa": "Przykładowa Firma Sp. z o.o.",
+            "nip": "0000000000",
+            "liczba_ubezpieczonych_chorobowo": 150
+          },
+          "wymiar_etatu": 1.0,
+          "rodzaj_umowy_o_prace": "czas_nieokreslony",
+          "data_konca_umowy": null,
+          "przychody_12_miesiecy": [
+            {
+              "rok": 2025,
+              "miesiac": 11,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2025,
+              "miesiac": 12,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 1,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 2,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 3,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 4,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 5,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 6,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 7,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 8,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 9,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 10,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            }
+          ],
+          "zmiana_podstawy_w_ciazy": {
+            "czy": false
+          },
+          "zmiana_warunkow_zatrudnienia_w_ciazy": {
+            "czy": false
+          },
+          "zadluzenie_skladkowe": {
+            "kwota": 0,
+            "na_dzien": "2026-11-01"
+          }
+        },
+        "ciaza": {
+          "w_ciazy": false,
+          "przewidywana_data_porodu": "2026-11-12",
+          "opieka_medyczna_od_10_tyg": true
+        },
+        "porod": {
+          "data_porodu": "2026-11-10",
+          "stan_dziecka": "zywe",
+          "data_zgonu_dziecka": null,
+          "liczba_dzieci": 1,
+          "tydzien_ciazy": 40
+        },
+        "dzieci": [
+          {
+            "imie": "Maleństwo",
+            "nazwisko": "Testowe",
+            "pesel": null,
+            "data_urodzenia": "2026-11-10",
+            "zaswiadczenie_za_zyciem": false,
+            "niepelnosprawnosc": null,
+            "przyjete_na_wychowanie": null,
+            "placowka_opieki": null,
+            "uczy_sie": false,
+            "na_utrzymaniu": true,
+            "w_pieczy_instytucjonalnej": false,
+            "pobyt_w_polsce": true,
+            "masa_urodzeniowa_g": 3400,
+            "hospitalizacja": []
+          }
+        ],
+        "drugi_rodzic": {
+          "dane": {
+            "imie": "Piotr",
+            "nazwisko": "Przykładowy",
+            "pesel": "91070418578",
+            "obywatelstwo": "PL"
+          },
+          "tytul_ubezpieczenia": "umowa_o_prace",
+          "aktywny_zawodowo": true
+        },
+        "plan": {
+          "urlop_macierzynski": {
+            "od": "2026-11-10",
+            "do": "2027-03-29",
+            "tygodnie_przed_porodem": 0
+          },
+          "wniosek_81_5": {
+            "czy": true,
+            "data_zlozenia": "2026-11-15"
+          },
+          "rezygnacja_z_macierzynskiego_po_14_tyg": {
+            "czy": false,
+            "data": null
+          },
+          "czesci_urlopu_rodzicielskiego": [
+            {
+              "rodzic": "matka",
+              "od": "2027-03-30",
+              "do": "2027-11-08",
+              "wymiar_pracy_w_trakcie": 0
+            },
+            {
+              "rodzic": "ojciec",
+              "od": "2027-11-09",
+              "do": "2028-01-10",
+              "wymiar_pracy_w_trakcie": 0
+            }
+          ],
+          "urlop_uzupelniajacy": null,
+          "czesci_urlopu_ojcowskiego": [],
+          "data_zlozenia_wniosku_u_pracodawcy": "2026-11-15"
+        }
+      }
+    },
+    {
+      "id": "P2_JDG_DLUG",
+      "opis": "Przedsiębiorczyni (JDG, dobrowolne chorobowe) w ciąży, zadłużenie 450 zł, podwyższona podstawa w ciąży.",
+      "profil": {
+        "wnioskodawca": {
+          "etap": "w_ciazy",
+          "rola": "matka",
+          "imie": "Barbara",
+          "nazwisko": "Testowa",
+          "pesel": "90081509286",
+          "obywatelstwo": "PL",
+          "legalny_pobyt_w_polsce": true,
+          "status_ukr": false,
+          "aktywnosc_zawodowa_ukr": null,
+          "adres_zamieszkania": {
+            "ulica": "Przykładowa",
+            "nr_domu": "1",
+            "nr_lokalu": null,
+            "kod_pocztowy": "00-001",
+            "miejscowosc": "Testowo",
+            "gmina": "Testowo",
+            "teryt_gminy": "1465011",
+            "powiat": "testowski",
+            "wojewodztwo": "mazowieckie",
+            "kraj": "PL"
+          },
+          "email": null,
+          "numer_rachunku": "PL61109010140000071219812874",
+          "stan_cywilny": "malzenstwo"
+        },
+        "rodzina": {
+          "sklad": [
+            {
+              "imie": "A"
+            },
+            {
+              "imie": "B"
+            },
+            {
+              "imie": "C"
+            }
+          ],
+          "dochod_rok_bazowy": {
+            "rok": 2025,
+            "dochody_opodatkowane": 150000,
+            "dochody_nieopodatkowane": 0,
+            "dochody_utracone": 0,
+            "dochody_uzyskane": 0
+          },
+          "samotne_wychowywanie": false,
+          "uznanie_ojcostwa": null,
+          "wspolne_gospodarstwo_domowe": true,
+          "opieka_naprzemienna": false,
+          "inne_pobierane_swiadczenia": [],
+          "swiadczenie_za_granica": false,
+          "poniesiono_koszty_pogrzebu": false
+        },
+        "zdrowie": {
+          "ezla": [
+            {
+              "seria_numer": "ZZ/0000001",
+              "od": "2026-11-02",
+              "do": "2026-11-30",
+              "kod_B": true
+            }
+          ],
+          "okres_zasilkowy_wykorzystany_dni": 0,
+          "zasilek_opiekunczy_wykorzystany_dni": 0
+        },
+        "matka": {
+          "stan": "zyje"
+        },
+        "wnioski_zlozone": [],
+        "ubezpieczenie": {
+          "tytul": "jdg",
+          "chorobowe": "dobrowolne",
+          "data_objecia_chorobowym": "2022-01-01",
+          "okresy": [
+            {
+              "od": "2022-01-01",
+              "do": null,
+              "tytul": "jdg",
+              "chorobowe": "dobrowolne",
+              "platnik_nip": "1111111111"
+            }
+          ],
+          "data_ustania": null,
+          "platnik": {
+            "nazwa": "Barbara Testowa — działalność",
+            "nip": "1111111111",
+            "liczba_ubezpieczonych_chorobowo": 1
+          },
+          "zadeklarowana_podstawa_jdg": [
+            {
+              "rok": 2025,
+              "miesiac": 11,
+              "kwota": 5652.0
+            },
+            {
+              "rok": 2025,
+              "miesiac": 12,
+              "kwota": 5652.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 1,
+              "kwota": 5652.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 2,
+              "kwota": 5652.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 3,
+              "kwota": 5652.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 4,
+              "kwota": 5652.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 5,
+              "kwota": 9000.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 6,
+              "kwota": 9000.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 7,
+              "kwota": 9000.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 8,
+              "kwota": 9000.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 9,
+              "kwota": 9000.0
+            },
+            {
+              "rok": 2026,
+              "miesiac": 10,
+              "kwota": 9000.0
+            }
+          ],
+          "zmiana_podstawy_w_ciazy": {
+            "czy": true,
+            "data": "2026-05-01",
+            "kwota_przed": 5652.0,
+            "kwota_po": 9000.0
+          },
+          "zmiana_warunkow_zatrudnienia_w_ciazy": {
+            "czy": false
+          },
+          "zadluzenie_skladkowe": {
+            "kwota": 450.0,
+            "na_dzien": "2026-11-01"
+          }
+        },
+        "ciaza": {
+          "w_ciazy": true,
+          "przewidywana_data_porodu": "2027-02-15",
+          "opieka_medyczna_od_10_tyg": true
+        },
+        "porod": {
+          "data_porodu": null,
+          "stan_dziecka": "zywe",
+          "liczba_dzieci": 1
+        },
+        "dzieci": [],
+        "drugi_rodzic": {
+          "tytul_ubezpieczenia": "umowa_o_prace",
+          "aktywny_zawodowo": true
+        },
+        "plan": {
+          "wniosek_81_5": {
+            "czy": false
+          }
+        }
+      }
+    },
+    {
+      "id": "P3_OJCIEC_MATKA_STUDENTKA",
+      "opis": "Ojciec na UoP, matka studentka bez ubezpieczenia chorobowego.",
+      "profil": {
+        "wnioskodawca": {
+          "etap": "po_porodzie",
+          "rola": "ojciec",
+          "imie": "Paweł",
+          "nazwisko": "Przykładowy",
+          "pesel": "92021048754",
+          "obywatelstwo": "PL",
+          "legalny_pobyt_w_polsce": true,
+          "status_ukr": false,
+          "aktywnosc_zawodowa_ukr": null,
+          "adres_zamieszkania": {
+            "ulica": "Przykładowa",
+            "nr_domu": "1",
+            "nr_lokalu": null,
+            "kod_pocztowy": "00-001",
+            "miejscowosc": "Testowo",
+            "gmina": "Testowo",
+            "teryt_gminy": "1465011",
+            "powiat": "testowski",
+            "wojewodztwo": "mazowieckie",
+            "kraj": "PL"
+          },
+          "email": null,
+          "numer_rachunku": "PL61109010140000071219812874",
+          "stan_cywilny": "malzenstwo"
+        },
+        "rodzina": {
+          "sklad": [
+            {
+              "imie": "A"
+            },
+            {
+              "imie": "B"
+            },
+            {
+              "imie": "C"
+            }
+          ],
+          "dochod_rok_bazowy": {
+            "rok": 2025,
+            "dochody_opodatkowane": 150000,
+            "dochody_nieopodatkowane": 0,
+            "dochody_utracone": 0,
+            "dochody_uzyskane": 0
+          },
+          "samotne_wychowywanie": false,
+          "uznanie_ojcostwa": null,
+          "wspolne_gospodarstwo_domowe": true,
+          "opieka_naprzemienna": false,
+          "inne_pobierane_swiadczenia": [],
+          "swiadczenie_za_granica": false,
+          "poniesiono_koszty_pogrzebu": false
+        },
+        "zdrowie": {
+          "ezla": [],
+          "okres_zasilkowy_wykorzystany_dni": 0,
+          "zasilek_opiekunczy_wykorzystany_dni": 0
+        },
+        "matka": {
+          "stan": "zyje",
+          "ubezpieczona_w_dniu_porodu": false,
+          "wykorzystala_14_tyg": false,
+          "orzeczenie_niezdolnosci_do_samodzielnej_egzystencji": false,
+          "hospitalizacja": [],
+          "podjela_prace_min_pol_etatu": false,
+          "pobiera_zasilek_8_tyg_po_porodzie": false
+        },
+        "wnioski_zlozone": [],
+        "ubezpieczenie": {
+          "tytul": "umowa_o_prace",
+          "chorobowe": "obowiazkowe",
+          "data_objecia_chorobowym": "2018-09-01",
+          "okresy": [
+            {
+              "od": "2018-09-01",
+              "do": null,
+              "tytul": "umowa_o_prace",
+              "chorobowe": "obowiazkowe",
+              "platnik_nip": "0000000000"
+            }
+          ],
+          "data_ustania": null,
+          "platnik": {
+            "nazwa": "Przykładowa Firma Sp. z o.o.",
+            "nip": "0000000000",
+            "liczba_ubezpieczonych_chorobowo": 150
+          },
+          "wymiar_etatu": 1.0,
+          "rodzaj_umowy_o_prace": "czas_nieokreslony",
+          "data_konca_umowy": null,
+          "przychody_12_miesiecy": [
+            {
+              "rok": 2025,
+              "miesiac": 11,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2025,
+              "miesiac": 12,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 1,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 2,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 3,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 4,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 5,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 6,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 7,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 8,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 9,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 10,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            }
+          ],
+          "zmiana_podstawy_w_ciazy": {
+            "czy": false
+          },
+          "zmiana_warunkow_zatrudnienia_w_ciazy": {
+            "czy": false
+          },
+          "zadluzenie_skladkowe": {
+            "kwota": 0,
+            "na_dzien": "2026-11-01"
+          }
+        },
+        "ciaza": {
+          "w_ciazy": false,
+          "opieka_medyczna_od_10_tyg": true
+        },
+        "porod": {
+          "data_porodu": "2026-10-20",
+          "stan_dziecka": "zywe",
+          "liczba_dzieci": 1,
+          "tydzien_ciazy": 39
+        },
+        "dzieci": [
+          {
+            "imie": "Maleństwo",
+            "nazwisko": "Testowe",
+            "pesel": null,
+            "data_urodzenia": "2026-10-20",
+            "zaswiadczenie_za_zyciem": false,
+            "niepelnosprawnosc": null,
+            "przyjete_na_wychowanie": null,
+            "placowka_opieki": null,
+            "uczy_sie": false,
+            "na_utrzymaniu": true,
+            "w_pieczy_instytucjonalnej": false,
+            "pobyt_w_polsce": true,
+            "masa_urodzeniowa_g": 3300,
+            "hospitalizacja": []
+          }
+        ],
+        "drugi_rodzic": {
+          "dane": {
+            "imie": "Ewa",
+            "nazwisko": "Przykładowa",
+            "pesel": "01221508670",
+            "obywatelstwo": "PL"
+          },
+          "tytul_ubezpieczenia": "student",
+          "aktywny_zawodowo": false
+        },
+        "plan": {
+          "rezygnacja_z_macierzynskiego_po_14_tyg": {
+            "czy": false
+          },
+          "czesci_urlopu_rodzicielskiego": [
+            {
+              "rodzic": "ojciec",
+              "od": "2026-12-01",
+              "do": "2027-07-12",
+              "wymiar_pracy_w_trakcie": 0
+            }
+          ],
+          "czesci_urlopu_ojcowskiego": [
+            {
+              "od": "2026-11-02",
+              "do": "2026-11-15"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "P4_WCZESNIAK_26_TYG",
+      "opis": "Wcześniak urodzony w 26. tygodniu ciąży, 850 g, w szpitalu ponad 15 tygodni.",
+      "profil": {
+        "wnioskodawca": {
+          "etap": "po_porodzie",
+          "rola": "matka",
+          "imie": "Celina",
+          "nazwisko": "Testowa",
+          "pesel": "94112507423",
+          "obywatelstwo": "PL",
+          "legalny_pobyt_w_polsce": true,
+          "status_ukr": false,
+          "aktywnosc_zawodowa_ukr": null,
+          "adres_zamieszkania": {
+            "ulica": "Przykładowa",
+            "nr_domu": "1",
+            "nr_lokalu": null,
+            "kod_pocztowy": "00-001",
+            "miejscowosc": "Testowo",
+            "gmina": "Testowo",
+            "teryt_gminy": "1465011",
+            "powiat": "testowski",
+            "wojewodztwo": "mazowieckie",
+            "kraj": "PL"
+          },
+          "email": null,
+          "numer_rachunku": "PL61109010140000071219812874",
+          "stan_cywilny": "malzenstwo"
+        },
+        "rodzina": {
+          "sklad": [
+            {
+              "imie": "A"
+            },
+            {
+              "imie": "B"
+            },
+            {
+              "imie": "C"
+            }
+          ],
+          "dochod_rok_bazowy": {
+            "rok": 2025,
+            "dochody_opodatkowane": 150000,
+            "dochody_nieopodatkowane": 0,
+            "dochody_utracone": 0,
+            "dochody_uzyskane": 0
+          },
+          "samotne_wychowywanie": false,
+          "uznanie_ojcostwa": null,
+          "wspolne_gospodarstwo_domowe": true,
+          "opieka_naprzemienna": false,
+          "inne_pobierane_swiadczenia": [],
+          "swiadczenie_za_granica": false,
+          "poniesiono_koszty_pogrzebu": false
+        },
+        "zdrowie": {
+          "ezla": [],
+          "okres_zasilkowy_wykorzystany_dni": 0,
+          "zasilek_opiekunczy_wykorzystany_dni": 0
+        },
+        "matka": {
+          "stan": "zyje"
+        },
+        "wnioski_zlozone": [],
+        "ubezpieczenie": {
+          "tytul": "umowa_o_prace",
+          "chorobowe": "obowiazkowe",
+          "data_objecia_chorobowym": "2020-02-01",
+          "okresy": [
+            {
+              "od": "2020-02-01",
+              "do": null,
+              "tytul": "umowa_o_prace",
+              "chorobowe": "obowiazkowe",
+              "platnik_nip": "0000000000"
+            }
+          ],
+          "data_ustania": null,
+          "platnik": {
+            "nazwa": "Przykładowa Firma Sp. z o.o.",
+            "nip": "0000000000",
+            "liczba_ubezpieczonych_chorobowo": 150
+          },
+          "wymiar_etatu": 1.0,
+          "rodzaj_umowy_o_prace": "czas_nieokreslony",
+          "data_konca_umowy": null,
+          "przychody_12_miesiecy": [
+            {
+              "rok": 2025,
+              "miesiac": 11,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2025,
+              "miesiac": 12,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 1,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 2,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 3,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 4,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 5,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 6,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 7,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 8,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 9,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 10,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            }
+          ],
+          "zmiana_podstawy_w_ciazy": {
+            "czy": false
+          },
+          "zmiana_warunkow_zatrudnienia_w_ciazy": {
+            "czy": false
+          },
+          "zadluzenie_skladkowe": {
+            "kwota": 0,
+            "na_dzien": "2026-11-01"
+          }
+        },
+        "ciaza": {
+          "w_ciazy": false,
+          "przewidywana_data_porodu": "2026-11-24",
+          "opieka_medyczna_od_10_tyg": true
+        },
+        "porod": {
+          "data_porodu": "2026-09-01",
+          "stan_dziecka": "zywe",
+          "liczba_dzieci": 1,
+          "tydzien_ciazy": 26
+        },
+        "dzieci": [
+          {
+            "imie": "Maleństwo",
+            "nazwisko": "Testowe",
+            "pesel": null,
+            "data_urodzenia": "2026-09-01",
+            "zaswiadczenie_za_zyciem": false,
+            "niepelnosprawnosc": null,
+            "przyjete_na_wychowanie": null,
+            "placowka_opieki": null,
+            "uczy_sie": false,
+            "na_utrzymaniu": true,
+            "w_pieczy_instytucjonalnej": false,
+            "pobyt_w_polsce": true,
+            "masa_urodzeniowa_g": 850,
+            "hospitalizacja": [
+              {
+                "od": "2026-09-01",
+                "do": "2026-12-20"
+              }
+            ]
+          }
+        ],
+        "drugi_rodzic": {
+          "tytul_ubezpieczenia": "umowa_o_prace",
+          "aktywny_zawodowo": true
+        },
+        "plan": {
+          "urlop_macierzynski": {
+            "od": "2026-09-01",
+            "do": "2027-01-18",
+            "tygodnie_przed_porodem": 0
+          },
+          "wniosek_81_5": {
+            "czy": true,
+            "data_zlozenia": "2026-09-10"
+          },
+          "urlop_uzupelniajacy": {
+            "wymiar_tyg": 15,
+            "od": "2027-01-19",
+            "do": "2027-05-03",
+            "rodzic": "matka"
+          }
+        }
+      }
+    },
+    {
+      "id": "P5_JASKOLKA_MARTWE_URODZENIE",
+      "opis": "Ścieżka /jaskolka — martwe urodzenie, mama na UoP pokryła koszty pogrzebu.",
+      "profil": {
+        "wnioskodawca": {
+          "etap": "po_porodzie",
+          "rola": "matka",
+          "imie": "Dorota",
+          "nazwisko": "Przykładowa",
+          "pesel": "91063005600",
+          "obywatelstwo": "PL",
+          "legalny_pobyt_w_polsce": true,
+          "status_ukr": false,
+          "aktywnosc_zawodowa_ukr": null,
+          "adres_zamieszkania": {
+            "ulica": "Przykładowa",
+            "nr_domu": "1",
+            "nr_lokalu": null,
+            "kod_pocztowy": "00-001",
+            "miejscowosc": "Testowo",
+            "gmina": "Testowo",
+            "teryt_gminy": "1465011",
+            "powiat": "testowski",
+            "wojewodztwo": "mazowieckie",
+            "kraj": "PL"
+          },
+          "email": null,
+          "numer_rachunku": "PL61109010140000071219812874",
+          "stan_cywilny": "malzenstwo"
+        },
+        "rodzina": {
+          "sklad": [
+            {
+              "imie": "A"
+            },
+            {
+              "imie": "B"
+            },
+            {
+              "imie": "C"
+            }
+          ],
+          "dochod_rok_bazowy": {
+            "rok": 2025,
+            "dochody_opodatkowane": 150000,
+            "dochody_nieopodatkowane": 0,
+            "dochody_utracone": 0,
+            "dochody_uzyskane": 0
+          },
+          "samotne_wychowywanie": false,
+          "uznanie_ojcostwa": null,
+          "wspolne_gospodarstwo_domowe": true,
+          "opieka_naprzemienna": false,
+          "inne_pobierane_swiadczenia": [],
+          "swiadczenie_za_granica": false,
+          "poniesiono_koszty_pogrzebu": true
+        },
+        "zdrowie": {
+          "ezla": [],
+          "okres_zasilkowy_wykorzystany_dni": 0,
+          "zasilek_opiekunczy_wykorzystany_dni": 0
+        },
+        "matka": {
+          "stan": "zyje"
+        },
+        "wnioski_zlozone": [],
+        "ubezpieczenie": {
+          "tytul": "umowa_o_prace",
+          "chorobowe": "obowiazkowe",
+          "data_objecia_chorobowym": "2017-05-01",
+          "okresy": [
+            {
+              "od": "2017-05-01",
+              "do": null,
+              "tytul": "umowa_o_prace",
+              "chorobowe": "obowiazkowe",
+              "platnik_nip": "0000000000"
+            }
+          ],
+          "data_ustania": null,
+          "platnik": {
+            "nazwa": "Przykładowa Firma Sp. z o.o.",
+            "nip": "0000000000",
+            "liczba_ubezpieczonych_chorobowo": 150
+          },
+          "wymiar_etatu": 1.0,
+          "rodzaj_umowy_o_prace": "czas_nieokreslony",
+          "data_konca_umowy": null,
+          "przychody_12_miesiecy": [
+            {
+              "rok": 2025,
+              "miesiac": 11,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2025,
+              "miesiac": 12,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 1,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 2,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 3,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 4,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 5,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 6,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 7,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 8,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 9,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            },
+            {
+              "rok": 2026,
+              "miesiac": 10,
+              "podstawa_wymiaru_skladek": 7000,
+              "skladniki_zmienne": 0,
+              "wynagrodzenie_chorobowe": 0,
+              "dni_przepracowane": 21,
+              "dni_do_przepracowania": 21
+            }
+          ],
+          "zmiana_podstawy_w_ciazy": {
+            "czy": false
+          },
+          "zmiana_warunkow_zatrudnienia_w_ciazy": {
+            "czy": false
+          },
+          "zadluzenie_skladkowe": {
+            "kwota": 0,
+            "na_dzien": "2026-11-01"
+          }
+        },
+        "ciaza": {
+          "w_ciazy": false,
+          "przewidywana_data_porodu": "2027-01-20",
+          "opieka_medyczna_od_10_tyg": true
+        },
+        "porod": {
+          "data_porodu": "2026-11-05",
+          "stan_dziecka": "martwe",
+          "data_zgonu_dziecka": "2026-11-05",
+          "liczba_dzieci": 1,
+          "tydzien_ciazy": 29
+        },
+        "dzieci": [
+          {
+            "imie": "—",
+            "nazwisko": "Testowe",
+            "pesel": null,
+            "data_urodzenia": "2026-11-05",
+            "zaswiadczenie_za_zyciem": false,
+            "niepelnosprawnosc": null,
+            "przyjete_na_wychowanie": null,
+            "placowka_opieki": null,
+            "uczy_sie": false,
+            "na_utrzymaniu": true,
+            "w_pieczy_instytucjonalnej": false,
+            "pobyt_w_polsce": true,
+            "masa_urodzeniowa_g": 1200,
+            "hospitalizacja": []
+          }
+        ],
+        "drugi_rodzic": {
+          "tytul_ubezpieczenia": "umowa_o_prace",
+          "aktywny_zawodowo": true
+        }
+      }
+    }
+  ]
+}

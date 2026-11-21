@@ -1,0 +1,3792 @@
+{
+  "meta": {
+    "nazwa": "Formularz dynamiczny (frontend React)",
+    "wersja": "1.1",
+    "generator": "backend/scripts/kontrakt/generuj_formularz.py — nie edytować ręcznie",
+    "kroki": [
+      "triage",
+      "dane_osobowe",
+      "zatrudnienie_i_finanse",
+      "ciaza_i_dzieci",
+      "plan_urlopow"
+    ],
+    "kontrolki": [
+      "radio_cards",
+      "text",
+      "pesel",
+      "iban",
+      "date",
+      "number",
+      "boolean_toggle",
+      "select",
+      "array_builder",
+      "grupa"
+    ],
+    "show_if": "JSONLogic na stanie formularza (te same ścieżki co w regułach); brak = pokaż zawsze. Zmienna jeszcze bez odpowiedzi (null) ukrywa pytanie zależne.",
+    "sortowanie": "Wartość świadczenia = czas_tyg × stawka_procent / 100 × szacowana_podstawa / 4,33 + kwota_stala; pilność = 1 / max(pilnosc_dni, 1). Kartę brakującego pytania sortuj malejąco po najwyższej wartości ze świadczeń w polu `swiadczenia`, przy remisie — po pilności."
+  },
+  "pytania": [
+    {
+      "klucz": "wnioskodawca.etap",
+      "krok": "triage",
+      "pytanie": "Na jakim etapie jesteście?",
+      "podpowiedz": "Od tego zależy, które świadczenia pokażemy najpierw.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "planuje",
+          "etykieta": "Planuję dziecko"
+        },
+        {
+          "wartosc": "w_ciazy",
+          "etykieta": "Jestem w ciąży / spodziewamy się dziecka"
+        },
+        {
+          "wartosc": "po_porodzie",
+          "etykieta": "Dziecko już jest na świecie"
+        },
+        {
+          "wartosc": "adopcja_zastepcza",
+          "etykieta": "Przyjmujemy dziecko (adopcja, rodzina zastępcza)"
+        }
+      ],
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_BRAK_DOBROWOLNEGO",
+        "R_BRAK_UBEZP_W_DNIU_PORODU"
+      ],
+      "wymagane_dla": []
+    },
+    {
+      "klucz": "wnioskodawca.rola",
+      "krok": "triage",
+      "pytanie": "Kim jesteś dla dziecka?",
+      "podpowiedz": "Mama, tata i rodzina przyjmująca dziecko mają trochę inne uprawnienia.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "matka",
+          "etykieta": "Mama"
+        },
+        {
+          "wartosc": "ojciec",
+          "etykieta": "Tata"
+        },
+        {
+          "wartosc": "przysposabiajacy",
+          "etykieta": "Rodzic adopcyjny"
+        },
+        {
+          "wartosc": "rodzina_zastepcza_niezawodowa",
+          "etykieta": "Rodzina zastępcza (niezawodowa)"
+        },
+        {
+          "wartosc": "rodzina_zastepcza_zawodowa",
+          "etykieta": "Rodzina zastępcza zawodowa"
+        },
+        {
+          "wartosc": "inna",
+          "etykieta": "Inna osoba"
+        }
+      ],
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_ADOPCJA_ZASTEPCZA",
+        "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+        "ZASILEK_MACIERZYNSKI_MATKA",
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE",
+        "ZASILEK_URLOP_OJCOWSKI",
+        "ZASILEK_URLOP_RODZICIELSKI",
+        "ZASILEK_URLOP_UZUPELNIAJACY"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-MAC-OJC",
+        "ZAS-26",
+        "ZAS-33",
+        "SR-7"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.imie",
+      "krok": "dane_osobowe",
+      "pytanie": "Jak masz na imię?",
+      "podpowiedz": "Wpisz tak, jak w dowodzie osobistym.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "mobywatel",
+        "ocr_dowod",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE",
+        "ODPIS-AKTU",
+        "800PLUS",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.drugie_imie",
+      "krok": "dane_osobowe",
+      "pytanie": "Drugie imię (jeśli masz)",
+      "podpowiedz": "Wnioski ZUS proszą o wszystkie imiona.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "mobywatel",
+        "ocr_dowod"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "SR-7"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.nazwisko",
+      "krok": "dane_osobowe",
+      "pytanie": "Nazwisko",
+      "podpowiedz": "Tak jak w dokumencie tożsamości.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "mobywatel",
+        "ocr_dowod"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE",
+        "ODPIS-AKTU",
+        "800PLUS",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.nazwisko_rodowe",
+      "krok": "dane_osobowe",
+      "pytanie": "Nazwisko rodowe",
+      "podpowiedz": "Potrzebne w części wniosków (np. Z-10).",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ODPIS-AKTU"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.pesel",
+      "krok": "dane_osobowe",
+      "pytanie": "Twój PESEL",
+      "podpowiedz": "Z PESEL-u odczytamy datę urodzenia — ma znaczenie m.in. przy limicie 33/14 dni wynagrodzenia chorobowego.",
+      "kontrolka": "pesel",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "mobywatel",
+        "ocr_dowod"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE",
+        "ODPIS-AKTU",
+        "800PLUS",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.dokument_tozsamosci",
+      "krok": "dane_osobowe",
+      "pytanie": "Dokument tożsamości",
+      "podpowiedz": "Tylko jeśli nie masz numeru PESEL albo wniosek tego wymaga.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_dowod_mrz"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-7",
+        "ZA-ZYCIEM",
+        "BECIKOWE",
+        "SR-1",
+        "ZAS-55"
+      ],
+      "pola": [
+        {
+          "klucz": "wnioskodawca.dokument_tozsamosci.rodzaj",
+          "etykieta": "Rodzaj",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.dokument_tozsamosci.seria",
+          "etykieta": "Seria",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.dokument_tozsamosci.numer",
+          "etykieta": "Numer",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.obywatelstwo",
+      "krok": "dane_osobowe",
+      "pytanie": "Jakie masz obywatelstwo?",
+      "podpowiedz": "Kod kraju, np. PL. Cudzoziemcy z legalnym pobytem też mogą dostać 800+ i świadczenia gminne.",
+      "kontrolka": "select",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "mobywatel",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "SWIADCZENIE_RODZICIELSKIE",
+        "ZASILEK_800PLUS"
+      ],
+      "wymagane_dla": [
+        "SR-7",
+        "SR-1",
+        "BECIKOWE",
+        "800PLUS"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.legalny_pobyt_w_polsce",
+      "krok": "dane_osobowe",
+      "pytanie": "Czy masz prawo legalnego pobytu w Polsce?",
+      "podpowiedz": "Warunek 800+ i świadczeń gminnych dla osób spoza Polski.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "!=": [
+          {
+            "var": "wnioskodawca.obywatelstwo"
+          },
+          "PL"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "SWIADCZENIE_RODZICIELSKIE",
+        "ZASILEK_800PLUS"
+      ],
+      "wymagane_dla": [
+        "SR-7",
+        "SR-1",
+        "BECIKOWE",
+        "800PLUS"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.status_ukr",
+      "krok": "dane_osobowe",
+      "pytanie": "Czy masz PESEL ze statusem UKR?",
+      "podpowiedz": "Przy statusie UKR 800+ wymaga aktywności zawodowej.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "!=": [
+          {
+            "var": "wnioskodawca.obywatelstwo"
+          },
+          "PL"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_800PLUS"
+      ],
+      "wymagane_dla": [
+        "800PLUS",
+        "SR-1"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.aktywnosc_zawodowa_ukr",
+      "krok": "dane_osobowe",
+      "pytanie": "Czy pracujesz lub prowadzisz działalność w Polsce?",
+      "podpowiedz": "Dla osób ze statusem UKR to warunek otrzymania 800+.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.status_ukr"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_800PLUS"
+      ],
+      "wymagane_dla": [
+        "800PLUS"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.adres_zamieszkania",
+      "krok": "dane_osobowe",
+      "pytanie": "Gdzie mieszkasz?",
+      "podpowiedz": "Gmina decyduje, który urząd rozpatrzy becikowe i świadczenia rodzinne, oraz jakie programy lokalne Ci przysługują.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "mobywatel",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_800PLUS"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE",
+        "ODPIS-AKTU",
+        "800PLUS",
+        "AKTYWNY-RODZIC"
+      ],
+      "pola": [
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.ulica",
+          "etykieta": "Ulica",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.nr_domu",
+          "etykieta": "Numer domu",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.nr_lokalu",
+          "etykieta": "Numer lokalu",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.kod_pocztowy",
+          "etykieta": "Kod pocztowy",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.miejscowosc",
+          "etykieta": "Miejscowość",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.gmina",
+          "etykieta": "Gmina",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.teryt_gminy",
+          "etykieta": "Kod TERYT gminy",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.powiat",
+          "etykieta": "Powiat",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.wojewodztwo",
+          "etykieta": "Województwo",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_zamieszkania.kraj",
+          "etykieta": "Kraj (kod, np. PL)",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.adres_korespondencyjny",
+      "krok": "dane_osobowe",
+      "pytanie": "Adres do korespondencji (jeśli inny)",
+      "podpowiedz": "Zostaw puste, jeśli taki sam jak zamieszkania.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR"
+      ],
+      "pola": [
+        {
+          "klucz": "wnioskodawca.adres_korespondencyjny.ulica",
+          "etykieta": "Ulica",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_korespondencyjny.nr_domu",
+          "etykieta": "Numer domu",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_korespondencyjny.nr_lokalu",
+          "etykieta": "Numer lokalu",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_korespondencyjny.kod_pocztowy",
+          "etykieta": "Kod pocztowy",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_korespondencyjny.miejscowosc",
+          "etykieta": "Miejscowość",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "wnioskodawca.adres_korespondencyjny.kraj",
+          "etykieta": "Kraj (kod, np. PL)",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.telefon",
+      "krok": "dane_osobowe",
+      "pytanie": "Numer telefonu",
+      "podpowiedz": "Nieobowiązkowy, ale ułatwia kontakt z ZUS.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.email",
+      "krok": "dane_osobowe",
+      "pytanie": "Adres e-mail",
+      "podpowiedz": "Na ten adres wyślemy przypomnienia o terminach.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "google"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.adres_e_doreczen",
+      "krok": "dane_osobowe",
+      "pytanie": "Adres do e-Doręczeń (jeśli masz)",
+      "podpowiedz": "Pozwala wysyłać wnioski do gminy i ZUS bez papieru.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "ODPIS-AKTU"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.numer_rachunku",
+      "krok": "dane_osobowe",
+      "pytanie": "Numer konta do wypłaty",
+      "podpowiedz": "Bez numeru konta ZUS wyśle pieniądze przekazem pocztowym — dłużej i z opłatą.",
+      "kontrolka": "iban",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "800PLUS",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.wlasciciel_rachunku",
+      "krok": "dane_osobowe",
+      "pytanie": "Właściciel konta (jeśli to nie Ty)",
+      "podpowiedz": "Np. wspólne konto prowadzone na partnera.",
+      "kontrolka": "text",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR"
+      ]
+    },
+    {
+      "klucz": "wnioskodawca.stan_cywilny",
+      "krok": "dane_osobowe",
+      "pytanie": "Jaki masz stan cywilny?",
+      "podpowiedz": "Wpływa na skład rodziny i dodatek dla samotnych rodziców.",
+      "kontrolka": "select",
+      "opcje": [
+        {
+          "wartosc": "panna_kawaler",
+          "etykieta": "Panna / kawaler"
+        },
+        {
+          "wartosc": "malzenstwo",
+          "etykieta": "W małżeństwie"
+        },
+        {
+          "wartosc": "rozwod",
+          "etykieta": "Po rozwodzie"
+        },
+        {
+          "wartosc": "separacja",
+          "etykieta": "W separacji"
+        },
+        {
+          "wartosc": "wdowa_wdowiec",
+          "etykieta": "Wdowa / wdowiec"
+        }
+      ],
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-1",
+        "BECIKOWE",
+        "SR-7",
+        "ZA-ZYCIEM"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.tytul",
+      "krok": "triage",
+      "pytanie": "Na jakiej podstawie teraz pracujesz?",
+      "podpowiedz": "To najważniejsze pytanie: decyduje, czy zasiłek wypłaci ZUS, czy gmina (świadczenie rodzicielskie 1000 zł).",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "umowa_o_prace",
+          "etykieta": "Umowa o pracę"
+        },
+        {
+          "wartosc": "umowa_zlecenia",
+          "etykieta": "Umowa zlecenia"
+        },
+        {
+          "wartosc": "jdg",
+          "etykieta": "Własna działalność"
+        },
+        {
+          "wartosc": "wspolpraca_jdg",
+          "etykieta": "Współpraca przy działalności"
+        },
+        {
+          "wartosc": "ulga_na_start",
+          "etykieta": "Działalność na uldze na start"
+        },
+        {
+          "wartosc": "umowa_o_dzielo",
+          "etykieta": "Umowa o dzieło"
+        },
+        {
+          "wartosc": "duchowny",
+          "etykieta": "Osoba duchowna"
+        },
+        {
+          "wartosc": "marynarz",
+          "etykieta": "Marynarz"
+        },
+        {
+          "wartosc": "sluzba_mundurowa",
+          "etykieta": "Służba mundurowa"
+        },
+        {
+          "wartosc": "krus",
+          "etykieta": "Rolnik (KRUS)"
+        },
+        {
+          "wartosc": "bezrobotna_z_zasilkiem",
+          "etykieta": "Bezrobotna/y z zasiłkiem"
+        },
+        {
+          "wartosc": "bezrobotna_bez_zasilku",
+          "etykieta": "Bezrobotna/y bez zasiłku"
+        },
+        {
+          "wartosc": "student",
+          "etykieta": "Studentka / student"
+        },
+        {
+          "wartosc": "brak",
+          "etykieta": "Nie pracuję i nie mam ubezpieczenia"
+        }
+      ],
+      "show_if": null,
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_umowy",
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "OCHRONA_STOSUNKU_PRACY",
+        "R_BRAK_DOBROWOLNEGO",
+        "R_BRAK_OCHRONY",
+        "R_ZADLUZENIE_JDG",
+        "ZASILEK_POGRZEBOWY",
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.chorobowe",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy masz ubezpieczenie chorobowe?",
+      "podpowiedz": "Bez niego nie ma zasiłku chorobowego ani macierzyńskiego. Na zleceniu i w działalności jest dobrowolne — warto je włączyć.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "obowiazkowe",
+          "etykieta": "Obowiązkowe (np. etat)"
+        },
+        {
+          "wartosc": "dobrowolne",
+          "etykieta": "Dobrowolne (zlecenie, działalność)"
+        },
+        {
+          "wartosc": "brak",
+          "etykieta": "Nie mam ubezpieczenia chorobowego"
+        }
+      ],
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "umowa_o_prace",
+            "umowa_zlecenia",
+            "jdg",
+            "wspolpraca_jdg",
+            "duchowny",
+            "marynarz"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "ocr_poswiadczenie"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_BRAK_DOBROWOLNEGO",
+        "ZASILEK_ADOPCJA_ZASTEPCZA",
+        "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+        "ZASILEK_MACIERZYNSKI_MATKA",
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE",
+        "ZASILEK_OPIEKUNCZY",
+        "ZASILEK_URLOP_OJCOWSKI",
+        "ZASILEK_URLOP_RODZICIELSKI",
+        "ZASILEK_URLOP_UZUPELNIAJACY"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.data_objecia_chorobowym",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Od kiedy masz ubezpieczenie chorobowe?",
+      "podpowiedz": "Zasiłek chorobowy przysługuje po 30 dniach (obowiązkowe) albo 90 dniach (dobrowolne).",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.chorobowe"
+          },
+          [
+            "obowiazkowe",
+            "dobrowolne"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "ocr_poswiadczenie"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.okresy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Historia ubezpieczenia",
+      "podpowiedz": "Pobierzemy ją z ZUS. Przerwy do 30 dni nie przerywają ciągłości.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "umowa_o_prace",
+            "umowa_zlecenia",
+            "jdg",
+            "wspolpraca_jdg",
+            "duchowny",
+            "marynarz"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39"
+      ],
+      "pola": [
+        {
+          "nazwa": "od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "tytul",
+          "etykieta": "tytul",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "chorobowe",
+          "etykieta": "chorobowe",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "platnik_nip",
+          "etykieta": "platnik_nip",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.data_ustania",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy umowa lub działalność już się zakończyła? Kiedy?",
+      "podpowiedz": "Jeśli ubezpieczenie skończy się przed porodem, zasiłek macierzyński może nie przysługiwać — sprawdzimy alternatywy.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "umowa_o_prace",
+            "umowa_zlecenia",
+            "jdg",
+            "wspolpraca_jdg",
+            "duchowny",
+            "marynarz"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "zus_symulacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAS-53",
+        "ZAS-55",
+        "Z-10",
+        "ZNp-7"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.umowa_rozwiazana_w_ciazy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy pracodawca rozwiązał z Tobą umowę w czasie ciąży?",
+      "podpowiedz": "W pewnych sytuacjach przysługuje wtedy zasiłek w wysokości zasiłku macierzyńskiego aż do porodu.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "ubezpieczenie.tytul"
+              },
+              "umowa_o_prace"
+            ]
+          },
+          {
+            "or": [
+              {
+                "==": [
+                  {
+                    "var": "wnioskodawca.etap"
+                  },
+                  "w_ciazy"
+                ]
+              },
+              {
+                "==": [
+                  {
+                    "var": "ciaza.w_ciazy"
+                  },
+                  true
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_swiadectwo_pracy"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ],
+      "wymagane_dla": [
+        "ZAS-55"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.przyczyna_rozwiazania_umowy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Co było przyczyną rozwiązania umowy?",
+      "podpowiedz": "Upadłość, likwidacja lub śmierć pracodawcy dają prawo do zasiłku; naruszenie przepisów — tylko z prawomocnym wyrokiem.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "upadlosc",
+          "etykieta": "Upadłość pracodawcy"
+        },
+        {
+          "wartosc": "likwidacja",
+          "etykieta": "Likwidacja pracodawcy"
+        },
+        {
+          "wartosc": "smierc_pracodawcy",
+          "etykieta": "Śmierć pracodawcy"
+        },
+        {
+          "wartosc": "naruszenie_przepisow",
+          "etykieta": "Rozwiązanie z naruszeniem przepisów"
+        },
+        {
+          "wartosc": "inna",
+          "etykieta": "Inna przyczyna"
+        }
+      ],
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.umowa_rozwiazana_w_ciazy"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_swiadectwo_pracy"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ],
+      "wymagane_dla": [
+        "ZAS-55"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.prawomocny_wyrok_naruszenie_przepisow",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy sąd prawomocnie potwierdził naruszenie przepisów?",
+      "podpowiedz": "Bez prawomocnego wyroku ZUS nie wypłaci zasiłku z tego tytułu.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.przyczyna_rozwiazania_umowy"
+          },
+          "naruszenie_przepisow"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ],
+      "wymagane_dla": [
+        "ZAS-55"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.zapewniono_inne_zatrudnienie",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy pracodawca zaproponował Ci inną pracę?",
+      "podpowiedz": "Jeśli zapewniono inne zatrudnienie, zasiłek po rozwiązaniu umowy nie przysługuje.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.umowa_rozwiazana_w_ciazy"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ],
+      "wymagane_dla": [
+        "ZAS-55"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.platnik",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Kto jest Twoim pracodawcą lub zleceniodawcą?",
+      "podpowiedz": "Jeśli zgłasza ponad 20 osób do ubezpieczenia chorobowego, zasiłek wypłaci on, a nie ZUS.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "umowa_o_prace",
+            "umowa_zlecenia"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_umowy",
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZNp-7",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE"
+      ],
+      "pola": [
+        {
+          "klucz": "ubezpieczenie.platnik.nazwa",
+          "etykieta": "Nazwa",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "ubezpieczenie.platnik.nip",
+          "etykieta": "NIP",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "ubezpieczenie.platnik.regon",
+          "etykieta": "REGON",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "ubezpieczenie.platnik.adres",
+          "etykieta": "Adres",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "ubezpieczenie.platnik.liczba_ubezpieczonych_chorobowo",
+          "etykieta": "Ile osób zgłasza do ubezpieczenia chorobowego?",
+          "kontrolka": "number"
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.wymiar_etatu",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "W jakim wymiarze etatu pracujesz?",
+      "podpowiedz": "Np. 1 to pełny etat, 0,5 to pół. Przy pełnym etacie podstawa zasiłku nie spadnie poniżej płacy minimalnej.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          "umowa_o_prace"
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_umowy",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.rodzaj_umowy_o_prace",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Jaką masz umowę o pracę?",
+      "podpowiedz": "Umowa terminowa lub próbna (ponad miesiąc), która kończy się po 3. miesiącu ciąży, sama przedłuża się do dnia porodu. Nie dotyczy umowy na zastępstwo.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "czas_nieokreslony",
+          "etykieta": "Na czas nieokreślony"
+        },
+        {
+          "wartosc": "czas_okreslony",
+          "etykieta": "Na czas określony"
+        },
+        {
+          "wartosc": "okres_probny_powyzej_1_mies",
+          "etykieta": "Na okres próbny dłuższy niż miesiąc"
+        },
+        {
+          "wartosc": "okres_probny_do_1_mies",
+          "etykieta": "Na okres próbny do miesiąca"
+        },
+        {
+          "wartosc": "zastepstwo",
+          "etykieta": "Na zastępstwo"
+        }
+      ],
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          "umowa_o_prace"
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_umowy",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": []
+    },
+    {
+      "klucz": "ubezpieczenie.data_konca_umowy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Do kiedy jest zawarta Twoja umowa?",
+      "podpowiedz": "Sprawdzimy, czy przedłuży się do porodu — od tego zależy zasiłek macierzyński.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "ubezpieczenie.tytul"
+              },
+              "umowa_o_prace"
+            ]
+          },
+          {
+            "in": [
+              {
+                "var": "ubezpieczenie.rodzaj_umowy_o_prace"
+              },
+              [
+                "czas_okreslony",
+                "okres_probny_powyzej_1_mies",
+                "okres_probny_do_1_mies",
+                "zastepstwo"
+              ]
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_umowy",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": []
+    },
+    {
+      "klucz": "ubezpieczenie.dni_wynagrodzenia_chorobowego_w_roku",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Ile dni zwolnienia lekarskiego wykorzystałaś już w tym roku?",
+      "podpowiedz": "Przez pierwsze 33 dni w roku (14 po 50. roku życia) płaci pracodawca, potem ZUS.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          "umowa_o_prace"
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "ocr_z3",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAS-53"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.przychody_12_miesiecy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Twoje zarobki z ostatnich 12 miesięcy",
+      "podpowiedz": "Z nich liczymy podstawę zasiłku: średnia pomniejszona o 13,71% składek. Miesiące przepracowane w mniej niż połowie pomijamy.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "umowa_o_prace",
+            "umowa_zlecenia"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_z3",
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7"
+      ],
+      "pola": [
+        {
+          "nazwa": "rok",
+          "etykieta": "Rok",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "miesiac",
+          "etykieta": "miesiac",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "podstawa_wymiaru_skladek",
+          "etykieta": "podstawa_wymiaru_skladek",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "skladniki_zmienne",
+          "etykieta": "skladniki_zmienne",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "wynagrodzenie_chorobowe",
+          "etykieta": "wynagrodzenie_chorobowe",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "dni_przepracowane",
+          "etykieta": "dni_przepracowane",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "dni_do_przepracowania",
+          "etykieta": "dni_do_przepracowania",
+          "kontrolka": "number"
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.przerwa_od_poprzedniego_zasilku_dni",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Ile dni minęło od Twojego poprzedniego zasiłku (np. chorobowego)?",
+      "podpowiedz": "Jeśli mniej niż miesiąc, ZUS przyjmie tę samą podstawę co poprzednio.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "umowa_o_prace",
+            "umowa_zlecenia",
+            "jdg",
+            "wspolpraca_jdg",
+            "duchowny",
+            "marynarz"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": []
+    },
+    {
+      "klucz": "ubezpieczenie.podstawa_poprzedniego_zasilku",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Jaka była podstawa poprzedniego zasiłku?",
+      "podpowiedz": "Znajdziesz ją w decyzji ZUS lub na zaświadczeniu Z-3.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "<": [
+          {
+            "var": "ubezpieczenie.przerwa_od_poprzedniego_zasilku_dni"
+          },
+          30
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "ocr_z3",
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": []
+    },
+    {
+      "klucz": "ubezpieczenie.zadeklarowana_podstawa_jdg",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Od jakiej kwoty płacisz składki w działalności?",
+      "podpowiedz": "Zasiłek liczy się od zadeklarowanej podstawy z 12 miesięcy (krócej — według specjalnego wzoru).",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "jdg",
+            "wspolpraca_jdg",
+            "ulga_na_start"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53"
+      ],
+      "pola": [
+        {
+          "nazwa": "rok",
+          "etykieta": "Rok",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "miesiac",
+          "etykieta": "miesiac",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "kwota",
+          "etykieta": "Kwota (zł)",
+          "kontrolka": "number"
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.zmiana_podstawy_w_ciazy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy w ciąży podniosłaś podstawę składek?",
+      "podpowiedz": "To dozwolone, ale ZUS może to sprawdzić — przygotujemy pismo z wyjaśnieniem.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "and": [
+          {
+            "in": [
+              {
+                "var": "ubezpieczenie.tytul"
+              },
+              [
+                "jdg",
+                "wspolpraca_jdg",
+                "ulga_na_start"
+              ]
+            ]
+          },
+          {
+            "or": [
+              {
+                "==": [
+                  {
+                    "var": "wnioskodawca.etap"
+                  },
+                  "w_ciazy"
+                ]
+              },
+              {
+                "==": [
+                  {
+                    "var": "ciaza.w_ciazy"
+                  },
+                  true
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "zus_symulacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_ZMIANA_PODSTAWY"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53"
+      ],
+      "pola": [
+        {
+          "klucz": "ubezpieczenie.zmiana_podstawy_w_ciazy.czy",
+          "etykieta": "Tak / nie",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "ubezpieczenie.zmiana_podstawy_w_ciazy.data",
+          "etykieta": "Data",
+          "kontrolka": "date",
+          "show_if": {
+            "==": [
+              {
+                "var": "ubezpieczenie.zmiana_podstawy_w_ciazy.czy"
+              },
+              true
+            ]
+          }
+        },
+        {
+          "klucz": "ubezpieczenie.zmiana_podstawy_w_ciazy.kwota_przed",
+          "etykieta": "Kwota przed zmianą",
+          "kontrolka": "number",
+          "show_if": {
+            "==": [
+              {
+                "var": "ubezpieczenie.zmiana_podstawy_w_ciazy.czy"
+              },
+              true
+            ]
+          }
+        },
+        {
+          "klucz": "ubezpieczenie.zmiana_podstawy_w_ciazy.kwota_po",
+          "etykieta": "Kwota po zmianie",
+          "kontrolka": "number",
+          "show_if": {
+            "==": [
+              {
+                "var": "ubezpieczenie.zmiana_podstawy_w_ciazy.czy"
+              },
+              true
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy w ciąży zmieniły się warunki Twojej pracy (pensja, etat)?",
+      "podpowiedz": "Zmiana może obniżyć zasiłek — warto to sprawdzić wcześniej.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "ubezpieczenie.tytul"
+              },
+              "umowa_o_prace"
+            ]
+          },
+          {
+            "or": [
+              {
+                "==": [
+                  {
+                    "var": "wnioskodawca.etap"
+                  },
+                  "w_ciazy"
+                ]
+              },
+              {
+                "==": [
+                  {
+                    "var": "ciaza.w_ciazy"
+                  },
+                  true
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_ZMIANA_WARUNKOW"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53"
+      ],
+      "pola": [
+        {
+          "klucz": "ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy.czy",
+          "etykieta": "Tak / nie",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy.data",
+          "etykieta": "Data",
+          "kontrolka": "date",
+          "show_if": {
+            "==": [
+              {
+                "var": "ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy.czy"
+              },
+              true
+            ]
+          }
+        },
+        {
+          "klucz": "ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy.opis",
+          "etykieta": "Opis",
+          "kontrolka": "text",
+          "show_if": {
+            "==": [
+              {
+                "var": "ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy.czy"
+              },
+              true
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.zadluzenie_skladkowe",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy masz zaległości w składkach ZUS?",
+      "podpowiedz": "Zadłużenie może wstrzymać zasiłek. Pomożemy przygotować wniosek o układ ratalny.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          [
+            "jdg",
+            "wspolpraca_jdg",
+            "ulga_na_start"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "R_ZADLUZENIE_JDG"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53"
+      ],
+      "pola": [
+        {
+          "klucz": "ubezpieczenie.zadluzenie_skladkowe.kwota",
+          "etykieta": "Kwota (zł)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "ubezpieczenie.zadluzenie_skladkowe.na_dzien",
+          "etykieta": "Na dzień",
+          "kontrolka": "date"
+        }
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.pobiera_emeryture_rente",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy pobierasz emeryturę lub rentę?",
+      "podpowiedz": "Pytanie z wniosków Z-10 i ZNp-7.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_POGRZEBOWY"
+      ],
+      "wymagane_dla": [
+        "Z-10",
+        "ZNp-7"
+      ]
+    },
+    {
+      "klucz": "ubezpieczenie.zlozyla_wniosek_emerytura_renta",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy złożyłaś wniosek o emeryturę lub rentę?",
+      "podpowiedz": "Pytanie z wniosku Z-10.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "!=": [
+          {
+            "var": "ubezpieczenie.pobiera_emeryture_rente"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "Z-10"
+      ]
+    },
+    {
+      "klucz": "zdrowie.ezla",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Zwolnienia lekarskie (e-ZLA)",
+      "podpowiedz": "Pobierzemy je z ZUS. Kod B oznacza zwolnienie w ciąży — wtedy zasiłek wynosi 100%.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "or": [
+          {
+            "==": [
+              {
+                "var": "wnioskodawca.etap"
+              },
+              "w_ciazy"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "ciaza.w_ciazy"
+              },
+              true
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAS-53",
+        "Z-10"
+      ],
+      "pola": [
+        {
+          "nazwa": "seria_numer",
+          "etykieta": "seria_numer",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "kod_B",
+          "etykieta": "kod_B",
+          "kontrolka": "boolean_toggle"
+        }
+      ]
+    },
+    {
+      "klucz": "zdrowie.okres_zasilkowy_wykorzystany_dni",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Ile dni zasiłku chorobowego wykorzystałaś w tej ciąży?",
+      "podpowiedz": "W ciąży zasiłek przysługuje maksymalnie 270 dni.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "or": [
+          {
+            "==": [
+              {
+                "var": "wnioskodawca.etap"
+              },
+              "w_ciazy"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "ciaza.w_ciazy"
+              },
+              true
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_OKRES_ZASILKOWY",
+        "ZASILEK_CHOROBOWY_CIAZA"
+      ],
+      "wymagane_dla": [
+        "ZNp-7",
+        "ZAS-53"
+      ]
+    },
+    {
+      "klucz": "zdrowie.nadal_niezdolna_do_pracy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy po 270 dniach nadal nie możesz pracować?",
+      "podpowiedz": "Wtedy można starać się o świadczenie rehabilitacyjne.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        ">=": [
+          {
+            "var": "zdrowie.okres_zasilkowy_wykorzystany_dni"
+          },
+          240
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "SWIADCZENIE_REHABILITACYJNE"
+      ],
+      "wymagane_dla": [
+        "ZNp-7"
+      ]
+    },
+    {
+      "klucz": "zdrowie.rokowania_odzyskania_zdolnosci",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy lekarz ocenia, że wrócisz do pracy po dalszym leczeniu?",
+      "podpowiedz": "To warunek świadczenia rehabilitacyjnego (decyduje lekarz orzecznik ZUS).",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "zdrowie.nadal_niezdolna_do_pracy"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "SWIADCZENIE_REHABILITACYJNE"
+      ],
+      "wymagane_dla": [
+        "ZNp-7"
+      ]
+    },
+    {
+      "klucz": "zdrowie.data_wyczerpania_zasilku",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Kiedy kończy się Twój zasiłek chorobowy?",
+      "podpowiedz": "Od następnego dnia liczymy świadczenie rehabilitacyjne.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "zdrowie.nadal_niezdolna_do_pracy"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZNp-7"
+      ]
+    },
+    {
+      "klucz": "zdrowie.zasilek_opiekunczy_wykorzystany_dni",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Ile dni opieki nad chorym dzieckiem wykorzystałeś/aś w tym roku?",
+      "podpowiedz": "Zasiłek opiekuńczy (80%) przysługuje do 60 dni w roku.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.etap"
+          },
+          [
+            "po_porodzie",
+            "adopcja_zastepcza"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_OPIEKUNCZY"
+      ],
+      "wymagane_dla": [
+        "Z-15"
+      ]
+    },
+    {
+      "klucz": "ciaza.w_ciazy",
+      "krok": "triage",
+      "pytanie": "Czy jesteś teraz w ciąży?",
+      "podpowiedz": "Ciąża daje m.in. zasiłek chorobowy 100% i ochronę przed zwolnieniem.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "matka"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_BRAK_OCHRONY",
+        "ZASILEK_CHOROBOWY_CIAZA",
+        "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO"
+      ],
+      "wymagane_dla": [
+        "ZAS-53",
+        "ZAS-55"
+      ]
+    },
+    {
+      "klucz": "ciaza.przewidywana_data_porodu",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Kiedy jest termin porodu?",
+      "podpowiedz": "Wpisz datę z zaświadczenia lekarskiego — od niej liczymy terminy i urlopy.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "or": [
+          {
+            "==": [
+              {
+                "var": "wnioskodawca.etap"
+              },
+              "w_ciazy"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "ciaza.w_ciazy"
+              },
+              true
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD",
+        "ZAS-55"
+      ]
+    },
+    {
+      "klucz": "ciaza.opieka_medyczna_od_10_tyg",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy byłaś pod opieką lekarza lub położnej od 10. tygodnia ciąży?",
+      "podpowiedz": "To warunek becikowego i świadczenia „Za życiem”. Potwierdza to zaświadczenie lekarskie.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "BECIKOWE",
+        "ZA_ZYCIEM_4000"
+      ],
+      "wymagane_dla": [
+        "BECIKOWE",
+        "ZA-ZYCIEM",
+        "SR-1"
+      ]
+    },
+    {
+      "klucz": "porod.data_porodu",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Kiedy urodziło się dziecko?",
+      "podpowiedz": "Od tej daty biegną terminy, np. 21 dni na wniosek o 81,5% zasiłku.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.etap"
+          },
+          [
+            "po_porodzie",
+            "adopcja_zastepcza"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_aktu"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD",
+        "ZAS-33",
+        "ZAS-39"
+      ]
+    },
+    {
+      "klucz": "porod.stan_dziecka",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Jak się czuje dziecko?",
+      "podpowiedz": "Jeśli wydarzyło się coś trudnego, przeprowadzimy Cię spokojnie przez to, co Ci przysługuje.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "zywe",
+          "etykieta": "Dziecko żyje"
+        },
+        {
+          "wartosc": "martwe",
+          "etykieta": "Dziecko urodziło się martwe"
+        },
+        {
+          "wartosc": "zgon_do_8_tyg",
+          "etykieta": "Dziecko zmarło w ciągu 8 tygodni od urodzenia"
+        },
+        {
+          "wartosc": "zgon_po_8_tyg",
+          "etykieta": "Dziecko zmarło później"
+        }
+      ],
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.etap"
+          },
+          [
+            "po_porodzie",
+            "adopcja_zastepcza"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "BECIKOWE",
+        "SWIADCZENIE_RODZICIELSKIE",
+        "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+        "ZASILEK_MACIERZYNSKI_MATKA",
+        "ZASILEK_POGRZEBOWY"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD",
+        "BECIKOWE"
+      ]
+    },
+    {
+      "klucz": "porod.data_zgonu_dziecka",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Kiedy dziecko zmarło?",
+      "podpowiedz": "Przykro nam. Ta data jest potrzebna do zasiłku macierzyńskiego i pogrzebowego.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "porod.stan_dziecka"
+          },
+          [
+            "zgon_do_8_tyg",
+            "zgon_po_8_tyg"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM"
+      ]
+    },
+    {
+      "klucz": "porod.liczba_dzieci",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Ile dzieci urodziło się (lub urodzi) przy tym porodzie?",
+      "podpowiedz": "Przy bliźniętach i większej liczbie dzieci urlopy są dłuższe.",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "or": [
+          {
+            "in": [
+              {
+                "var": "wnioskodawca.etap"
+              },
+              [
+                "po_porodzie",
+                "adopcja_zastepcza"
+              ]
+            ]
+          },
+          {
+            "or": [
+              {
+                "==": [
+                  {
+                    "var": "wnioskodawca.etap"
+                  },
+                  "w_ciazy"
+                ]
+              },
+              {
+                "==": [
+                  {
+                    "var": "ciaza.w_ciazy"
+                  },
+                  true
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD",
+        "SR-7"
+      ]
+    },
+    {
+      "klucz": "porod.tydzien_ciazy",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "W którym tygodniu ciąży urodziło się dziecko?",
+      "podpowiedz": "Przed 37. tygodniem przysługuje uzupełniający urlop macierzyński (do 8 lub 15 tygodni).",
+      "kontrolka": "number",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.etap"
+          },
+          [
+            "po_porodzie",
+            "adopcja_zastepcza"
+          ]
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "ocr_zaswiadczenie_szpitala",
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-UZUP",
+        "ZAM",
+        "SR-7"
+      ]
+    },
+    {
+      "klucz": "dzieci",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Twoje dzieci",
+      "podpowiedz": "Dodaj wszystkie dzieci — także starsze. Liczą się do 800+, Karty Dużej Rodziny i zasiłku rodzinnego.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_aktu",
+        "mobywatel"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "ZAS-53",
+        "ZAS-55",
+        "ZNp-7",
+        "Z-10",
+        "ZAS-26",
+        "ZAS-33",
+        "ZAS-39",
+        "SR-7",
+        "BECIKOWE",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "KDR",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE",
+        "ODPIS-AKTU",
+        "800PLUS",
+        "AKTYWNY-RODZIC"
+      ],
+      "pola": [
+        {
+          "nazwa": "imie",
+          "etykieta": "Imię dziecka",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "nazwisko",
+          "etykieta": "Nazwisko dziecka",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "pesel",
+          "etykieta": "PESEL dziecka (brak przed rejestracją)",
+          "kontrolka": "pesel"
+        },
+        {
+          "nazwa": "data_urodzenia",
+          "etykieta": "Data urodzenia",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "masa_urodzeniowa_g",
+          "etykieta": "Masa urodzeniowa (do 1000 g dłuższy urlop uzupełniający)",
+          "kontrolka": "number"
+        },
+        {
+          "nazwa": "hospitalizacja",
+          "etykieta": "Pobyt w szpitalu po porodzie",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "zaswiadczenie_za_zyciem",
+          "etykieta": "Zaświadczenie Za życiem",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "nazwa": "niepelnosprawnosc",
+          "etykieta": "Orzeczenie o niepełnosprawności",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "przyjete_na_wychowanie",
+          "etykieta": "rodzaj: przysposobienie lub rodzina_zastepcza_niezawodowa",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "odroczony_obowiazek_szkolny",
+          "etykieta": "Limit wieku 10 lat przy rodzinie zastępczej",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "nazwa": "placowka_opieki",
+          "etykieta": "Żłobek lub klub dziecięcy (Aktywny rodzic)",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "uczy_sie",
+          "etykieta": "Dziecko się uczy (zasiłek rodzinny, KDR)",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "nazwa": "na_utrzymaniu",
+          "etykieta": "Dziecko na utrzymaniu (KDR, zasiłek rodzinny)",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "nazwa": "w_pieczy_instytucjonalnej",
+          "etykieta": "Dziecko w pieczy instytucjonalnej (wyklucza 800+)",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "nazwa": "pobyt_w_polsce",
+          "etykieta": "Dziecko przebywa w Polsce",
+          "kontrolka": "boolean_toggle"
+        }
+      ]
+    },
+    {
+      "klucz": "matka.stan",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Sytuacja mamy dziecka",
+      "podpowiedz": "W wyjątkowych sytuacjach tata może przejąć urlop macierzyński wcześniej.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "zyje",
+          "etykieta": "Mama jest z nami"
+        },
+        {
+          "wartosc": "zmarla",
+          "etykieta": "Mama zmarła"
+        },
+        {
+          "wartosc": "porzucila_dziecko",
+          "etykieta": "Mama porzuciła dziecko"
+        }
+      ],
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ],
+      "wymagane_dla": [
+        "ZAS-33",
+        "ZAM",
+        "SR-7"
+      ]
+    },
+    {
+      "klucz": "matka.ubezpieczona_w_dniu_porodu",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mama dziecka miała ubezpieczenie chorobowe w dniu porodu?",
+      "podpowiedz": "Jeśli nie, tata może skorzystać z urlopu rodzicielskiego, a mama — ze świadczenia rodzicielskiego 1000 zł z gminy.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "zus_symulacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-ROD",
+        "ZAS-39"
+      ]
+    },
+    {
+      "klucz": "matka.wykorzystala_14_tyg",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mama wykorzystała już 14 tygodni urlopu po porodzie?",
+      "podpowiedz": "Po 14 tygodniach mama może oddać resztę urlopu macierzyńskiego tacie.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "zus_symulacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC"
+      ]
+    },
+    {
+      "klucz": "matka.data_konca_urlopu_macierzynskiego",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Kiedy kończy się urlop macierzyński mamy?",
+      "podpowiedz": "Tata zaczyna przejęty urlop następnego dnia.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-ROD",
+        "URLOP-MAC-OJC"
+      ]
+    },
+    {
+      "klucz": "matka.pobiera_zasilek_8_tyg_po_porodzie",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mama pobiera zasiłek przez 8 tygodni po porodzie?",
+      "podpowiedz": "Potrzebne do oświadczenia ZAS-39.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "zus_symulacja",
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_URLOP_RODZICIELSKI"
+      ],
+      "wymagane_dla": [
+        "ZAS-39"
+      ]
+    },
+    {
+      "klucz": "matka.hospitalizacja",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mama przebywa (przebywała) w szpitalu po porodzie?",
+      "podpowiedz": "Pobyt mamy w szpitalu po 8 tygodniach od porodu pozwala tacie przejąć urlop na ten czas.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "SR-7",
+        "URLOP-MAC-OJC"
+      ],
+      "pola": [
+        {
+          "nazwa": "od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        }
+      ]
+    },
+    {
+      "klucz": "matka.orzeczenie_niezdolnosci_do_samodzielnej_egzystencji",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mama ma orzeczenie o niezdolności do samodzielnej egzystencji?",
+      "podpowiedz": "Wtedy tata może przejąć urlop macierzyński już po 8 tygodniach.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "SR-7",
+        "URLOP-MAC-OJC"
+      ]
+    },
+    {
+      "klucz": "matka.podjela_prace_min_pol_etatu",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mama (bez ubezpieczenia w dniu porodu) podjęła pracę na co najmniej pół etatu?",
+      "podpowiedz": "Wtedy tata może przejąć urlop macierzyński — nie wcześniej niż po 14 tygodniach od porodu.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "and": [
+          {
+            "==": [
+              {
+                "var": "wnioskodawca.rola"
+              },
+              "ojciec"
+            ]
+          },
+          {
+            "==": [
+              {
+                "var": "matka.ubezpieczona_w_dniu_porodu"
+              },
+              false
+            ]
+          }
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-OJC"
+      ]
+    },
+    {
+      "klucz": "drugi_rodzic.dane",
+      "krok": "dane_osobowe",
+      "pytanie": "Dane drugiego rodzica",
+      "podpowiedz": "Wnioski o urlopy i świadczenia rodzinne pytają o oboje rodziców.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          [
+            "matka",
+            "ojciec"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "mobywatel"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "SR-7",
+        "SR-1",
+        "BECIKOWE",
+        "URLOP-OJC",
+        "URLOP-ROD",
+        "ZAS-39"
+      ],
+      "pola": [
+        {
+          "klucz": "drugi_rodzic.dane.imie",
+          "etykieta": "Imię",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.dane.nazwisko",
+          "etykieta": "Nazwisko",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.dane.pesel",
+          "etykieta": "PESEL",
+          "kontrolka": "pesel"
+        },
+        {
+          "klucz": "drugi_rodzic.dane.adres",
+          "etykieta": "Adres",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.dane.obywatelstwo",
+          "etykieta": "Obywatelstwo",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "drugi_rodzic.tytul_ubezpieczenia",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Na jakiej podstawie pracuje drugi rodzic?",
+      "podpowiedz": "Od tego zależy podział urlopu rodzicielskiego i np. świadczenie rodzicielskie dla nieubezpieczonej mamy.",
+      "kontrolka": "radio_cards",
+      "opcje": [
+        {
+          "wartosc": "umowa_o_prace",
+          "etykieta": "Umowa o pracę"
+        },
+        {
+          "wartosc": "umowa_zlecenia",
+          "etykieta": "Umowa zlecenia"
+        },
+        {
+          "wartosc": "jdg",
+          "etykieta": "Własna działalność"
+        },
+        {
+          "wartosc": "wspolpraca_jdg",
+          "etykieta": "Współpraca przy działalności"
+        },
+        {
+          "wartosc": "ulga_na_start",
+          "etykieta": "Działalność na uldze na start"
+        },
+        {
+          "wartosc": "umowa_o_dzielo",
+          "etykieta": "Umowa o dzieło"
+        },
+        {
+          "wartosc": "duchowny",
+          "etykieta": "Osoba duchowna"
+        },
+        {
+          "wartosc": "marynarz",
+          "etykieta": "Marynarz"
+        },
+        {
+          "wartosc": "sluzba_mundurowa",
+          "etykieta": "Służba mundurowa"
+        },
+        {
+          "wartosc": "krus",
+          "etykieta": "Rolnik (KRUS)"
+        },
+        {
+          "wartosc": "bezrobotna_z_zasilkiem",
+          "etykieta": "Bezrobotna/y z zasiłkiem"
+        },
+        {
+          "wartosc": "bezrobotna_bez_zasilku",
+          "etykieta": "Bezrobotna/y bez zasiłku"
+        },
+        {
+          "wartosc": "student",
+          "etykieta": "Studentka / student"
+        },
+        {
+          "wartosc": "brak",
+          "etykieta": "Nie pracuję i nie mam ubezpieczenia"
+        }
+      ],
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          [
+            "matka",
+            "ojciec"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_umowy"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_POGRZEBOWY"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "drugi_rodzic.platnik",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Pracodawca drugiego rodzica",
+      "podpowiedz": "Potrzebny do wniosków o urlop ojcowski i rodzicielski.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "drugi_rodzic.tytul_ubezpieczenia"
+          },
+          "umowa_o_prace"
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_umowy"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-OJC",
+        "URLOP-ROD"
+      ],
+      "pola": [
+        {
+          "klucz": "drugi_rodzic.platnik.nazwa",
+          "etykieta": "Nazwa",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.platnik.nip",
+          "etykieta": "NIP",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.platnik.adres",
+          "etykieta": "Adres",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "drugi_rodzic.aktywny_zawodowo",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy drugi rodzic pracuje?",
+      "podpowiedz": "Program „Aktywny rodzic” daje 1500 zł, gdy oboje rodzice pracują.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "rodzina.sklad",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Kto wchodzi w skład Twojej rodziny?",
+      "podpowiedz": "Dochód dzielimy na wszystkie te osoby — tak liczy gmina przy becikowym i zasiłku rodzinnym.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-1",
+        "BECIKOWE",
+        "SR-7"
+      ],
+      "pola": [
+        {
+          "nazwa": "imie",
+          "etykieta": "Imię",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "nazwisko",
+          "etykieta": "Nazwisko",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "pesel",
+          "etykieta": "PESEL",
+          "kontrolka": "pesel"
+        },
+        {
+          "nazwa": "pokrewienstwo",
+          "etykieta": "pokrewienstwo",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "data_urodzenia",
+          "etykieta": "data_urodzenia",
+          "kontrolka": "date"
+        }
+      ]
+    },
+    {
+      "klucz": "rodzina.dochod_rok_bazowy",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Jaki był dochód Twojej rodziny w roku bazowym?",
+      "podpowiedz": "Becikowe: do 1922 zł na osobę miesięcznie; zasiłek rodzinny: do 674 zł (764 zł przy niepełnosprawności dziecka).",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_pit"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-1",
+        "BECIKOWE"
+      ],
+      "pola": [
+        {
+          "klucz": "rodzina.dochod_rok_bazowy.rok",
+          "etykieta": "Rok",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "rodzina.dochod_rok_bazowy.dochody_opodatkowane",
+          "etykieta": "Dochody opodatkowane (zł)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "rodzina.dochod_rok_bazowy.dochody_nieopodatkowane",
+          "etykieta": "Dochody nieopodatkowane (zł)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "rodzina.dochod_rok_bazowy.dochody_utracone",
+          "etykieta": "Dochody utracone (zł)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "rodzina.dochod_rok_bazowy.dochody_uzyskane",
+          "etykieta": "Dochody uzyskane (zł)",
+          "kontrolka": "number"
+        }
+      ]
+    },
+    {
+      "klucz": "rodzina.samotne_wychowywanie",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy samotnie wychowujesz dziecko?",
+      "podpowiedz": "Daje dodatek do zasiłku rodzinnego i preferencyjne rozliczenie podatku.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-1"
+      ]
+    },
+    {
+      "klucz": "rodzina.uznanie_ojcostwa",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy ojciec uznał dziecko?",
+      "podpowiedz": "Potrzebne, gdy rodzice nie są małżeństwem — bez tego tata nie przejmie urlopu.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "!=": [
+          {
+            "var": "wnioskodawca.stan_cywilny"
+          },
+          "malzenstwo"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ODPIS-AKTU",
+        "ZAM",
+        "URLOP-OJC"
+      ]
+    },
+    {
+      "klucz": "rodzina.wspolne_gospodarstwo_domowe",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy mieszkacie razem?",
+      "podpowiedz": "Wpływa na skład rodziny i zasiłek opiekuńczy.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_OPIEKUNCZY"
+      ],
+      "wymagane_dla": [
+        "SR-1",
+        "BECIKOWE",
+        "SR-7",
+        "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "rodzina.opieka_naprzemienna",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy sprawujecie opiekę naprzemienną?",
+      "podpowiedz": "Wtedy 800+ i „Aktywny rodzic” dzieli się po połowie.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "!=": [
+          {
+            "var": "rodzina.wspolne_gospodarstwo_domowe"
+          },
+          true
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "AKTYWNY-RODZIC",
+        "800PLUS"
+      ]
+    },
+    {
+      "klucz": "rodzina.inne_pobierane_swiadczenia",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy pobierasz już jakieś świadczenia?",
+      "podpowiedz": "Niektóre (np. zasiłek macierzyński, świadczenie pielęgnacyjne) wykluczają świadczenie rodzicielskie z gminy.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "zus_symulacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "SR-7",
+        "SR-1",
+        "ZA-ZYCIEM",
+        "BECIKOWE"
+      ],
+      "pola": [
+        {
+          "nazwa": "rodzaj",
+          "etykieta": "Rodzaj",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "instytucja",
+          "etykieta": "instytucja",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        }
+      ]
+    },
+    {
+      "klucz": "rodzina.swiadczenie_za_granica",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Czy ktoś z rodziny dostaje świadczenie na to dziecko za granicą?",
+      "podpowiedz": "Świadczenie z innego kraju wyłącza polskie świadczenia z tego samego tytułu.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "BECIKOWE",
+        "SWIADCZENIE_RODZICIELSKIE",
+        "ZASILEK_RODZINNY",
+        "ZA_ZYCIEM_4000"
+      ],
+      "wymagane_dla": [
+        "BECIKOWE",
+        "SR-7",
+        "ZA-ZYCIEM",
+        "SR-1"
+      ]
+    },
+    {
+      "klucz": "rodzina.poniesiono_koszty_pogrzebu",
+      "krok": "ciaza_i_dzieci",
+      "pytanie": "Czy to Ty pokryłaś/eś koszty pogrzebu dziecka?",
+      "podpowiedz": "Bardzo nam przykro. Osobie, która pokryła koszty, ZUS wypłaca zasiłek pogrzebowy 7000 zł.",
+      "kontrolka": "boolean_toggle",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "porod.stan_dziecka"
+          },
+          [
+            "martwe",
+            "zgon_do_8_tyg",
+            "zgon_po_8_tyg"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": true,
+      "swiadczenia": [
+        "ZASILEK_POGRZEBOWY"
+      ],
+      "wymagane_dla": [
+        "Z-12"
+      ]
+    },
+    {
+      "klucz": "plan.urlop_macierzynski",
+      "krok": "plan_urlopow",
+      "pytanie": "Kiedy chcesz rozpocząć urlop macierzyński?",
+      "podpowiedz": "Najwcześniej 6 tygodni przed terminem porodu; 14 tygodni po porodzie mama wykorzystuje osobiście.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "matka"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD"
+      ],
+      "pola": [
+        {
+          "klucz": "plan.urlop_macierzynski.od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "plan.urlop_macierzynski.do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "plan.urlop_macierzynski.tygodnie_przed_porodem",
+          "etykieta": "Ile tygodni przed porodem?",
+          "kontrolka": "number"
+        }
+      ]
+    },
+    {
+      "klucz": "plan.wniosek_81_5",
+      "krok": "plan_urlopow",
+      "pytanie": "Czy chcesz złożyć wniosek o 81,5% zasiłku za cały okres?",
+      "podpowiedz": "Wniosek do 21 dni po porodzie: równa kwota co miesiąc. Bez niego: 100% za macierzyński i 70% za rodzicielski.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "matka"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "R_TERMIN_81_5"
+      ],
+      "wymagane_dla": [
+        "ZAM",
+        "URLOP-MAC-ROD"
+      ],
+      "pola": [
+        {
+          "klucz": "plan.wniosek_81_5.czy",
+          "etykieta": "Tak / nie",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "plan.wniosek_81_5.data_zlozenia",
+          "etykieta": "Data złożenia",
+          "kontrolka": "date",
+          "show_if": {
+            "==": [
+              {
+                "var": "plan.wniosek_81_5.czy"
+              },
+              true
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "klucz": "plan.rezygnacja_z_macierzynskiego_po_14_tyg",
+      "krok": "plan_urlopow",
+      "pytanie": "Czy po 14 tygodniach chcesz oddać resztę urlopu macierzyńskiego tacie?",
+      "podpowiedz": "Tata przejmie urlop od dnia, w którym go oddasz.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "matka"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [
+        "ZASILEK_MACIERZYNSKI_MATKA",
+        "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE"
+      ],
+      "wymagane_dla": [
+        "REZYGNACJA-MAC",
+        "ZAM",
+        "URLOP-MAC-OJC"
+      ],
+      "pola": [
+        {
+          "klucz": "plan.rezygnacja_z_macierzynskiego_po_14_tyg.czy",
+          "etykieta": "Tak / nie",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "plan.rezygnacja_z_macierzynskiego_po_14_tyg.data",
+          "etykieta": "Data",
+          "kontrolka": "date",
+          "show_if": {
+            "==": [
+              {
+                "var": "plan.rezygnacja_z_macierzynskiego_po_14_tyg.czy"
+              },
+              true
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "klucz": "plan.czesci_urlopu_rodzicielskiego",
+      "krok": "plan_urlopow",
+      "pytanie": "Jak podzielicie urlop rodzicielski?",
+      "podpowiedz": "41 tygodni (przy bliźniętach 43) na oboje rodziców, w tym po 9 tygodni tylko dla każdego z Was. Do 5 części.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          [
+            "matka",
+            "ojciec",
+            "przysposabiajacy",
+            "rodzina_zastepcza_niezawodowa"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-ROD",
+        "URLOP-MAC-ROD",
+        "URLOP-ROD-PRACA",
+        "ZAM"
+      ],
+      "pola": [
+        {
+          "nazwa": "rodzic",
+          "etykieta": "Który rodzic?",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "wymiar_pracy_w_trakcie",
+          "etykieta": "wymiar_pracy_w_trakcie",
+          "kontrolka": "number"
+        }
+      ]
+    },
+    {
+      "klucz": "plan.urlop_uzupelniajacy",
+      "krok": "plan_urlopow",
+      "pytanie": "Uzupełniający urlop macierzyński",
+      "podpowiedz": "Tydzień urlopu za każdy tydzień pobytu dziecka w szpitalu — maksymalnie 8 lub 15 tygodni, zaraz po macierzyńskim.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "<": [
+          {
+            "var": "porod.tydzien_ciazy"
+          },
+          37
+        ]
+      },
+      "wsparcie_ai": true,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-UZUP",
+        "ZAM"
+      ],
+      "pola": [
+        {
+          "klucz": "plan.urlop_uzupelniajacy.wymiar_tyg",
+          "etykieta": "Wymiar (tyg.)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "plan.urlop_uzupelniajacy.od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "plan.urlop_uzupelniajacy.do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "plan.urlop_uzupelniajacy.rodzic",
+          "etykieta": "Który rodzic?",
+          "kontrolka": "text"
+        }
+      ]
+    },
+    {
+      "klucz": "plan.czesci_urlopu_ojcowskiego",
+      "krok": "plan_urlopow",
+      "pytanie": "Kiedy tata weźmie urlop ojcowski?",
+      "podpowiedz": "14 dni — naraz albo w dwóch częściach po co najmniej 7 dni, do ukończenia przez dziecko 12 miesięcy.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          "ojciec"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-OJC",
+        "ZAM"
+      ],
+      "pola": [
+        {
+          "nazwa": "od",
+          "etykieta": "Od",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "do",
+          "etykieta": "Do",
+          "kontrolka": "date"
+        }
+      ]
+    },
+    {
+      "klucz": "plan.data_zlozenia_wniosku_u_pracodawcy",
+      "krok": "plan_urlopow",
+      "pytanie": "Kiedy złożysz wniosek o urlop u pracodawcy?",
+      "podpowiedz": "Urlop rodzicielski: 21 dni przed, ojcowski: 7 dni przed rozpoczęciem.",
+      "kontrolka": "date",
+      "opcje": null,
+      "show_if": {
+        "==": [
+          {
+            "var": "ubezpieczenie.tytul"
+          },
+          "umowa_o_prace"
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-MAC-ROD",
+        "URLOP-ROD",
+        "URLOP-OJC",
+        "URLOP-UZUP",
+        "URLOP-ROD-PRACA",
+        "REZYGNACJA-MAC",
+        "URLOP-MAC-OJC",
+        "URLOP-MAC-PRZYJECIE"
+      ]
+    },
+    {
+      "klucz": "wnioski_zlozone",
+      "krok": "plan_urlopow",
+      "pytanie": "Wnioski, które już złożyłeś/aś",
+      "podpowiedz": "Odhaczymy je w kalendarzu i nie będziemy o nie przypominać.",
+      "kontrolka": "array_builder",
+      "opcje": null,
+      "show_if": null,
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "aplikacja"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [],
+      "pola": [
+        {
+          "nazwa": "kod",
+          "etykieta": "kod",
+          "kontrolka": "text"
+        },
+        {
+          "nazwa": "data_zlozenia",
+          "etykieta": "Data złożenia",
+          "kontrolka": "date"
+        },
+        {
+          "nazwa": "status",
+          "etykieta": "status",
+          "kontrolka": "text"
+        }
+      ]
+    }
+  ],
+  "ranking_swiadczen": [
+    {
+      "id": "ZASILEK_MACIERZYNSKI_MATKA",
+      "czas_tyg": 20,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 21
+    },
+    {
+      "id": "ZASILEK_URLOP_RODZICIELSKI",
+      "czas_tyg": 41,
+      "stawka_procent": 70,
+      "kwota_stala": 0,
+      "pilnosc_dni": 21
+    },
+    {
+      "id": "ZASILEK_ADOPCJA_ZASTEPCZA",
+      "czas_tyg": 20,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 7
+    },
+    {
+      "id": "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE",
+      "czas_tyg": 6,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 30
+    },
+    {
+      "id": "ZASILEK_URLOP_UZUPELNIAJACY",
+      "czas_tyg": 15,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 21
+    },
+    {
+      "id": "ZASILEK_CHOROBOWY_CIAZA",
+      "czas_tyg": 39,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 14
+    },
+    {
+      "id": "ZASILEK_W_WYSOKOSCI_MACIERZYNSKIEGO",
+      "czas_tyg": 26,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 30
+    },
+    {
+      "id": "SWIADCZENIE_REHABILITACYJNE",
+      "czas_tyg": 51,
+      "stawka_procent": 90,
+      "kwota_stala": 0,
+      "pilnosc_dni": 30
+    },
+    {
+      "id": "ZASILEK_MACIERZYNSKI_MARTWE_URODZENIE",
+      "czas_tyg": 8,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 21
+    },
+    {
+      "id": "ZASILEK_URLOP_OJCOWSKI",
+      "czas_tyg": 2,
+      "stawka_procent": 100,
+      "kwota_stala": 0,
+      "pilnosc_dni": 365
+    },
+    {
+      "id": "ZASILEK_OPIEKUNCZY",
+      "czas_tyg": 8.6,
+      "stawka_procent": 80,
+      "kwota_stala": 0,
+      "pilnosc_dni": 180
+    },
+    {
+      "id": "SWIADCZENIE_RODZICIELSKIE",
+      "czas_tyg": 52,
+      "stawka_procent": 0,
+      "kwota_stala": 12000,
+      "pilnosc_dni": 90
+    },
+    {
+      "id": "ZASILEK_800PLUS",
+      "czas_tyg": 52,
+      "stawka_procent": 0,
+      "kwota_stala": 9600,
+      "pilnosc_dni": 90
+    },
+    {
+      "id": "AKTYWNY_RODZIC",
+      "czas_tyg": 104,
+      "stawka_procent": 0,
+      "kwota_stala": 36000,
+      "pilnosc_dni": 60
+    },
+    {
+      "id": "ZASILEK_POGRZEBOWY",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 7000,
+      "pilnosc_dni": 360
+    },
+    {
+      "id": "ZA_ZYCIEM_4000",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 4000,
+      "pilnosc_dni": 360
+    },
+    {
+      "id": "BECIKOWE",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 1000,
+      "pilnosc_dni": 360
+    },
+    {
+      "id": "ZASILEK_RODZINNY",
+      "czas_tyg": 52,
+      "stawka_procent": 0,
+      "kwota_stala": 2140,
+      "pilnosc_dni": 365
+    },
+    {
+      "id": "KARTA_DUZEJ_RODZINY",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 0,
+      "pilnosc_dni": 365
+    },
+    {
+      "id": "OCHRONA_STOSUNKU_PRACY",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 0,
+      "pilnosc_dni": 30
+    },
+    {
+      "id": "FORMALNOSC_ZGLOSZENIE_URODZENIA",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 0,
+      "pilnosc_dni": 21
+    },
+    {
+      "id": "FORMALNOSC_ODPIS_AKTU",
+      "czas_tyg": 0,
+      "stawka_procent": 0,
+      "kwota_stala": 0,
+      "pilnosc_dni": 60
+    }
+  ]
+}

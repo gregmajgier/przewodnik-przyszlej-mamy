@@ -40,11 +40,12 @@ def pusty_pdf(kod: str):
 
 @router.get("/zmienne")
 def zmienne():
-    """Zmienne użytkownika pogrupowane, z listą wniosków, które ich wymagają."""
-    return _load("zmienne_uzytkownika.json")["grupy"]
+    """Zmienne użytkownika (kontrakt v1.1: zagnieżdżone klucze, np. `ubezpieczenie.tytul`)."""
+    return _load("zmienne_uzytkownika.json")["zmienne"]
 
 
 @router.get("/parametry")
 def parametry():
-    """Stawki i limity (docelowo edytowane w panelu admina)."""
-    return _load("zmienne_uzytkownika.json")["parametry_admin"]
+    """Stawki i limity z reguly_uprawnien.json (docelowo edytowane w panelu admina)."""
+    reguly = _load("reguly_uprawnien.json")
+    return {"drzewo": reguly["parametry_drzewo"], "lista": reguly["parametry"]}
