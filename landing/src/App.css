@@ -256,6 +256,10 @@ h2 {
 .final-cta {
   margin: clamp(1rem, 4vw, 3rem);
   border-radius: 2rem;
+  position: relative;
+  overflow: hidden;
+  justify-content: center;
+  min-height: clamp(22rem, 55vh, 30rem);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -303,3 +307,5 @@ h2 {
 @media (prefers-reduced-motion: reduce) {
   .hero-icon svg { animation: none; }
 }
+
+.final-cta .cta { position: relative; z-index: 2; margin-top: 0; }

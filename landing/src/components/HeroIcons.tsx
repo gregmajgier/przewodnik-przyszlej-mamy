@@ -97,7 +97,7 @@ type Placement = {
 }
 
 // Icons may repeat. Irregular on purpose; they fill the gaps around the copy.
-const PLACEMENTS: Placement[] = [
+export const HERO_PLACEMENTS: Placement[] = [
   { icon: 'bottle', x: 22, y: 11, size: 70, rot: 12, m: { x: 15, y: 12 } },
   { icon: 'thermometer', x: 12, y: 15, size: 66, rot: 14, m: { x: 50, y: 13 } },
   { icon: 'magnifier', x: 36, y: 11, size: 60, rot: -10 },
@@ -132,6 +132,26 @@ const PLACEMENTS: Placement[] = [
   { icon: 'thermometer', x: 36, y: 72, size: 48, rot: -14 },
 ]
 
+export const CTA_PLACEMENTS: Placement[] = [
+  { icon: 'bottle', x: 10, y: 22, size: 64, rot: -10, m: { x: 14, y: 14 } },
+  { icon: 'calendar', x: 30, y: 18, size: 56, rot: 6 },
+  { icon: 'thermometer', x: 44, y: 12, size: 56, rot: -14, m: { x: 50, y: 12 } },
+  { icon: 'clock', x: 60, y: 14, size: 52, rot: 0 },
+  { icon: 'magnifier', x: 74, y: 20, size: 50, rot: -8 },
+  { icon: 'cap', x: 88, y: 25, size: 80, rot: 10, m: { x: 86, y: 14 } },
+  { icon: 'rattle', x: 6, y: 46, size: 70, rot: 14 },
+  { icon: 'backpack', x: 20, y: 37, size: 60, rot: 8 },
+  { icon: 'stroller', x: 22, y: 66, size: 80, rot: 8, m: { x: 14, y: 86 } },
+  { icon: 'teddy', x: 11, y: 82, size: 76, rot: -6 },
+  { icon: 'document', x: 38, y: 84, size: 56, rot: -6 },
+  { icon: 'blocks', x: 49, y: 88, size: 54, rot: 8 },
+  { icon: 'nappy', x: 62, y: 82, size: 56, rot: -10, m: { x: 34, y: 89 } },
+  { icon: 'book', x: 80, y: 72, size: 66, rot: -8, m: { x: 58, y: 88 } },
+  { icon: 'bottle', x: 78, y: 46, size: 62, rot: 12 },
+  { icon: 'checklist', x: 93, y: 52, size: 60, rot: 6 },
+  { icon: 'teddy', x: 90, y: 84, size: 70, rot: -8, m: { x: 86, y: 86 } },
+]
+
 // Deterministic per-icon drift so every icon moves differently.
 const drift = (i: number) => ({
   dx: 5 + ((i * 7) % 14),
@@ -141,11 +161,17 @@ const drift = (i: number) => ({
   delay: -((i * 17) % 70) / 10,
 })
 
-export function HeroIcons() {
+export function HeroIcons({
+  placements = HERO_PLACEMENTS,
+  seed = 0,
+}: {
+  placements?: Placement[]
+  seed?: number
+}) {
   return (
     <div className="hero-icons" aria-hidden="true">
-      {PLACEMENTS.map((p, i) => {
-        const d = drift(i)
+      {placements.map((p, i) => {
+        const d = drift(i + seed)
         return (
         <div
           key={i}
