@@ -146,7 +146,7 @@ class TokenBudget:
         if tokens > 0:
             await self._adjust(tokens)
 
-    async def _adjust(self, delta: int, *, reserve_limit: int | None = None) -> None:
+    async def _adjust(self, delta: int, *, reserve_limit: int | None = None, day: str | None = None) -> None:
         """Atomowo (pod blokadą procesu) zmienia licznik dnia. Z `reserve_limit`: odmawia, gdy
         po zmianie licznik przekroczyłby limit (check+increment w jednym kroku).
 
@@ -154,7 +154,7 @@ class TokenBudget:
         replikach potrzebny jest inkrement po stronie bazy (Cosmos patch/ETag) — patrz docs/dev.md.
         """
         async with self._lock:
-            day = self._today().isoformat()
+            day = day or self._today().isoformat()
             doc = await self._store.get("ai_usage", day) or {"id": day, "date": day, "tokens": 0}
             current = int(doc.get("tokens", 0))
             if reserve_limit is not None and current + delta > reserve_limit:
@@ -166,16 +166,18 @@ class TokenBudget:
         """Atomowo sprawdza budżet i rezerwuje `estimated_tokens`; po odpowiedzi `settle(real)`,
         przy błędzie `release()`. Odmowa (`AILimitExceeded`) niczego nie obciąża."""
         n = max(0, int(estimated_tokens))
-        await self._adjust(n, reserve_limit=self._limit)
-        return Reservation(self, n)
+        day = self._today().isoformat()  # dzień rezerwacji: rozliczenie trafia do tego samego dnia
+        await self._adjust(n, reserve_limit=self._limit, day=day)
+        return Reservation(self, n, day)
 
 
 class Reservation:
     """Zarezerwowane tokeny; rozliczane dokładnie raz (`settle` albo `release`)."""
 
-    def __init__(self, budget: TokenBudget, tokens: int) -> None:
+    def __init__(self, budget: TokenBudget, tokens: int, day: str) -> None:
         self._budget = budget
         self.tokens = tokens
+        self.day = day
         self._done = False
 
     @property
@@ -186,13 +188,13 @@ class Reservation:
         if self._done:
             return
         self._done = True  # także gdy zapis się nie uda: nie rozliczamy dwa razy
-        await self._budget._adjust(max(0, int(actual_tokens)) - self.tokens)
+        await self._budget._adjust(max(0, int(actual_tokens)) - self.tokens, day=self.day)
 
     async def release(self) -> None:
         if self._done:
             return
         self._done = True
-        await self._budget._adjust(-self.tokens)
+        await self._budget._adjust(-self.tokens, day=self.day)
 
 
 class InflightGate:
