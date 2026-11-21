@@ -138,3 +138,26 @@ w „Moich danych”. Żeby zobaczyć ostrzeżenie, wgraj plik `.txt` z „UMOWA
 
 **Node:** frontend (vite 8 / rolldown) wymaga Node **≥ 22.12** — na 22.9 `npm ci` pomija natywny binding
 i testy nie startują („Cannot find native binding”).
+
+## Panel gminy / województwa (plan 07)
+
+Panel urzędnika: `http://localhost:5173/urzednik/logowanie` (osobna powłoka, poza nawigacją rodzica).
+
+| Konto | Jednostka | Zasięg świadczeń |
+|---|---|---|
+| `urzednik.krakow@mrodzina.local` | Gmina Miejska Kraków (`unit-krakow`) | `municipal` — widzą mieszkańcy Krakowa |
+| `urzednik.malopolska@mrodzina.local` | Województwo Małopolskie (`unit-malopolskie`) | `regional` — widzą wszystkie gminy województwa |
+
+Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wpis w `backend/app/seed/officials.py`
+(+ jednostka w `seed/units.py`); samorejestracji nie ma.
+
+- API: `/api/official/*` (tylko token urzędnika; świadczenia innej jednostki → 404). `scope` i `unit_id` ustawia
+  serwer z jednostki urzędnika. Status: `draft` → „Wyodrębnij warunki” (`awaiting_approval`) → „Zatwierdź warunki”
+  → `published`. Każda edycja wraca do `draft`; publikacja z niezatwierdzonymi warunkami → 409.
+- AI (za `ai_guard`): `benefit_conditions` (warunki z „Dodatkowych wymogów”) i `resolution_prefill` („Wklej
+  uchwałę → wypełnij”). Warunek `auto` tylko dla kluczy z `PROFILE_KEYS` (`services/conditions.py`), reszta
+  to pytania tak/nie. W trybie demo działają reguły słów kluczowych (`seed/demo_conditions.py`).
+- Przykładowe świadczenia lokalne (z dopiskiem „(przykład)”): `backend/app/data/benefits_local_sample.json`.
+  Seed ich nie nadpisuje, jeśli urzędnik je zmienił.
+- **Tymczasowo** model `Benefit` i zasięg `covers` pochodzą z mocków planu 03 (`backend/app/mocks/`). Patrz
+  `docs/superpowers/plans/NOTES-MOCKS.md`.
