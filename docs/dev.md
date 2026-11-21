@@ -185,3 +185,39 @@ liczy kwotę × liczba dzieci spełniających kryterium wieku. Test `tests/test_
 
 **Frontend:** `/analiza` (ekran analizy po onboardingu), `/` (dashboard; kafelki z `features/*/widget.tsx`),
 `/swiadczenia` (lista z grupami „pasuje” / „może przysługiwać” / zwijane „pozostałe”).
+
+## Czat „Zapytaj mRodzinę” (plan 06)
+
+Czat prowadzi backend (`app/services/chat.py`, `app/routers/chat.py`): model woła narzędzia przez serwer MCP
+działający w procesie (`app/mcp_server.py`, SDK `mcp` 2.x). Narzędzia: `profil_rodziny` (bez PESEL i kwot),
+`szukaj_w_przepisach`, `szukaj_w_sieci` (`app/tools/chat_tools.py`); narzędzia z innych planów dołączają się same.
+Endpointy: `POST /api/chat` (SSE: `session`, `tool`, `token`, `sources`, `done`, `error`),
+`GET|DELETE /api/chat/sessions/{id}` (tylko autor rozmowy).
+
+### Indeks przepisów
+Dane (`backend/app/data/laws/*.json`) są zacommitowane; budowane z oficjalnego API Sejmu (ELI,
+`https://api.sejm.gov.pl/eli/`) — aktualne teksty jednolite, z PDF (API nie udostępnia HTML dla nowych
+obwieszczeń). Skrypt odrzuca przypisy, nagłówki stron oraz brzmienia przyszłe i przestarzałe (tekst jednolity
+drukuje obok siebie wersję obecną i nową). Odświeżenie po zmianie przepisów:
+
+```bash
+cd backend
+.venv/bin/pip install -r requirements-dev.txt          # m.in. pdfplumber (tylko do budowy indeksu)
+.venv/bin/python scripts/build_laws_index.py --discover --cache /tmp/laws-pdf   # --only kp,zasilkowa — wybrane akty
+```
+
+Bez `--discover` skrypt używa przypiętych obwieszczeń i sam przełącza się na najnowsze, gdy przypięte wygasło.
+Wynik oznaczony jest `"verify": true` (ekstrakcja z PDF): przed wykorzystaniem w decyzji sprawdź tekst w ISAP
+(link w danych). Wyszukiwanie: własny BM25 (`app/services/laws.py`), bez usług zewnętrznych.
+
+### Web search
+| Zmienna | Domyślnie | Znaczenie |
+|---|---|---|
+| `WEB_SEARCH_PROVIDER` | `none` | `none` \| `brave` \| `serper`. Przy `none` (lub braku klucza) czat uczciwie mówi, że nie ma dostępu do wyszukiwarki. |
+| `WEB_SEARCH_API_KEY` | puste | Klucz dostawcy. |
+
+Wyniki są rankowane: domeny urzędowe (`*.gov.pl`, `zus.pl`, BIP, `um.`/`ug.`/`pup.`/`mops.` itp.) najpierw.
+
+### Tryb demo czatu
+Bez `AZURE_OPENAI_*` działa `DemoLLM` z handlerem `app/seed/demo_chat.py`: wyszukuje przepisy i pokazuje trzy
+najlepiej pasujące artykuły z linkami (bez generowania odpowiedzi). Interfejs oznacza go etykietą „TRYB DEMO”.

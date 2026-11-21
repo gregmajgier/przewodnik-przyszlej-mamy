@@ -40,6 +40,10 @@ class Settings(BaseSettings):
     ai_reserve_tokens: int = 4000
     ai_max_inflight: int = 20
 
+    # Czat (plan 06): wyszukiwarka dla `szukaj_w_sieci`. `none` = brak dostępu do sieci (domyślnie).
+    web_search_provider: str = "none"  # none | brave | serper
+    web_search_api_key: str = ""
+
     @property
     def is_production(self) -> bool:
         """Produkcja = ENV != dev albo podłączony Cosmos (prawdziwe dane)."""
