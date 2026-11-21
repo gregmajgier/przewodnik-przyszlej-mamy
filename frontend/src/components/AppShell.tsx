@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom'
-import { navItems } from '../features/registry'
+import { headerSlots, navItems } from '../features/registry'
 import { useSession } from '../lib/session'
 import { Logo } from './Logo'
 
@@ -37,6 +37,7 @@ export function AppShell() {
           ))}
         </nav>
         <div className="shell-user">
+          {area === 'parent' && headerSlots.map((h, i) => <h.Component key={i} />)}
           <span>{user.name}</span>
           <button type="button" className="btn btn-secondary" onClick={logout}>
             Wyloguj

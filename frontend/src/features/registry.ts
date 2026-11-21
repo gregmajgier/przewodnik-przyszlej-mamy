@@ -20,6 +20,12 @@ export interface ProfileSection {
   Component: ComponentType<{ userId: string; userName: string }>
 }
 
+/** Element w nagłówku powłoki (np. dzwonek powiadomień — plan 09): plik header-slot.tsx funkcji. */
+export interface HeaderSlot {
+  order: number
+  Component: ComponentType
+}
+
 type Mods<T> = Record<string, { default: T }>
 
 export interface RegistryInput {
@@ -27,6 +33,7 @@ export interface RegistryInput {
   nav: Mods<NavItem>
   widgets: Mods<Widget>
   profileSections: Mods<ProfileSection>
+  headerSlots?: Mods<HeaderSlot>
 }
 
 export function sortByOrder<T extends { order: number }>(items: T[]): T[] {
@@ -45,6 +52,7 @@ export function buildRegistry(input: RegistryInput) {
     navItems: sortByOrder(byPath(input.nav)),
     widgets: sortByOrder(byPath(input.widgets)),
     profileSections: sortByOrder(byPath(input.profileSections)),
+    headerSlots: sortByOrder(byPath(input.headerSlots ?? {})),
   }
 }
 
@@ -54,9 +62,11 @@ const registry = buildRegistry({
   nav: import.meta.glob('./*/nav.ts', { eager: true }) as Mods<NavItem>,
   widgets: import.meta.glob('./*/widget.tsx', { eager: true }) as Mods<Widget>,
   profileSections: import.meta.glob('./*/profile-section.tsx', { eager: true }) as Mods<ProfileSection>,
+  headerSlots: import.meta.glob('./*/header-slot.tsx', { eager: true }) as Mods<HeaderSlot>,
 })
 
 export const featureRoutes: RouteObject[] = registry.featureRoutes
 export const navItems: NavItem[] = registry.navItems
 export const widgets: Widget[] = registry.widgets
 export const profileSections: ProfileSection[] = registry.profileSections
+export const headerSlots: HeaderSlot[] = registry.headerSlots
