@@ -265,7 +265,7 @@ class ApplicationService:
     @staticmethod
     def _channel_error(code: str, channel: str) -> str:
         if _catalog().get(code, {}).get("tylko_elektronicznie") and channel == "pdf_download":
-            return "Ten wniosek można złożyć tylko elektronicznie — wersja PDF nie jest dostępna."
+            return "Ten wniosek można złożyć tylko elektronicznie, więc wersja PDF nie jest dostępna."
         return "Ten wniosek nie obsługuje wybranego sposobu złożenia."
 
     async def list_for_family(self, user_id: str) -> list[Application]:
@@ -377,7 +377,7 @@ class ApplicationService:
             return render_employer_application(code, data)
         if pf.load_map(code) and pf.load_map(code).get("pdf"):
             return fill_pdf(code, values)
-        raise DomainError(422, "Ten wniosek składasz przez portal — nie ma dla niego wersji PDF.")
+        raise DomainError(422, "Ten wniosek składasz przez portal, więc nie ma dla niego wersji PDF.")
 
     async def pdf(self, user_id: str, app_id: str) -> tuple[str, bytes]:
         """Podgląd PDF: (kod formularza, bajty). Wymaga kompletu danych."""
@@ -394,7 +394,7 @@ class ApplicationService:
         if app.status in FINAL_STATUSES:
             raise DomainError(409, MSG_FINAL)
         if app.channel not in SIGNED_CHANNELS:
-            raise DomainError(409, "Ten wniosek składasz przez portal — podpisujesz go w makiecie portalu.")
+            raise DomainError(409, "Ten wniosek składasz przez portal, a podpisujesz go w makiecie portalu.")
         if app.status == "needs_input":
             raise DomainError(409, "Uzupełnij brakujące dane przed podpisaniem.")
         app.signed_at = _now()

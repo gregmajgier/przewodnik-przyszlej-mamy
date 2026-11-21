@@ -22,7 +22,7 @@ PERSONAS: dict[str, dict] = {
     "persona-nowak-anna": {
         "id": "persona-nowak-anna",
         "name": "Anna Nowak",
-        "role_label": "Mama, 31 lat, Kraków — w ciąży z trzecim dzieckiem",
+        "role_label": "Mama, 31 lat, Kraków, w ciąży z trzecim dzieckiem",
         "zus": {
             "first_name": "Anna",
             "last_name": "Nowak",

@@ -17,6 +17,7 @@ from .families import FamilyService
 from .situations import loss_support_applies
 from .units import units_for
 from .matching import FamilyContext, MatchResult, build_context, match_benefit, next_deadline
+from .milestones import milestones_for
 
 PARAMETERS_LABEL = "Parametry ZUS 2026 – aktywne"
 INCOME_CONDITION = "income"
@@ -158,10 +159,14 @@ class BenefitService:
             for m in fits + maybe
             if (d := next_deadline(m.benefit, ctx)) is not None
         ]
+        candidates = [(d, b.id, b.name) for d, b in deadlines]
+        # kamienie milowe ciąży/porodu (zaświadczenie dla pracodawcy, USC) liczą się do „najbliższego terminu” tak samo
+        # jak terminy świadczeń — inaczej rodzina w ciąży widziałaby „brak”, choć termin jest tuż-tuż
+        candidates += [(m.due, f"milestone:{m.key}", m.title) for m in milestones_for(ctx.children, ctx.today) if m.due >= ctx.today]
         nearest = None
-        if deadlines:
-            d, b = min(deadlines, key=lambda x: (x[0], x[1].name))
-            nearest = NearestDeadline(date=d, benefit_id=b.id, benefit_name=b.name)
+        if candidates:
+            d, ident, name = min(candidates, key=lambda x: (x[0], x[2]))
+            nearest = NearestDeadline(date=d, benefit_id=ident, benefit_name=name)
         return Summary(totals=totals, estimated_annual_total=estimated, nearest_deadline=nearest)
 
     async def summary(self, user_id: str, today: date) -> Summary:

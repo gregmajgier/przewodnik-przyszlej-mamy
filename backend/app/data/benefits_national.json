@@ -10,18 +10,18 @@
   "benefits": [
     {
       "id": "nat-zasilek-macierzynski",
-      "name": "Zasiłek macierzyński",
+      "name": "Urlop i zasiłek macierzyński",
       "scope": "national",
       "category": "benefit",
-      "description": "Zasiłek za czas urlopu macierzyńskiego (20–37 tygodni, zależnie od liczby dzieci) wypłacany w wysokości 100% podstawy.",
+      "description": "Płatny urlop macierzyński (20 tygodni przy jednym dziecku, do 37 przy pięciu i więcej; do 6 tygodni możesz wziąć przed porodem) oraz zasiłek macierzyński w wysokości 100% podstawy.",
       "amount_text": "100% podstawy wymiaru (po odliczeniu składek ok. 13,71%)",
       "annual_value_estimate": 30000,
       "deadline": {
         "anchor": "due",
-        "offset_days": -42,
-        "note": "Urlop można zacząć do 6 tygodni przed terminem porodu; wniosek o urlop złóż pracodawcy z wyprzedzeniem."
+        "offset_days": -49,
+        "note": "Pracownica: wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu (urlop możesz zacząć do 6 tygodni przed porodem). Zleceniobiorczyni i przedsiębiorczyni: wniosek ZAM do ZUS."
       },
-      "how_to_apply": "Pracownik: wniosek o urlop macierzyński do pracodawcy, zasiłek wypłaca pracodawca na podstawie ZUS Z-3. Zleceniobiorca i przedsiębiorca z dobrowolnym ubezpieczeniem chorobowym: wniosek ZAM do ZUS.",
+      "how_to_apply": "Pracownik: wniosek o urlop do pracodawcy (w mRodzinie wygenerujemy go i wyślemy z Twojej skrzynki); zasiłek wypłaca pracodawca na podstawie ZUS Z-3. Zleceniobiorca i przedsiębiorca z dobrowolnym ubezpieczeniem chorobowym: wniosek ZAM do ZUS.",
       "form_codes": [
         "URLOP-MAC-ROD",
         "ZAM"
@@ -42,39 +42,9 @@
       "tags": [
         "ciąża",
         "poród",
-        "zus"
-      ]
-    },
-    {
-      "id": "nat-urlop-macierzynski",
-      "name": "Urlop macierzyński",
-      "scope": "national",
-      "category": "perk",
-      "description": "Płatny urlop po porodzie: 20 tygodni przy jednym dziecku, do 37 przy piątce i więcej. Do 6 tygodni możesz wziąć przed porodem.",
-      "amount_text": "Zasiłek 100% podstawy",
-      "deadline": {
-        "anchor": "due",
-        "offset_days": -49,
-        "note": "Wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu."
-      },
-      "how_to_apply": "Złóż pisemny wniosek do pracodawcy (w mRodzinie wygenerujemy go i wyślemy z twojej skrzynki).",
-      "form_codes": [
-        "URLOP-MAC-ROD"
-      ],
-      "source_url": "https://www.gov.pl/web/rodzina/urlop-macierzynski",
-      "criteria": {
-        "pregnant_or_child_max_months": 8,
-        "employment_kinds": [
-          "employment"
-        ]
-      },
-      "extra_conditions": [],
-      "status": "published",
-      "verify": true,
-      "tags": [
-        "ciąża",
+        "pracodawca",
         "urlop",
-        "pracodawca"
+        "zus"
       ]
     },
     {
@@ -183,7 +153,7 @@
       "deadline": {
         "anchor": "birth",
         "offset_months": 3,
-        "note": "Wniosek w ciągu 3 miesięcy od urodzenia — świadczenie wypłacane wstecz od urodzenia."
+        "note": "Wniosek w ciągu 3 miesięcy od urodzenia, świadczenie wypłacane wstecz od urodzenia."
       },
       "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, mZUS, Emp@tia lub bankowość elektroniczna.",
       "form_codes": [
@@ -204,7 +174,7 @@
     },
     {
       "id": "nat-aktywny-rodzic-w-pracy",
-      "name": "Aktywny rodzic — aktywnie w pracy",
+      "name": "Aktywny rodzic: aktywnie w pracy",
       "scope": "national",
       "category": "benefit",
       "description": "1500 zł miesięcznie (1900 zł przy niepełnosprawności dziecka) dla pracujących rodziców na opiekę nad dzieckiem w wieku 12–35 miesięcy, np. nianię lub babcię, bez kryterium dochodowego.",
@@ -246,7 +216,7 @@
     },
     {
       "id": "nat-aktywny-rodzic-w-zlobku",
-      "name": "Aktywny rodzic — aktywnie w żłobku",
+      "name": "Aktywny rodzic: aktywnie w żłobku",
       "scope": "national",
       "category": "benefit",
       "description": "Do 1500 zł miesięcznie dofinansowania opłaty za żłobek, klub dziecięcy lub opiekuna dziennego dla dziecka w wieku 12–35 miesięcy.",
@@ -283,7 +253,7 @@
     },
     {
       "id": "nat-aktywny-rodzic-w-domu",
-      "name": "Aktywny rodzic — aktywnie w domu",
+      "name": "Aktywny rodzic: aktywnie w domu",
       "scope": "national",
       "category": "benefit",
       "description": "500 zł miesięcznie na dziecko w wieku 12–35 miesięcy dla rodziców, którzy nie pracują lub nie korzystają z żłobka ani opieki niani. Zastępuje dawny Rodzinny Kapitał Opiekuńczy.",
@@ -307,7 +277,7 @@
           "id": "w-domu",
           "text": "Dziecko nie chodzi do żłobka i nie ma opłacanej niani",
           "kind": "ask",
-          "question": "Czy dziecko jest w domu — bez żłobka i bez opłacanej opieki niani lub babci?"
+          "question": "Czy dziecko jest w domu, czyli bez żłobka i bez opłacanej opieki niani lub babci?"
         }
       ],
       "status": "published",
@@ -319,7 +289,7 @@
     },
     {
       "id": "nat-swiadczenie-rodzicielskie",
-      "name": "Świadczenie rodzicielskie (becikowe miesięczne)",
+      "name": "Świadczenie rodzicielskie (1000 zł miesięcznie)",
       "scope": "national",
       "category": "benefit",
       "description": "1000 zł miesięcznie przez 52 tygodnie (65 przy dziecku z chorobą z „Za życiem”) dla rodziców, którym nie przysługuje zasiłek macierzyński.",
@@ -328,9 +298,9 @@
       "deadline": {
         "anchor": "birth",
         "offset_months": 3,
-        "note": "Wniosek w ciągu 3 miesięcy od porodu — wypłata wstecz."
+        "note": "Wniosek w ciągu 3 miesięcy od porodu, wypłata wstecz."
       },
-      "how_to_apply": "Wniosek do gminy (MOPS/OPS) — Emp@tia, ePUAP lub osobiście.",
+      "how_to_apply": "Wniosek do gminy (MOPS/OPS): Emp@tia, ePUAP lub osobiście.",
       "form_codes": [
         "SR-7"
       ],
@@ -669,7 +639,7 @@
       "scope": "national",
       "category": "benefit",
       "description": "Miesięczne świadczenie na pokrycie kosztów utrzymania dziecka w rodzinie zastępczej oraz dodatki (np. wynagrodzenie dla rodziny zawodowej, dofinansowanie do wypoczynku).",
-      "amount_text": "Miesięcznie na dziecko, np. ok. 1002 zł (rodzina spokrewniona) i ok. 1517 zł (niezawodowa/zawodowa) — kwoty podawane przez PCPR w 2026 r., zależą od rodzaju rodziny zastępczej",
+      "amount_text": "Miesięcznie na dziecko, np. ok. 1002 zł (rodzina spokrewniona) i ok. 1517 zł (niezawodowa/zawodowa); kwoty podawane przez PCPR w 2026 r., zależą od rodzaju rodziny zastępczej",
       "how_to_apply": "Wniosek do powiatowego centrum pomocy rodzinie (PCPR); świadczenie przyznaje starosta.",
       "form_codes": [],
       "source_url": "https://www.gov.pl/web/rodzina/swiadczenia-dla-rodziny-zastepczej-spokrewnionej",

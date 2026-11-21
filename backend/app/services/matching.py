@@ -186,7 +186,7 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
             reasons.extend(f"{c.name} ma {age_phrase(m)}" for c, m in in_range)
         else:
             if _expected(ctx) and not _born(ctx):
-                unmet.append("Dostępne po urodzeniu dziecka — dziecko w drodze liczy się dopiero po porodzie.")
+                unmet.append("Dostępne po urodzeniu dziecka. Dziecko w drodze liczy się dopiero po porodzie.")
             elif not _born(ctx):
                 unmet.append("W rodzinie nie ma dzieci w wieku, którego dotyczy to świadczenie.")
             else:
@@ -214,7 +214,7 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
         if _pregnant(ctx):
             reasons.append("w rodzinie jest dziecko w drodze (ciąża)")
         else:
-            unmet.append("To świadczenie jest dla osób w ciąży — w rodzinie nie ma dziecka w drodze.")
+            unmet.append("To świadczenie jest dla osób w ciąży, a w rodzinie nie ma dziecka w drodze.")
 
     # --- ciąża albo noworodek ---
     if cr.pregnant_or_child_max_months is not None:
@@ -230,7 +230,7 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
             reasons.extend(f"{c.name} ma {age_phrase(m)}" for c, m in newborns)
         else:
             unmet.append(
-                f"To świadczenie jest dla osób w ciąży lub z dzieckiem do {age_phrase(hi)} — w rodzinie nie ma takiej sytuacji."
+                f"To świadczenie jest dla osób w ciąży lub z dzieckiem do {age_phrase(hi)}, a w rodzinie nie ma takiej sytuacji."
             )
 
     # --- niepełnosprawność / rodzina zastępcza ---

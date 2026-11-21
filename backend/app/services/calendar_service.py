@@ -13,7 +13,7 @@ from .calendar_gen import BenefitWithMatch, generate_events, merge_done
 from .contracts import family_risks
 from .families import FamilyService
 
-NO_FAMILY = "Najpierw załóż rodzinę albo dołącz do niej — kalendarz jest wspólny dla rodziny."
+NO_FAMILY = "Najpierw załóż rodzinę albo dołącz do niej, bo kalendarz jest wspólny dla rodziny."
 
 
 async def family_calendar(store: Store, user_id: str, today: date) -> list[CalendarEvent]:

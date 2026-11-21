@@ -19,8 +19,8 @@ logger = logging.getLogger("mrodzina.conditions")
 FEATURE_CONDITIONS = "benefit_conditions"
 FEATURE_PREFILL = "resolution_prefill"
 
-CONDITIONS_FAILED = "Nie udało się wyodrębnić warunków — dodaj je ręcznie."
-PREFILL_FAILED = "Nie udało się wypełnić formularza z uchwały — uzupełnij pola ręcznie."
+CONDITIONS_FAILED = "Nie udało się wyodrębnić warunków. Dodaj je ręcznie."
+PREFILL_FAILED = "Nie udało się wypełnić formularza z uchwały. Uzupełnij pola ręcznie."
 MAX_CONDITIONS = 15
 
 # Słownik kluczy profilu, które da się sprawdzić automatycznie (warunek `auto`). Wartość = opis dla modelu.
