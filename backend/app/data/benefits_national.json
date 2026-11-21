@@ -1,0 +1,688 @@
+{
+  "meta": {
+    "nazwa": "Świadczenia i uprawnienia krajowe dla rodzin (seed)",
+    "data_sprawdzenia": "2026-11-21",
+    "uwagi": [
+      "Kwoty i progi z oficjalnych źródeł (ZUS, gov.pl, MRiPS); pozycje z verify=true wymagają potwierdzenia przed publikacją.",
+      "Stawki w czasie rzeczywistym podaje GET /api/parametry (zmienne_uzytkownika.json)."
+    ]
+  },
+  "benefits": [
+    {
+      "id": "nat-zasilek-macierzynski",
+      "name": "Zasiłek macierzyński",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Zasiłek za czas urlopu macierzyńskiego (20–37 tygodni, zależnie od liczby dzieci) wypłacany w wysokości 100% podstawy.",
+      "amount_text": "100% podstawy wymiaru (po odliczeniu składek ok. 13,71%)",
+      "annual_value_estimate": 30000,
+      "deadline": {
+        "anchor": "due",
+        "offset_days": -42,
+        "note": "Urlop można zacząć do 6 tygodni przed terminem porodu; wniosek o urlop złóż pracodawcy z wyprzedzeniem."
+      },
+      "how_to_apply": "Pracownik: wniosek o urlop macierzyński do pracodawcy, zasiłek wypłaca pracodawca na podstawie ZUS Z-3. Zleceniobiorca i przedsiębiorca z dobrowolnym ubezpieczeniem chorobowym: wniosek ZAM do ZUS.",
+      "form_codes": [
+        "URLOP-MAC-ROD",
+        "ZAM"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski",
+      "criteria": {
+        "pregnant_or_child_max_months": 8,
+        "employment_kinds": [
+          "employment",
+          "mandate",
+          "jdg"
+        ]
+      },
+      "extra_conditions": [],
+      "extra_text": "Zleceniobiorcy i przedsiębiorcy muszą mieć dobrowolne ubezpieczenie chorobowe od co najmniej 90 dni.",
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "poród",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-urlop-macierzynski",
+      "name": "Urlop macierzyński",
+      "scope": "national",
+      "category": "perk",
+      "description": "Płatny urlop po porodzie: 20 tygodni przy jednym dziecku, do 37 przy piątce i więcej. Do 6 tygodni możesz wziąć przed porodem.",
+      "amount_text": "Zasiłek 100% podstawy",
+      "deadline": {
+        "anchor": "due",
+        "offset_days": -49,
+        "note": "Wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu."
+      },
+      "how_to_apply": "Złóż pisemny wniosek do pracodawcy (w mRodzinie wygenerujemy go i wyślemy z twojej skrzynki).",
+      "form_codes": [
+        "URLOP-MAC-ROD"
+      ],
+      "source_url": "https://www.gov.pl/web/rodzina/urlop-macierzynski",
+      "criteria": {
+        "pregnant_or_child_max_months": 8,
+        "employment_kinds": [
+          "employment"
+        ]
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "urlop",
+        "pracodawca"
+      ]
+    },
+    {
+      "id": "nat-urlop-rodzicielski",
+      "name": "Urlop rodzicielski",
+      "scope": "national",
+      "category": "perk",
+      "description": "41 tygodni na jedno dziecko (43 przy mnogiej) do podziału między rodziców, w tym 9 tygodni tylko dla drugiego rodzica. Zasiłek 70% (81,5% przy jednolitym wniosku).",
+      "amount_text": "70% podstawy; 81,5% przy jednolitym wniosku złożonym w ciągu 21 dni po porodzie",
+      "deadline": {
+        "anchor": "birth",
+        "offset_days": 21,
+        "note": "Jednolity wniosek (81,5%) złóż w ciągu 21 dni po porodzie."
+      },
+      "how_to_apply": "Wniosek do pracodawcy; można wnioskować o części (do 5) i o łączenie z pracą w wymiarze do 1/2 etatu.",
+      "form_codes": [
+        "URLOP-ROD",
+        "URLOP-ROD-PRACA"
+      ],
+      "source_url": "https://www.gov.pl/web/rodzina/urlop-rodzicielski",
+      "criteria": {
+        "pregnant_or_child_max_months": 12,
+        "employment_kinds": [
+          "employment"
+        ]
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "urlop",
+        "pracodawca"
+      ]
+    },
+    {
+      "id": "nat-urlop-ojcowski",
+      "name": "Urlop ojcowski",
+      "scope": "national",
+      "category": "perk",
+      "description": "14 dni płatnego urlopu dla ojca (w jednej lub dwóch częściach po 7 dni), do ukończenia przez dziecko 24 miesięcy.",
+      "amount_text": "Zasiłek 100% podstawy",
+      "how_to_apply": "Wniosek do pracodawcy najpóźniej 7 dni przed rozpoczęciem urlopu.",
+      "form_codes": [
+        "URLOP-OJC"
+      ],
+      "source_url": "https://www.gov.pl/web/rodzina/urlop-ojcowski",
+      "criteria": {
+        "pregnant_or_child_max_months": 23,
+        "employment_kinds": [
+          "employment"
+        ]
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "urlop",
+        "tata"
+      ]
+    },
+    {
+      "id": "nat-zasilek-chorobowy-ciaza",
+      "name": "Zasiłek chorobowy w ciąży (e-ZLA, kod B)",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Zwolnienie lekarskie w ciąży (kod literowy B) płatne w 100% podstawy, bez okresu wyczekiwania.",
+      "amount_text": "100% podstawy wymiaru",
+      "annual_value_estimate": 8000,
+      "how_to_apply": "Lekarz wystawia e-ZLA. Pracownik: pracodawca wypłaca wynagrodzenie/zasiłek. Zleceniobiorca i przedsiębiorca: wniosek ZAS-53 do ZUS.",
+      "form_codes": [
+        "ZAS-53"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-chorobowy",
+      "criteria": {
+        "requires_pregnancy": true,
+        "employment_kinds": [
+          "employment",
+          "mandate",
+          "jdg"
+        ]
+      },
+      "extra_conditions": [
+        {
+          "id": "ezla-b",
+          "text": "Masz zwolnienie e-ZLA z kodem B (ciąża)",
+          "kind": "auto",
+          "profile_key": "family.has_ezla_b"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "zus",
+        "ezla"
+      ]
+    },
+    {
+      "id": "nat-800-plus",
+      "name": "Świadczenie wychowawcze 800+",
+      "scope": "national",
+      "category": "benefit",
+      "description": "800 zł miesięcznie na każde dziecko do ukończenia 18 lat, bez kryterium dochodowego.",
+      "amount_text": "800 zł miesięcznie na dziecko",
+      "annual_value_estimate": 9600,
+      "deadline": {
+        "anchor": "birth",
+        "offset_months": 3,
+        "note": "Wniosek w ciągu 3 miesięcy od urodzenia — świadczenie wypłacane wstecz od urodzenia."
+      },
+      "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, mZUS, Emp@tia lub bankowość elektroniczna.",
+      "form_codes": [
+        "800PLUS"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/swiadczenia-dla-rodzin/swiadczenie-wychowawcze-800-plus",
+      "criteria": {
+        "child_age_min_months": 0,
+        "child_age_max_months": 215
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": false,
+      "tags": [
+        "dziecko",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-aktywny-rodzic-w-pracy",
+      "name": "Aktywny rodzic — aktywnie w pracy",
+      "scope": "national",
+      "category": "benefit",
+      "description": "1500 zł miesięcznie (1900 zł przy niepełnosprawności dziecka) dla pracujących rodziców na opiekę nad dzieckiem w wieku 12–35 miesięcy, np. nianię lub babcię, bez kryterium dochodowego.",
+      "amount_text": "1500 zł miesięcznie",
+      "annual_value_estimate": 18000,
+      "deadline": {
+        "anchor": "child_age",
+        "offset_months": 35,
+        "note": "Świadczenie przysługuje do 35. miesiąca życia dziecka."
+      },
+      "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, mZUS, Emp@tia lub bankowość elektroniczna. W danym miesiącu ZUS płaci tylko jeden wariant na dziecko.",
+      "form_codes": [
+        "AKTYWNY-RODZIC"
+      ],
+      "source_url": "https://www.gov.pl/web/rodzina/aktywny-rodzic",
+      "criteria": {
+        "child_age_min_months": 12,
+        "child_age_max_months": 35,
+        "employment_kinds": [
+          "employment",
+          "mandate",
+          "jdg"
+        ]
+      },
+      "extra_conditions": [
+        {
+          "id": "opiekun",
+          "text": "Dzieckiem opiekuje się niania, babcia lub inny opiekun (poza żłobkiem)",
+          "kind": "ask",
+          "question": "Czy dzieckiem opiekuje się niania, babcia lub opiekun dzienny, a nie żłobek?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "aktywny-rodzic",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-aktywny-rodzic-w-zlobku",
+      "name": "Aktywny rodzic — aktywnie w żłobku",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Do 1500 zł miesięcznie dofinansowania opłaty za żłobek, klub dziecięcy lub opiekuna dziennego dla dziecka w wieku 12–35 miesięcy.",
+      "amount_text": "do 1500 zł miesięcznie",
+      "annual_value_estimate": 18000,
+      "deadline": {
+        "anchor": "child_age",
+        "offset_months": 35
+      },
+      "how_to_apply": "Wniosek wyłącznie elektronicznie (PUE/eZUS, mZUS, Emp@tia, bank). Dziecko musi być w rejestrze żłobków lub u opiekuna dziennego.",
+      "form_codes": [
+        "AKTYWNY-RODZIC"
+      ],
+      "source_url": "https://www.zus.pl/aktywnyrodzic/wiadczenie-aktywnie-w-zlobku",
+      "criteria": {
+        "child_age_min_months": 12,
+        "child_age_max_months": 35
+      },
+      "extra_conditions": [
+        {
+          "id": "zlobek",
+          "text": "Dziecko chodzi do żłobka, klubu dziecięcego lub do opiekuna dziennego",
+          "kind": "ask",
+          "question": "Czy dziecko chodzi do żłobka, klubu dziecięcego lub opiekuna dziennego?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "aktywny-rodzic",
+        "żłobek",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-aktywny-rodzic-w-domu",
+      "name": "Aktywny rodzic — aktywnie w domu",
+      "scope": "national",
+      "category": "benefit",
+      "description": "500 zł miesięcznie na dziecko w wieku 12–35 miesięcy dla rodziców, którzy nie pracują lub nie korzystają z żłobka ani opieki niani. Zastępuje dawny Rodzinny Kapitał Opiekuńczy.",
+      "amount_text": "500 zł miesięcznie",
+      "annual_value_estimate": 6000,
+      "deadline": {
+        "anchor": "child_age",
+        "offset_months": 35
+      },
+      "how_to_apply": "Wniosek wyłącznie elektronicznie (PUE/eZUS, mZUS, Emp@tia, bank).",
+      "form_codes": [
+        "AKTYWNY-RODZIC"
+      ],
+      "source_url": "https://www.gov.pl/web/rodzina/aktywny-rodzic",
+      "criteria": {
+        "child_age_min_months": 12,
+        "child_age_max_months": 35
+      },
+      "extra_conditions": [
+        {
+          "id": "w-domu",
+          "text": "Dziecko nie chodzi do żłobka i nie ma opłacanej niani",
+          "kind": "ask",
+          "question": "Czy dziecko jest w domu — bez żłobka i bez opłacanej opieki niani lub babci?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "aktywny-rodzic",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-swiadczenie-rodzicielskie",
+      "name": "Świadczenie rodzicielskie (becikowe miesięczne)",
+      "scope": "national",
+      "category": "benefit",
+      "description": "1000 zł miesięcznie przez 52 tygodnie (65 przy dziecku z chorobą z „Za życiem”) dla rodziców, którym nie przysługuje zasiłek macierzyński.",
+      "amount_text": "1000 zł miesięcznie",
+      "annual_value_estimate": 12000,
+      "deadline": {
+        "anchor": "birth",
+        "offset_months": 3,
+        "note": "Wniosek w ciągu 3 miesięcy od porodu — wypłata wstecz."
+      },
+      "how_to_apply": "Wniosek do gminy (MOPS/OPS) — Emp@tia, ePUAP lub osobiście.",
+      "form_codes": [
+        "SR-7"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-swiadczenie-rodzicielskie",
+      "criteria": {
+        "pregnant_or_child_max_months": 11
+      },
+      "extra_conditions": [
+        {
+          "id": "bez-zasilku",
+          "text": "Nie przysługuje zasiłek macierzyński",
+          "kind": "ask",
+          "question": "Czy nie przysługuje ci zasiłek macierzyński (np. umowa o dzieło, studia, bezrobocie, brak ubezpieczenia chorobowego)?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "poród",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-becikowe",
+      "name": "Jednorazowa zapomoga z tytułu urodzenia dziecka („becikowe”)",
+      "scope": "national",
+      "category": "benefit",
+      "description": "1000 zł jednorazowo na urodzone dziecko, jeśli dochód na osobę w rodzinie nie przekracza 1922 zł netto.",
+      "amount_text": "1000 zł jednorazowo",
+      "annual_value_estimate": 1000,
+      "deadline": {
+        "anchor": "birth",
+        "offset_months": 12,
+        "note": "Wniosek najpóźniej do ukończenia przez dziecko 12 miesięcy."
+      },
+      "how_to_apply": "Wniosek do gminy (Emp@tia, ePUAP lub urząd) z zaświadczeniem o opiece medycznej od 10. tygodnia ciąży.",
+      "form_codes": [
+        "BECIKOWE"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-becikowe",
+      "criteria": {
+        "child_age_min_months": 0,
+        "child_age_max_months": 11,
+        "max_income_per_person": 1922
+      },
+      "extra_conditions": [
+        {
+          "id": "opieka-medyczna",
+          "text": "Matka była pod opieką medyczną od 10. tygodnia ciąży do porodu",
+          "kind": "ask",
+          "question": "Czy mama była pod opieką lekarza lub położnej od 10. tygodnia ciąży do porodu?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "poród",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-za-zyciem",
+      "name": "Jednorazowe świadczenie „Za życiem” (4000 zł)",
+      "scope": "national",
+      "category": "benefit",
+      "description": "4000 zł jednorazowo przy urodzeniu dziecka z ciężkim i nieodwracalnym upośledzeniem lub nieuleczalną chorobą zagrażającą życiu, powstałą w prenatalnym okresie lub w czasie porodu.",
+      "amount_text": "4000 zł jednorazowo",
+      "annual_value_estimate": 4000,
+      "deadline": {
+        "anchor": "birth",
+        "offset_months": 12,
+        "note": "Wniosek do ukończenia przez dziecko 1. roku życia."
+      },
+      "how_to_apply": "Wniosek do gminy z zaświadczeniem lekarskim; bez kryterium dochodowego.",
+      "form_codes": [
+        "ZA-ZYCIEM"
+      ],
+      "source_url": "https://www.gov.pl/web/rodzina/program-za-zyciem",
+      "criteria": {},
+      "extra_conditions": [
+        {
+          "id": "ciezka-choroba",
+          "text": "Dziecko ma ciężką chorobę lub upośledzenie z zaświadczeniem lekarskim",
+          "kind": "auto",
+          "profile_key": "family.child_serious_illness"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "dziecko",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-zasilek-rodzinny",
+      "name": "Zasiłek rodzinny",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Miesięczny zasiłek na dziecko dla rodzin o dochodzie do 674 zł netto na osobę (764 zł, gdy w rodzinie jest dziecko z niepełnosprawnością). Dodatki: m.in. na urodzenie dziecka, samotne wychowywanie, wielodzietność.",
+      "amount_text": "95 zł (do 5 lat), 124 zł (5–18 lat), 135 zł (18–24 lata) na dziecko, plus dodatki",
+      "annual_value_estimate": 1400,
+      "deadline": {
+        "anchor": "fixed",
+        "fixed_date": "2026-11-30",
+        "note": "Nowy okres zasiłkowy 2026/2027 zaczyna się 1 listopada; wniosek złożony do końca listopada jest wypłacany od listopada."
+      },
+      "how_to_apply": "Wniosek do gminy (MOPS/OPS): Emp@tia, ePUAP lub osobiście, wraz z dokumentami o dochodach z roku bazowego.",
+      "form_codes": [
+        "SR-1"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-zasilek-rodzinny-wraz-z-dodatkami",
+      "criteria": {
+        "child_age_min_months": 0,
+        "child_age_max_months": 215,
+        "max_income_per_person": 674
+      },
+      "extra_conditions": [],
+      "extra_text": "Zasiłek przysługuje też do 21. roku życia (uczące się dziecko) i do 24. roku (studia).",
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "dziecko",
+        "gmina",
+        "dochód"
+      ]
+    },
+    {
+      "id": "nat-dobry-start",
+      "name": "Dobry Start (300+)",
+      "scope": "national",
+      "category": "benefit",
+      "description": "300 zł raz w roku na wyprawkę szkolną dla każdego ucznia do ukończenia 20 lat (24 lat przy niepełnosprawności), bez kryterium dochodowego.",
+      "amount_text": "300 zł raz w roku na dziecko",
+      "annual_value_estimate": 300,
+      "deadline": {
+        "anchor": "fixed",
+        "fixed_date": "2026-11-30",
+        "note": "Wnioski przyjmowane od 1 lipca do 30 listopada."
+      },
+      "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, Emp@tia, bankowość elektroniczna.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/rodzina/dobry-start",
+      "criteria": {
+        "child_age_min_months": 72,
+        "child_age_max_months": 251
+      },
+      "extra_conditions": [
+        {
+          "id": "szkola",
+          "text": "Dziecko uczy się w szkole",
+          "kind": "ask",
+          "question": "Czy dziecko chodzi do szkoły w tym roku szkolnym?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "szkoła",
+        "dziecko"
+      ]
+    },
+    {
+      "id": "nat-kdr",
+      "name": "Karta Dużej Rodziny",
+      "scope": "national",
+      "category": "perk",
+      "description": "Zniżki w pociągach, muzeach, na basenach i w wielu sklepach dla rodzin z co najmniej trójką dzieci. Bez kryterium dochodowego, dla całej rodziny, także dla rodziców dożywotnio.",
+      "amount_text": "Zniżki (np. 37% na przejazdy PKP, ulgi w instytucjach kultury)",
+      "how_to_apply": "Wniosek do gminy (Emp@tia, mObywatel lub urząd). Karta jest bezpłatna.",
+      "form_codes": [
+        "KDR"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-karte-duzej-rodziny",
+      "criteria": {
+        "min_children": 3
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": false,
+      "tags": [
+        "wielodzietność",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-ulga-prorodzinna",
+      "name": "Ulga prorodzinna w PIT",
+      "scope": "national",
+      "category": "perk",
+      "description": "Odliczenie od podatku (92,67 zł miesięcznie, czyli 1112,04 zł rocznie, na pierwsze i drugie dziecko; 2000,04 zł rocznie na trzecie i 2700 zł rocznie na czwarte i kolejne). Rodzice jednego dziecka mają limit dochodu (56 000 zł; 112 000 zł przy wspólnym rozliczeniu lub samotnym wychowywaniu), przy dwójce i więcej dzieci limitu nie ma.",
+      "amount_text": "od 1112,04 zł rocznie na dziecko",
+      "annual_value_estimate": 1112,
+      "deadline": {
+        "anchor": "fixed",
+        "fixed_date": "2027-04-30",
+        "note": "Rozliczenie PIT za 2026 rok do 30 kwietnia 2027."
+      },
+      "how_to_apply": "Odliczasz w rocznym PIT (np. e-PIT / Twój e-PIT); nie składa się osobnego wniosku.",
+      "form_codes": [],
+      "source_url": "https://podatki.gov.pl/ulgi-i-odliczenia/ulga-na-dziecko-pit",
+      "criteria": {
+        "min_children": 1
+      },
+      "extra_conditions": [
+        {
+          "id": "pit-skala",
+          "text": "Rozliczasz PIT na zasadach ogólnych (skala) i zapłaciłeś podatek",
+          "kind": "ask",
+          "question": "Czy rozliczasz PIT na zasadach ogólnych (skala podatkowa), a nie liniowo?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "podatki"
+      ]
+    },
+    {
+      "id": "nat-leki-ciaza",
+      "name": "Refundowane leki w ciąży",
+      "scope": "national",
+      "category": "perk",
+      "description": "Kobiety w ciąży mogą kupować wybrane leki z listy refundacyjnej taniej lub bezpłatnie, z adnotacją na recepcie (wykaz w obwieszczeniu Ministra Zdrowia).",
+      "amount_text": "Leki bezpłatne lub niższa odpłatność",
+      "how_to_apply": "Poproś lekarza prowadzącego o receptę z odpowiednim oznaczeniem uprawnienia i zapytaj w aptece o aktualny wykaz.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/zdrowie/refundacja-lekow",
+      "criteria": {
+        "requires_pregnancy": true
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "zdrowie"
+      ]
+    },
+    {
+      "id": "nat-opieka-okolooporodowa",
+      "name": "Bezpłatna opieka w ciąży (standard opieki okołoporodowej)",
+      "scope": "national",
+      "category": "perk",
+      "description": "Wizyty u lekarza lub położnej, badania laboratoryjne i trzy badania USG w ciąży finansuje NFZ, bez skierowania do ginekologa-położnika.",
+      "amount_text": "Bezpłatnie (NFZ)",
+      "how_to_apply": "Zgłoś się do lekarza lub położnej z umową z NFZ i zarejestruj ciążę możliwie przed 10. tygodniem.",
+      "form_codes": [],
+      "source_url": "https://akademia.nfz.gov.pl/artykuly/ciaza-twoje-prawa-i-potrzeby/",
+      "criteria": {
+        "requires_pregnancy": true
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "zdrowie"
+      ]
+    },
+    {
+      "id": "nat-badania-prenatalne",
+      "name": "Bezpłatne badania prenatalne",
+      "scope": "national",
+      "category": "perk",
+      "description": "Od czerwca 2024 każda kobieta w ciąży może wykonać bezpłatne badania prenatalne (test biochemiczny i USG w 11.–14. tygodniu, USG w 18.–22. tygodniu), niezależnie od wieku.",
+      "amount_text": "Bezpłatnie (NFZ)",
+      "how_to_apply": "Skierowanie wystawia lekarz ginekolog-położnik prowadzący ciążę.",
+      "form_codes": [],
+      "source_url": "https://www.nfz.gov.pl/aktualnosci/aktualnosci-centrali/badania-prenatalne-na-nfz-teraz-dla-kazdej-kobiety-w-ciazy,8625.html",
+      "criteria": {
+        "requires_pregnancy": true
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": false,
+      "tags": [
+        "ciąża",
+        "zdrowie"
+      ]
+    },
+    {
+      "id": "nat-zasilek-pielegnacyjny",
+      "name": "Zasiłek pielęgnacyjny",
+      "scope": "national",
+      "category": "benefit",
+      "description": "215,84 zł miesięcznie na dziecko z orzeczeniem o niepełnosprawności, bez kryterium dochodowego.",
+      "amount_text": "215,84 zł miesięcznie",
+      "annual_value_estimate": 2590,
+      "how_to_apply": "Wniosek do gminy z orzeczeniem o niepełnosprawności lub stopniu niepełnosprawności.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-zasilek-pielegnacyjny",
+      "criteria": {
+        "requires_disability": true
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "niepełnosprawność",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-swiadczenie-pielegnacyjne",
+      "name": "Świadczenie pielęgnacyjne",
+      "scope": "national",
+      "category": "benefit",
+      "description": "3386 zł miesięcznie dla opiekuna, który zrezygnował z pracy lub nie podjął jej, by opiekować się dzieckiem z niepełnosprawnością.",
+      "amount_text": "3386 zł miesięcznie",
+      "annual_value_estimate": 40632,
+      "how_to_apply": "Wniosek do gminy z orzeczeniem o niepełnosprawności; kwota waloryzowana od 1 stycznia.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-swiadczenie-pielegnacyjne",
+      "criteria": {
+        "requires_disability": true
+      },
+      "extra_conditions": [
+        {
+          "id": "rezygnacja-z-pracy",
+          "text": "Opiekun zrezygnował z pracy lub nie podjął jej z powodu opieki",
+          "kind": "ask",
+          "question": "Czy zrezygnowałeś/aś z pracy lub nie możesz jej podjąć z powodu opieki nad dzieckiem?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "niepełnosprawność",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-rodzina-zastepcza",
+      "name": "Świadczenia dla rodziny zastępczej",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Miesięczne świadczenie na pokrycie kosztów utrzymania dziecka w rodzinie zastępczej oraz dodatki (np. wynagrodzenie dla rodziny zawodowej, dofinansowanie do wypoczynku).",
+      "amount_text": "Miesięcznie na dziecko, np. ok. 1002 zł (rodzina spokrewniona) i ok. 1517 zł (niezawodowa/zawodowa) — kwoty podawane przez PCPR w 2026 r., zależą od rodzaju rodziny zastępczej",
+      "how_to_apply": "Wniosek do powiatowego centrum pomocy rodzinie (PCPR); świadczenie przyznaje starosta.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/rodzina/swiadczenia-dla-rodziny-zastepczej-spokrewnionej",
+      "criteria": {
+        "requires_foster": true
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "rodzina zastępcza",
+        "powiat"
+      ]
+    }
+  ]
+}

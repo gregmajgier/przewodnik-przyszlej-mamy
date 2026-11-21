@@ -396,3 +396,23 @@ def test_next_deadline_child_age_and_fixed():
     assert next_deadline(b, ctx([])) == date(2026, 12, 31)
     b.deadline = None
     assert next_deadline(b, ctx([])) is None
+
+
+# ---------- ciąża albo noworodek ----------
+
+
+def test_pregnant_or_newborn_fits_when_pregnant():
+    b = benefit(pregnant_or_child_max_months=5)
+    assert match_benefit(ctx([child("W drodze", due=date(2027, 1, 20))]), b).status == "fits"
+
+
+@pytest.mark.parametrize("months,status", [(0, "fits"), (5, "fits"), (6, "no")])
+def test_pregnant_or_newborn_after_birth_bounds_inclusive(months, status):
+    b = benefit(pregnant_or_child_max_months=5)
+    assert match_benefit(ctx([born_months_ago(months)]), b).status == status
+
+
+def test_pregnant_or_newborn_no_without_either():
+    b = benefit(pregnant_or_child_max_months=5)
+    r = match_benefit(ctx([born_months_ago(40)]), b)
+    assert r.status == "no" and r.unmet

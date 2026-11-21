@@ -16,6 +16,8 @@ class Criteria(BaseModel):
     max_income_per_person: float | None = None
     min_children: int | None = None
     requires_pregnancy: bool | None = None
+    # „w ciąży albo dziecko do N miesięcy włącznie” (np. zasiłek macierzyński: przed i po porodzie)
+    pregnant_or_child_max_months: int | None = None
     requires_disability: bool | None = None
     requires_foster: bool | None = None
     employment_kinds: list[Literal["employment", "mandate", "jdg"]] | None = None
