@@ -30,6 +30,11 @@ async function loadFamily(user: User): Promise<FamilyView | null> {
   }
 }
 
+/** Ścieżki publiczne (bez logowania): nie odtwarzamy sesji, więc żadne żądanie nie niesie tokenu. */
+function isPublicPath(): boolean {
+  return window.location.pathname.startsWith('/jaskolka')
+}
+
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(() => getToken())
   const [user, setUser] = useState<User | null>(null)
@@ -59,6 +64,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     async function restore() {
       if (getToken() === null) return
+      if (isPublicPath()) {
+        setLoading(false)
+        return
+      }
       try {
         await refresh()
       } catch {

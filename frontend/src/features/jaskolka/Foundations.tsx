@@ -4,6 +4,7 @@ import type { Foundation } from './jaskolkaApi'
 
 const ALL = ''
 
+/** Komponent jest montowany z `key={situationId}`, więc stan zaczyna się od zera przy każdej sytuacji. */
 export function Foundations({ situationId }: { situationId: string }) {
   const [items, setItems] = useState<Foundation[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -11,9 +12,6 @@ export function Foundations({ situationId }: { situationId: string }) {
 
   useEffect(() => {
     let cancelled = false
-    setItems(null)
-    setError(null)
-    setRegion(ALL)
     fetchFoundations(situationId)
       .then((data) => {
         if (!cancelled) setItems(data)

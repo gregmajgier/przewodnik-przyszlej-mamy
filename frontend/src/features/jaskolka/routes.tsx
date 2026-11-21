@@ -1,15 +1,7 @@
-import { lazy, Suspense } from 'react'
 import type { RouteObject } from 'react-router-dom'
+import JaskolkaLazy from './JaskolkaLazy'
 
-// Osobny chunk: reszta aplikacji nie ładuje kodu /jaskolka. (`lazy` z RouteObject działa tylko
-// w data routerze, a App używa <BrowserRouter>, więc używamy React.lazy.)
-const JaskolkaPage = lazy(() => import('./JaskolkaPage'))
-
-const element = (
-  <Suspense fallback={<p role="status">Wczytywanie…</p>}>
-    <JaskolkaPage />
-  </Suspense>
-)
+const element = <JaskolkaLazy />
 
 // `handle.public`: trasa poza AppShell, bez wymaganej sesji.
 const routes: RouteObject[] = [

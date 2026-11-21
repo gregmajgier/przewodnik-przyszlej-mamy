@@ -1,9 +1,11 @@
-import { readFileSync, readdirSync } from 'node:fs'
+/// <reference types="node" />
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { featureRoutes } from '../registry'
 import { Component as JaskolkaPage } from './JaskolkaPage'
 
 const SITUATIONS = [
@@ -175,20 +177,32 @@ describe('/jaskolka bez logowania', () => {
   })
 })
 
+describe('rejestracja trasy', () => {
+  it('/jaskolka jest wykrywana przez registry jako trasa publiczna (poza AppShell)', () => {
+    const routes = featureRoutes.filter((r) => r.path?.startsWith('/jaskolka'))
+    expect(routes.map((r) => r.path)).toEqual(['/jaskolka', '/jaskolka/:situationId'])
+    for (const r of routes) expect((r.handle as { public?: boolean }).public).toBe(true)
+  })
+})
+
 describe('marka: tylko tokeny motywu', () => {
-  const dir = __dirname
-  const files = readdirSync(dir).filter((f) => /\.(tsx?|css)$/.test(f) && !/\.test\./.test(f))
+  // surowe źródła komponentów i arkusza (bez plików testowych)
+  const raw = import.meta.glob('./*.{ts,tsx,css}', { query: '?raw', import: 'default', eager: true }) as Record<
+    string,
+    string
+  >
+  const sources = Object.entries(raw).filter(([name]) => !/\.test\./.test(name))
 
   it('w komponentach i arkuszu /jaskolka nie ma wpisanych kolorów hex', () => {
-    expect(files).toContain('jaskolka.css')
-    for (const f of files) {
-      const src = readFileSync(join(dir, f), 'utf8')
-      expect(src, `${f} zawiera kolor hex`).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
+    expect(sources.length).toBeGreaterThan(4)
+    expect(readFileSync(join(import.meta.dirname, 'jaskolka.css'), 'utf8')).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
+    for (const [name, src] of sources) {
+      expect(src, `${name} zawiera kolor hex`).not.toMatch(/#[0-9a-fA-F]{3,8}\b/)
     }
   })
 
   it('arkusz używa tokenów motywu i kształtów marki', () => {
-    const css = readFileSync(join(dir, 'jaskolka.css'), 'utf8')
+    const css = readFileSync(join(import.meta.dirname, 'jaskolka.css'), 'utf8')
     for (const token of ['var(--bg)', 'var(--fg)', 'var(--primary)', 'var(--surface)', 'var(--border)']) {
       expect(css).toContain(token)
     }
