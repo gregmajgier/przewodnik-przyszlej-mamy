@@ -1,14 +1,14 @@
 {
   "meta": {
     "nazwa": "Zmienne użytkownika do ustalania uprawnień i wypełniania wniosków",
-    "projekt": "Gorące Mamuśki / Zasiłkowy Przewodnik Przyszłego Rodzica (HackNation, ZUS)",
+    "projekt": "Zasiłkowy Przewodnik Przyszłego Rodzica (HackNation, ZUS)",
     "wersja": "0.1",
     "data": "2026-11-21",
     "zrodla_wartosci": {
       "uzytkownik": "wpisuje w formularzu",
       "mobywatel": "logowanie mObywatel (symulowane w MVP)",
       "zus_symulacja": "symulowane pobranie z systemów ZUS / zestawów testowych",
-      "ocr_*": "odczyt z wgranego dokumentu (dowód, umowa, Z-3, akt urodzenia, zaświadczenie szpitala, PIT)",
+      "ocr_*": "odczyt z wgranego dokumentu: ocr_dowod, ocr_umowy, ocr_z3, ocr_aktu, ocr_poswiadczenie, ocr_swiadectwo_pracy, ocr_zaswiadczenie_lekarskie, ocr_zaswiadczenie_szpitala, ocr_zaswiadczenie_za_zyciem, ocr_postanowienie_sadu, ocr_pit",
       "wyliczane": "liczone przez silnik reguł z innych zmiennych"
     },
     "uwagi": [
@@ -138,8 +138,8 @@
       {
         "klucz": "data_urodzenia",
         "typ": "date",
-        "opis": "Data urodzenia",
-        "zrodlo": "wyliczane_z_pesel",
+        "opis": "Data urodzenia (wyliczana z PESEL)",
+        "zrodlo": "wyliczane",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -169,8 +169,8 @@
       {
         "klucz": "dokument_tozsamosci",
         "typ": "object{rodzaj,seria,numer}",
-        "opis": "Gdy brak PESEL lub wymagany przez wniosek (SR-7, Za życiem)",
-        "zrodlo": "ocr_dowod_mrz",
+        "opis": "Gdy brak PESEL lub wymagany przez wniosek (SR-7, Za życiem); odczyt ze strefy MRZ dokumentu",
+        "zrodlo": "ocr_dowod",
         "wymagane_dla": [
           "SR-7",
           "ZA-ZYCIEM",
@@ -194,7 +194,7 @@
         "dane_wrazliwe": false
       },
       {
-        "klucz": "status_ukr",
+        "klucz": "pesel_status_ukr",
         "typ": "boolean",
         "opis": "PESEL ze statusem UKR (inne warunki 800+)",
         "zrodlo": "uzytkownik",
@@ -283,7 +283,7 @@
         "klucz": "email",
         "typ": "string|null",
         "opis": "E-mail",
-        "zrodlo": "uzytkownik|google",
+        "zrodlo": "uzytkownik",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -342,7 +342,7 @@
       },
       {
         "klucz": "wlasciciel_rachunku",
-        "typ": "string",
+        "typ": "string|null",
         "opis": "Imię i nazwisko właściciela rachunku, jeśli inny",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
@@ -364,7 +364,7 @@
       },
       {
         "klucz": "stan_cywilny",
-        "typ": "enum[panna_kawaler,malzenstwo,rozwod,separacja,wdowa_wdowiec]",
+        "typ": "enum[panna_kawaler,zonaty_zamezna,rozwiedziony_rozwiedziona,w_separacji,wdowa_wdowiec]",
         "opis": "Wpływa na skład rodziny i samotne wychowywanie",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
@@ -379,7 +379,7 @@
     "ubezpieczenie_i_zatrudnienie": [
       {
         "klucz": "tytul_ubezpieczenia",
-        "typ": "enum[umowa_o_prace,umowa_zlecenia,jdg,wspolpraca_jdg,ulga_na_start,umowa_o_dzielo,duchowny,marynarz,sluzba_mundurowa,krus,bezrobotna_z_zasilkiem,bezrobotna_bez_zasilku,student,brak]",
+        "typ": "enum[umowa_o_prace,umowa_zlecenia,jdg,wspolpraca_jdg,ulga_na_start,umowa_o_dzielo,duchowny,marynarz,sluzba_mundurowa,krus,bezrobocie_z_zasilkiem,bezrobocie_bez_zasilku,student,brak]",
         "opis": "Decyduje o ścieżce: zasiłek ZUS czy świadczenie rodzicielskie z gminy",
         "zrodlo": "ocr_umowy|zus_symulacja|uzytkownik",
         "wymagane_dla": [
@@ -444,9 +444,9 @@
         "dane_wrazliwe": false
       },
       {
-        "klucz": "ubezpieczona_w_dniu_porodu",
+        "klucz": "ubezpieczenie_chorobowe_w_dniu_porodu_lub_przyjecia",
         "typ": "boolean",
-        "opis": "Kluczowe dla zasiłku macierzyńskiego (ryzyko: koniec JDG lub zlecenia przed porodem)",
+        "opis": "Czy wnioskodawca podlega ubezpieczeniu chorobowemu w dniu porodu lub przyjęcia dziecka na wychowanie; kluczowe dla zasiłku macierzyńskiego (ryzyko: koniec JDG lub zlecenia przed porodem)",
         "zrodlo": "wyliczane",
         "wymagane_dla": [
           "ZAM"
@@ -533,7 +533,6 @@
         "opis": "Np. 1.0, 0.5; potrzebne do łączenia urlopu rodzicielskiego z pracą",
         "zrodlo": "ocr_umowy|uzytkownik",
         "wymagane_dla": [
-          "URLOP-ROD-PRACA",
           "URLOP-MAC-ROD",
           "URLOP-ROD",
           "URLOP-OJC",
@@ -544,7 +543,7 @@
         "dane_wrazliwe": false
       },
       {
-        "klucz": "przychody_12_miesiecy",
+        "klucz": "podstawa_wymiaru_12_miesiecy",
         "typ": "array[{rok,miesiac,podstawa_wymiaru_skladek,dni_przepracowane,dni_do_przepracowania}]",
         "opis": "Do podstawy wymiaru zasiłku (średnia z 12 miesięcy, pomniejszona o 13,71%)",
         "zrodlo": "ocr_z3|zus_symulacja|uzytkownik",
@@ -612,7 +611,7 @@
         "dane_wrazliwe": false
       },
       {
-        "klucz": "zlozyla_wniosek_emerytura_renta",
+        "klucz": "zlozono_wniosek_o_emeryture_rente",
         "typ": "boolean",
         "opis": "Pytanie w Z-10",
         "zrodlo": "uzytkownik",
@@ -632,13 +631,13 @@
           "ZAS-53",
           "ZAS-55"
         ],
-        "dane_wrazliwe": false
+        "dane_wrazliwe": true
       },
       {
         "klucz": "przewidywana_data_porodu",
         "typ": "date",
         "opis": "Z zaświadczenia lekarskiego; urlop macierzyński do 6 tyg. przed",
-        "zrodlo": "uzytkownik|ocr",
+        "zrodlo": "uzytkownik|ocr_zaswiadczenie_lekarskie",
         "wymagane_dla": [
           "ZAM",
           "URLOP-MAC-ROD",
@@ -647,10 +646,22 @@
         "dane_wrazliwe": true
       },
       {
+        "klucz": "liczba_dzieci_przy_porodzie",
+        "typ": "integer",
+        "opis": "Liczba dzieci urodzonych (lub oczekiwanych) przy jednym porodzie; wymiar urlopu macierzyńskiego i rodzicielskiego (ciąża mnoga)",
+        "zrodlo": "uzytkownik",
+        "wymagane_dla": [
+          "ZAM",
+          "URLOP-MAC-ROD",
+          "SR-7"
+        ],
+        "dane_wrazliwe": false
+      },
+      {
         "klucz": "opieka_medyczna_od_10_tyg",
         "typ": "boolean",
         "opis": "Zaświadczenie lekarza lub położnej; warunek becikowego i Za życiem",
-        "zrodlo": "uzytkownik|ocr",
+        "zrodlo": "uzytkownik|ocr_zaswiadczenie_lekarskie",
         "wymagane_dla": [
           "BECIKOWE",
           "ZA-ZYCIEM",
@@ -660,7 +671,7 @@
       },
       {
         "klucz": "zaswiadczenia_e_zla",
-        "typ": "array[{seria_numer,od,do,kod_B}]",
+        "typ": "array[{seria_numer,od,do,kod_literowy_b}]",
         "opis": "e-ZLA; kod literowy B = ciąża, zasiłek 100%",
         "zrodlo": "zus_symulacja",
         "wymagane_dla": [
@@ -684,7 +695,7 @@
         "klucz": "hospitalizacja_matki",
         "typ": "array[{od,do}]",
         "opis": "Pobyt matki w szpitalu (przejęcie urlopu przez ojca)",
-        "zrodlo": "uzytkownik|ocr",
+        "zrodlo": "uzytkownik|ocr_zaswiadczenie_szpitala",
         "wymagane_dla": [
           "ZAM",
           "SR-7"
@@ -703,9 +714,9 @@
         "dane_wrazliwe": true
       },
       {
-        "klucz": "smierc_lub_porzucenie_przez_matke",
-        "typ": "enum[brak,smierc,porzucenie]",
-        "opis": "Oświadczenie ZAS-33",
+        "klucz": "zgon_matki_lub_porzucenie_dziecka",
+        "typ": "enum[brak,zgon_matki,porzucenie_dziecka]",
+        "opis": "Zgon matki lub porzucenie przez nią dziecka (oświadczenie ZAS-33)",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
           "ZAS-33",
@@ -874,7 +885,7 @@
       {
         "klucz": "dziecko.urodzone_zywe",
         "typ": "boolean",
-        "opis": "Martwe urodzenie: urlop macierzyński 8 tyg., ścieżka /jaskolka",
+        "opis": "Martwe urodzenie: urlop macierzyński 8 tyg.",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
           "ZAM",
@@ -892,18 +903,6 @@
           "ZAM"
         ],
         "dane_wrazliwe": true
-      },
-      {
-        "klucz": "dziecko.liczba_dzieci_przy_porodzie",
-        "typ": "integer",
-        "opis": "Wymiar urlopu macierzyńskiego i rodzicielskiego (ciąża mnoga)",
-        "zrodlo": "uzytkownik",
-        "wymagane_dla": [
-          "ZAM",
-          "URLOP-MAC-ROD",
-          "SR-7"
-        ],
-        "dane_wrazliwe": false
       },
       {
         "klucz": "dziecko.tydzien_ciazy_przy_urodzeniu",
@@ -945,7 +944,7 @@
         "klucz": "dziecko.zaswiadczenie_za_zyciem",
         "typ": "boolean",
         "opis": "Dłuższy urlop rodzicielski (65/67 tyg.), 4000 zł",
-        "zrodlo": "uzytkownik|ocr",
+        "zrodlo": "uzytkownik|ocr_zaswiadczenie_za_zyciem",
         "wymagane_dla": [
           "ZAM",
           "URLOP-MAC-ROD",
@@ -969,7 +968,7 @@
         "klucz": "dziecko.przyjete_na_wychowanie",
         "typ": "object{rodzaj:enum[przysposobienie,rodzina_zastepcza_niezawodowa],data_przyjecia,data_wystapienia_do_sadu,data_uprawomocnienia}|null",
         "opis": "Urlop na warunkach urlopu macierzyńskiego (do 7/10/14 lat); ojcowski 12 mies. od uprawomocnienia",
-        "zrodlo": "uzytkownik|ocr",
+        "zrodlo": "uzytkownik|ocr_postanowienie_sadu",
         "wymagane_dla": [
           "ZAS-26",
           "ZAM",
@@ -1032,7 +1031,7 @@
       },
       {
         "klucz": "drugi_rodzic.platnik",
-        "typ": "object{nazwa,nip,adres}",
+        "typ": "object{nazwa,nip,regon,adres}",
         "opis": "Pracodawca drugiego rodzica",
         "zrodlo": "uzytkownik|ocr_umowy",
         "wymagane_dla": [
@@ -1090,8 +1089,8 @@
     ],
     "plan_urlopow": [
       {
-        "klucz": "plan_urlopu_macierzynskiego",
-        "typ": "object{od,do,tygodnie_przed_porodem}",
+        "klucz": "urlop_macierzynski",
+        "typ": "object{od,do,tygodnie_przed_porodem,data_zlozenia_wniosku}",
         "opis": "Min. 14 tyg. matka osobiście; 20 tyg. przy 1 dziecku",
         "zrodlo": "uzytkownik|wyliczane",
         "wymagane_dla": [
@@ -1101,7 +1100,7 @@
         "dane_wrazliwe": false
       },
       {
-        "klucz": "wniosek_81_5",
+        "klucz": "jednolity_wniosek_81_5_procent",
         "typ": "object{czy,data_zlozenia}",
         "opis": "Wniosek do 21 dni po porodzie: 81,5% za cały okres",
         "zrodlo": "uzytkownik",
@@ -1113,7 +1112,7 @@
       },
       {
         "klucz": "rezygnacja_z_macierzynskiego_po_14_tyg",
-        "typ": "object{czy,data}",
+        "typ": "object{czy,data,data_zlozenia_wniosku}",
         "opis": "Przejęcie dalszej części przez ojca",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
@@ -1124,7 +1123,7 @@
       },
       {
         "klucz": "czesci_urlopu_rodzicielskiego",
-        "typ": "array[{rodzic:enum[matka,ojciec],od,do,wymiar_pracy_w_trakcie}]",
+        "typ": "array[{rodzic:enum[matka,ojciec],od,do,wymiar_pracy_w_trakcie,data_zlozenia_wniosku}]",
         "opis": "Maks. 5 części, do końca roku, w którym dziecko kończy 6 lat; 9 tyg. nieprzenoszalne na rodzica; praca maks. 0,5 etatu",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
@@ -1137,7 +1136,7 @@
       },
       {
         "klucz": "urlop_uzupelniajacy",
-        "typ": "object{wymiar_tyg,od,do,rodzic}",
+        "typ": "object{wymiar_tyg,od,do,rodzic,data_zlozenia_wniosku}",
         "opis": "Do 8 lub 15 tyg., jednorazowo, bezpośrednio po macierzyńskim, 100%",
         "zrodlo": "uzytkownik|wyliczane",
         "wymagane_dla": [
@@ -1148,27 +1147,12 @@
       },
       {
         "klucz": "czesci_urlopu_ojcowskiego",
-        "typ": "array[{od,do}]",
+        "typ": "array[{od,do,data_zlozenia_wniosku}]",
         "opis": "14 dni, jednorazowo albo 2 x min. 7 dni, do 12 mies. życia dziecka",
         "zrodlo": "uzytkownik",
         "wymagane_dla": [
           "URLOP-OJC",
           "ZAM"
-        ],
-        "dane_wrazliwe": false
-      },
-      {
-        "klucz": "data_zlozenia_wniosku_u_pracodawcy",
-        "typ": "date",
-        "opis": "Kontrola terminów (np. 21 dni przed urlopem rodzicielskim, 7 dni przed ojcowskim)",
-        "zrodlo": "uzytkownik",
-        "wymagane_dla": [
-          "URLOP-MAC-ROD",
-          "URLOP-ROD",
-          "URLOP-OJC",
-          "URLOP-UZUP",
-          "URLOP-ROD-PRACA",
-          "REZYGNACJA-MAC"
         ],
         "dane_wrazliwe": false
       }
@@ -1264,7 +1248,7 @@
       "ojcowski": 100,
       "rodzicielski": 70,
       "jednolity_wniosek_21_dni": 81.5,
-      "9_tyg_drugiego_rodzica": 70
+      "nieprzenoszalne_9_tyg_drugiego_rodzica": 70
     },
     "zasilek_chorobowy_ciaza_procent": 100,
     "skladki_pomniejszenie_podstawy_procent": 13.71,
@@ -1274,7 +1258,7 @@
     },
     "wynagrodzenie_chorobowe_dni": {
       "standard": 33,
-      "po_50_r_z": 14
+      "po_50_roku_zycia": 14
     },
     "okres_zasilkowy_dni": 270,
     "urlop_macierzynski_tyg": {
@@ -1299,7 +1283,7 @@
     "urlop_ojcowski_min_czesc_dni": 7,
     "urlop_uzupelniajacy_max_tyg": {
       "ponizej_28_tyg_lub_do_1000g": 15,
-      "28_37_tyg_powyzej_1000g_lub_hospitalizacja": 8
+      "od_28_do_37_tyg_powyzej_1000g_lub_hospitalizacja": 8
     },
     "termin_wniosku_81_5_dni": 21,
     "platnik_wyplaca_prog_ubezpieczonych": 20,
