@@ -503,10 +503,11 @@ def test_loss_blocks_new_and_pending_applications(client):
     child = ids["Dziecko w drodze"]
     app = _employer_ready(client, h, child)
     client.post(f"/api/applications/{app['id']}/sign", headers=h)
-    r = client.patch(f"/api/families/me/children/{child}", json={"situation": "loss", "situation_kind": "poronienie"}, headers=h)
+    # sytuację zmienia tylko serwis planu 10 (anuluje szkice po cichu)
+    r = client.post(f"/api/families/me/children/{child}/situation", json={"kind": "poronienie"}, headers=h)
     assert r.status_code == 200, r.text
     blocked = client.post(f"/api/applications/{app['id']}/submit", headers=h)
-    assert blocked.status_code == 409 and "nie składamy" in blocked.json()["detail"]
+    assert blocked.status_code == 409
     assert client.get(f"/api/applications/{app['id']}", headers=h).json()["status"] == "cancelled"
     _create(client, h, "ZAM", child, expect=409)
 
