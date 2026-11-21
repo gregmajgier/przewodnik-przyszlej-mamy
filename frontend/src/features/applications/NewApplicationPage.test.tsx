@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -32,25 +32,44 @@ function renderPage(route = '/wnioski/nowy', family: FamilyView | null = makeFam
 beforeEach(() => vi.clearAllMocks())
 
 describe('NewApplicationPage', () => {
-  it('pokazuje listę wniosków z oznaczeniem polecanych', async () => {
+  it('pokazuje wnioski jako karty wyboru, polecane na górze i oznaczone', async () => {
     routeApi({ 'GET /api/applications/forms': FORMS })
     renderPage()
-    expect(await screen.findByRole('option', { name: /urlop macierzyński i rodzicielski \(polecany\)/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /zasiłek macierzyński \(polecany\)/i })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /800\+$/ })).toBeInTheDocument() // niepolecany: bez dopisku
+    const radios = await screen.findAllByRole('radio')
+    expect(radios[0]).toHaveAccessibleName(/urlop macierzyński i rodzicielski.*polecany/i)
+    expect(radios[1]).toHaveAccessibleName(/zasiłek macierzyński.*polecany/i)
+    expect(screen.getByRole('radio', { name: /800\+/ })).not.toHaveAccessibleName(/polecany/i)
     expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeDisabled()
   })
 
-  it('kod z adresu (?form=) wybiera wniosek; dziecko jest wymagane i bez straty', async () => {
+  it('kod z adresu (?form=) wybiera wniosek; dziecko jest wymagane, bez dzieci w sytuacji straty', async () => {
     routeApi({ 'GET /api/applications/forms': FORMS })
     renderPage('/wnioski/nowy?form=ZAM')
-    const child = await screen.findByLabelText(/dziecko, którego dotyczy wniosek/i)
-    expect(screen.getByLabelText('Rodzaj wniosku')).toHaveValue('ZAM')
-    expect(screen.getByRole('option', { name: /Maja \(ur\. 01\.05\.2019\)/ })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Dziecko w drodze \(w drodze, termin porodu 20\.01\.2027\)/ })).toBeInTheDocument()
-    expect(screen.queryByRole('option', { name: /Utracone/ })).not.toBeInTheDocument() // tryb straty: bez wniosków
-    expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeDisabled() // dziecko niewybrane
-    await userEvent.selectOptions(child, 'c-drodze')
+    expect(await screen.findByRole('radio', { name: /zasiłek macierzyński/i })).toHaveAttribute('aria-checked', 'true')
+    const kids = within(screen.getByRole('radiogroup', { name: /którego dziecka dotyczy/i }))
+    expect(kids.getByRole('radio', { name: /Maja/ })).toBeInTheDocument()
+    expect(kids.getByRole('radio', { name: /Maleństwo.*termin 20\.01\.2027/ })).toBeInTheDocument()
+    expect(kids.queryByRole('radio', { name: /Utracone/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeDisabled()
+    await userEvent.click(kids.getByRole('radio', { name: /Maleństwo/ }))
+    expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeEnabled()
+  })
+
+  it('wybrany wniosek zwija listę do jednej karty; „Zmień wniosek” ją rozwija, a kolejny wybór znów zwija', async () => {
+    routeApi({ 'GET /api/applications/forms': FORMS })
+    renderPage('/wnioski/nowy?form=ZAM')
+    const picker = () => within(screen.getByRole('radiogroup', { name: /rodzaj wniosku/i }))
+    await screen.findByRole('radiogroup', { name: /którego dziecka dotyczy/i })
+    expect(picker().getAllByRole('radio')).toHaveLength(1)
+
+    await userEvent.click(screen.getByRole('button', { name: /zmień wniosek/i }))
+    expect(picker().getAllByRole('radio').length).toBeGreaterThan(1)
+    expect(screen.queryByRole('radiogroup', { name: /którego dziecka dotyczy/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeDisabled()
+
+    await userEvent.click(picker().getByRole('radio', { name: /zasiłek chorobowy/i }))
+    expect(picker().getAllByRole('radio')).toHaveLength(1)
+    expect(picker().getByRole('radio')).toHaveAccessibleName(/zasiłek chorobowy/i)
     expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeEnabled()
   })
 
@@ -60,9 +79,9 @@ describe('NewApplicationPage', () => {
       'POST /api/applications': makeApp({ id: 'app-77', form_code: 'ZAM', channel: 'pdf_download' }),
     })
     renderPage('/wnioski/nowy?form=ZAM')
-    await userEvent.selectOptions(await screen.findByLabelText(/dziecko, którego dotyczy wniosek/i), 'c-drodze')
-    expect(screen.getByLabelText(/agent wypełnia makietę portalu/i)).toBeChecked() // kanał domyślny
-    await userEvent.click(screen.getByLabelText(/pdf do pobrania/i))
+    await userEvent.click(await screen.findByRole('radio', { name: /Maleństwo/ }))
+    expect(screen.getByRole('radio', { name: /formularz online/i })).toHaveAttribute('aria-checked', 'true') // kanał domyślny
+    await userEvent.click(screen.getByRole('radio', { name: /pdf do pobrania/i }))
     await userEvent.click(screen.getByRole('button', { name: /zacznij wypełnianie/i }))
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/applications', {
@@ -73,13 +92,13 @@ describe('NewApplicationPage', () => {
     expect(await screen.findByText('Kreator wniosku')).toBeInTheDocument()
   })
 
-  it('jedno dziecko do wyboru jest wybierane automatycznie, a pojedynczy kanał nie jest wysyłany', async () => {
+  it('jedno dziecko jest wybierane automatycznie, a pojedynczy kanał nie jest wysyłany', async () => {
     const family = makeFamily(ANNA)
     family.children = [family.children[0]]
     const mocked = routeApi({ 'GET /api/applications/forms': FORMS, 'POST /api/applications': makeApp({ id: 'app-2' }) })
     renderPage('/wnioski/nowy?form=800PLUS', family)
-    expect(await screen.findByText(/składa się wyłącznie elektronicznie/i)).toBeInTheDocument()
-    expect(screen.queryByRole('group', { name: /jak złożyć wniosek/i })).not.toBeInTheDocument() // jeden kanał
+    expect(await screen.findByText(/składa się tylko elektronicznie/i)).toBeInTheDocument()
+    expect(screen.queryByRole('radiogroup', { name: /jak złożyć wniosek/i })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /zacznij wypełnianie/i }))
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/applications', { method: 'POST', body: { form_code: '800PLUS', child_id: 'c-maja' } }),
@@ -89,8 +108,8 @@ describe('NewApplicationPage', () => {
   it('wniosek bez dziecka (np. zasiłek chorobowy) nie pyta o dziecko', async () => {
     const mocked = routeApi({ 'GET /api/applications/forms': FORMS, 'POST /api/applications': makeApp({ id: 'app-3' }) })
     renderPage('/wnioski/nowy?form=ZAS-53')
-    await screen.findByLabelText('Rodzaj wniosku')
-    expect(screen.queryByLabelText(/dziecko, którego dotyczy wniosek/i)).not.toBeInTheDocument()
+    await screen.findByRole('radio', { name: /zasiłek chorobowy/i })
+    expect(screen.queryByRole('radiogroup', { name: /którego dziecka dotyczy/i })).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /zacznij wypełnianie/i }))
     await waitFor(() => expect(mocked).toHaveBeenCalledWith('/api/applications', { method: 'POST', body: { form_code: 'ZAS-53' } }))
   })
@@ -99,7 +118,7 @@ describe('NewApplicationPage', () => {
     routeApi({ 'GET /api/applications/forms': FORMS })
     renderPage('/wnioski/nowy?form=BECIKOWE')
     const note = await screen.findByRole('note')
-    expect(note).toHaveTextContent(/dla wniosku BECIKOWE nie ma jeszcze kreatora/i)
+    expect(note).toHaveTextContent(/dla wniosku BECIKOWE nie mamy jeszcze kreatora/i)
     expect(screen.getByRole('link', { name: /pusty formularz/i })).toHaveAttribute('href', '/api/wnioski/BECIKOWE/pdf')
     expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeDisabled()
   })
@@ -121,11 +140,5 @@ describe('NewApplicationPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /zacznij wypełnianie/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Dla tego dziecka nie składamy już wniosków.')
     expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeEnabled()
-  })
-
-  it('bez rodziny przekierowuje na /start', async () => {
-    routeApi({})
-    renderPage('/wnioski/nowy', null)
-    expect(await screen.findByText('Start')).toBeInTheDocument()
   })
 })

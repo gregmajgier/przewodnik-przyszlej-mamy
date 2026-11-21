@@ -200,7 +200,8 @@
       "tags": [
         "dziecko",
         "zus"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-aktywny-rodzic-w-pracy",
@@ -242,7 +243,8 @@
       "tags": [
         "aktywny-rodzic",
         "zus"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-aktywny-rodzic-w-zlobku",
@@ -279,7 +281,8 @@
         "aktywny-rodzic",
         "żłobek",
         "zus"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-aktywny-rodzic-w-domu",
@@ -315,7 +318,8 @@
       "tags": [
         "aktywny-rodzic",
         "zus"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-swiadczenie-rodzicielskie",
@@ -351,7 +355,8 @@
       "tags": [
         "poród",
         "gmina"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-becikowe",
@@ -389,7 +394,8 @@
       "tags": [
         "poród",
         "gmina"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-za-zyciem",
@@ -423,7 +429,8 @@
       "tags": [
         "dziecko",
         "gmina"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-zasilek-rodzinny",
@@ -456,7 +463,8 @@
         "dziecko",
         "gmina",
         "dochód"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-dobry-start",
@@ -491,6 +499,220 @@
       "tags": [
         "szkoła",
         "dziecko"
+      ],
+      "per_child": true
+    },
+    {
+      "id": "nat-dodatek-rok-szkolny",
+      "name": "Dodatek na rozpoczęcie roku szkolnego",
+      "scope": "national",
+      "category": "benefit",
+      "description": "100 zł raz w roku na każde dziecko, które zaczyna rok szkolny albo roczne przygotowanie przedszkolne (zerówkę). Dodatek do zasiłku rodzinnego — przysługuje rodzinom, które mają prawo do zasiłku.",
+      "amount_text": "100 zł raz w roku na dziecko",
+      "annual_value_estimate": 100,
+      "how_to_apply": "Razem z wnioskiem o zasiłek rodzinny albo osobno — w gminie (MOPS/OPS), przez Emp@tia, ePUAP lub osobiście.",
+      "form_codes": [
+        "SR-1"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-zasilek-rodzinny-wraz-z-dodatkami",
+      "criteria": {
+        "child_age_min_months": 60,
+        "child_age_max_months": 287,
+        "max_income_per_person": 674
+      },
+      "extra_conditions": [
+        {
+          "id": "szkola",
+          "text": "Dziecko chodzi do szkoły albo do zerówki",
+          "kind": "ask",
+          "question": "Czy dziecko chodzi do szkoły albo do zerówki?"
+        }
+      ],
+      "extra_text": "Próg dochodu wynosi 764 zł na osobę, gdy w rodzinie jest dziecko z niepełnosprawnością.",
+      "status": "published",
+      "verify": false,
+      "per_child": true,
+      "tags": [
+        "dziecko",
+        "szkoła",
+        "gmina",
+        "dochód",
+        "dodatek"
+      ]
+    },
+    {
+      "id": "nat-dodatek-ksztalcenie-rehabilitacja",
+      "name": "Dodatek na kształcenie i rehabilitację dziecka z niepełnosprawnością",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Comiesięczny dodatek do zasiłku rodzinnego na rehabilitację albo naukę dziecka: do 16 lat z orzeczeniem o niepełnosprawności, od 16 do 24 lat z orzeczeniem o umiarkowanym lub znacznym stopniu.",
+      "amount_text": "90 zł miesięcznie (do 5 lat), 110 zł (od 5 do 24 lat)",
+      "annual_value_estimate": 1320,
+      "deadline": {
+        "anchor": "fixed",
+        "fixed_date": "2026-11-30",
+        "note": "Składasz razem z wnioskiem o zasiłek rodzinny. Wniosek złożony do końca listopada jest wypłacany od listopada."
+      },
+      "how_to_apply": "Razem z wnioskiem o zasiłek rodzinny albo osobno — w gminie (MOPS/OPS), przez Emp@tia, ePUAP lub osobiście. Dołącz kopię orzeczenia.",
+      "form_codes": [
+        "SR-1"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-zasilek-rodzinny-wraz-z-dodatkami",
+      "criteria": {
+        "child_age_min_months": 0,
+        "child_age_max_months": 287,
+        "requires_disability": true,
+        "max_income_per_person": 764
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": false,
+      "per_child": true,
+      "tags": [
+        "dziecko",
+        "niepełnosprawność",
+        "gmina",
+        "dochód",
+        "dodatek"
+      ]
+    },
+    {
+      "id": "nat-dodatek-nauka-poza-domem",
+      "name": "Dodatek na naukę poza miejscem zamieszkania",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Dodatek do zasiłku rodzinnego dla ucznia szkoły ponadpodstawowej lub artystycznej, który mieszka w internacie albo na stancji w miejscowości szkoły lub codziennie do niej dojeżdża. Wypłacany przez 10 miesięcy — od września do czerwca.",
+      "amount_text": "113 zł miesięcznie (internat, stancja), 69 zł (dojazdy)",
+      "annual_value_estimate": 690,
+      "deadline": {
+        "anchor": "fixed",
+        "fixed_date": "2026-11-30",
+        "note": "Składasz razem z wnioskiem o zasiłek rodzinny. Wniosek złożony do końca listopada jest wypłacany od listopada."
+      },
+      "how_to_apply": "Razem z wnioskiem o zasiłek rodzinny albo osobno — w gminie (MOPS/OPS), przez Emp@tia, ePUAP lub osobiście.",
+      "form_codes": [
+        "SR-1"
+      ],
+      "source_url": "https://www.gov.pl/web/gov/uzyskaj-zasilek-rodzinny-wraz-z-dodatkami",
+      "criteria": {
+        "child_age_min_months": 168,
+        "child_age_max_months": 287,
+        "max_income_per_person": 674
+      },
+      "extra_conditions": [
+        {
+          "id": "poza-domem",
+          "text": "Dziecko mieszka w internacie lub na stancji albo dojeżdża do szkoły w innej miejscowości",
+          "kind": "ask",
+          "question": "Czy dziecko mieszka w internacie lub na stancji albo dojeżdża do szkoły średniej w innej miejscowości?"
+        }
+      ],
+      "extra_text": "Uczeń szkoły podstawowej może dostać dodatek za internat, jeśli ma orzeczenie o niepełnosprawności.",
+      "status": "published",
+      "verify": false,
+      "per_child": true,
+      "tags": [
+        "dziecko",
+        "szkoła",
+        "gmina",
+        "dochód",
+        "dodatek"
+      ]
+    },
+    {
+      "id": "nat-stypendium-szkolne",
+      "name": "Stypendium szkolne",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Pomoc z gminy dla ucznia z rodziny o niskich dochodach — na zajęcia dodatkowe, podręczniki, przybory, wyjazdy szkolne albo dojazdy. Zwykle jako zwrot udokumentowanych wydatków, od 1 do 10 miesięcy w roku szkolnym.",
+      "amount_text": "od 99,20 zł do 248 zł miesięcznie",
+      "annual_value_estimate": 992,
+      "deadline": {
+        "anchor": "fixed",
+        "fixed_date": "2027-09-15",
+        "note": "Wniosek na dany rok szkolny do 15 września. Po terminie gmina rozpatrzy go w uzasadnionych przypadkach, np. gdy sytuacja rodziny się pogorszyła."
+      },
+      "how_to_apply": "Wniosek w gminie, w której mieszka uczeń (urząd gminy, MOPS albo wydział edukacji), z zaświadczeniami o dochodach z miesiąca przed złożeniem wniosku.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/edukacja/stypendium-szkolne-oraz-zasilek-szkolny",
+      "criteria": {
+        "child_age_min_months": 72,
+        "child_age_max_months": 287,
+        "max_income_per_person": 823
+      },
+      "extra_conditions": [
+        {
+          "id": "szkola",
+          "text": "Dziecko uczy się w szkole",
+          "kind": "ask",
+          "question": "Czy dziecko chodzi do szkoły w tym roku szkolnym?"
+        }
+      ],
+      "extra_text": "Pierwszeństwo mają rodziny, w których jest m.in. bezrobocie, niepełnosprawność, ciężka choroba, wielodzietność albo jeden rodzic.",
+      "status": "published",
+      "verify": false,
+      "per_child": true,
+      "tags": [
+        "dziecko",
+        "szkoła",
+        "stypendium",
+        "gmina",
+        "dochód"
+      ]
+    },
+    {
+      "id": "nat-zasilek-szkolny",
+      "name": "Zasiłek szkolny",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Jednorazowa pomoc dla ucznia, którego rodzina jest przejściowo w trudnej sytuacji po zdarzeniu losowym — np. śmierci rodzica, pożarze, powodzi albo ciężkiej chorobie. Pieniądze albo pomoc rzeczowa na naukę, niezależnie od stypendium.",
+      "amount_text": "do 620 zł jednorazowo",
+      "how_to_apply": "Wniosek w gminie albo w szkole ucznia, w ciągu 2 miesięcy od zdarzenia.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/edukacja/stypendium-szkolne-oraz-zasilek-szkolny",
+      "criteria": {
+        "child_age_min_months": 72,
+        "child_age_max_months": 287
+      },
+      "extra_conditions": [
+        {
+          "id": "zdarzenie",
+          "text": "Rodzinę spotkało niedawno zdarzenie losowe",
+          "kind": "ask",
+          "question": "Czy w ostatnich 2 miesiącach rodzinę spotkało zdarzenie losowe (np. pożar, powódź, ciężka choroba, śmierć bliskiej osoby)?"
+        }
+      ],
+      "extra_text": "Zasiłek można dostać raz lub kilka razy w roku.",
+      "status": "published",
+      "verify": false,
+      "per_child": true,
+      "tags": [
+        "dziecko",
+        "szkoła",
+        "gmina"
+      ]
+    },
+    {
+      "id": "nat-leki-dzieci",
+      "name": "Bezpłatne leki dla dzieci do 18 lat",
+      "scope": "national",
+      "category": "perk",
+      "description": "Leki z wykazu bezpłatnych leków dla dzieci i młodzieży są w aptece za 0 zł — aż do 18. urodzin. Lekarz zaznacza to uprawnienie na recepcie.",
+      "amount_text": "0 zł za leki z wykazu",
+      "how_to_apply": "Nic nie trzeba składać. Przy wizycie poproś lekarza o receptę z uprawnieniem do bezpłatnych leków dla dzieci.",
+      "form_codes": [],
+      "source_url": "https://www.gov.pl/web/zdrowie/bezplatne-leki",
+      "criteria": {
+        "child_age_min_months": 0,
+        "child_age_max_months": 215
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": false,
+      "per_child": true,
+      "tags": [
+        "dziecko",
+        "zdrowie"
       ]
     },
     {
@@ -632,7 +854,8 @@
       "tags": [
         "niepełnosprawność",
         "gmina"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-swiadczenie-pielegnacyjne",
@@ -661,7 +884,8 @@
       "tags": [
         "niepełnosprawność",
         "gmina"
-      ]
+      ],
+      "per_child": true
     },
     {
       "id": "nat-rodzina-zastepcza",
@@ -682,7 +906,8 @@
       "tags": [
         "rodzina zastępcza",
         "powiat"
-      ]
+      ],
+      "per_child": true
     }
   ]
 }

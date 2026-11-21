@@ -2,23 +2,23 @@ import { Logo } from './components/Logo'
 import { ScrollRibbons } from './components/ScrollRibbons'
 import { HeroIcons } from './components/HeroIcons'
 import { Timeline } from './components/Timeline'
+import { HowItWorks } from './components/HowItWorks'
+import { Extras } from './components/Extras'
 import './App.css'
 
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
 
-// Placeholder topics; the final list will be decided later.
+// Topics from the benefit catalog (backend/app/data/benefits_national.json).
 const HELP_TOPICS = [
-  { badge: 'ZUS', title: 'ZUS', text: 'Zasiłki, urlopy, wnioski.' },
-  { badge: '🎒', title: 'Rekrutacja do szkół', text: 'Terminy i dokumenty.' },
-  { badge: '🍼', title: 'Żłobek i przedszkole', text: 'Zapisy i dofinansowania.' },
-  { badge: '🏥', title: 'Zdrowie dziecka', text: 'Szczepienia i badania.' },
-  { badge: '💶', title: 'Świadczenia', text: '800+ i inne wsparcie.' },
-]
-
-const FEATURES = [
-  { title: 'Funkcja 1', text: 'Opis do uzupełnienia.' },
-  { title: 'Funkcja 2', text: 'Opis do uzupełnienia.' },
-  { title: 'Funkcja 3', text: 'Opis do uzupełnienia.' },
+  { badge: 'ZUS', title: 'Urlopy i zasiłki', text: 'Macierzyński, ojcowski, rodzicielski i L4 w ciąży.' },
+  { badge: '800+', title: 'Świadczenie 800+', text: '800 zł co miesiąc na każde dziecko.' },
+  { badge: '🍼', title: 'Becikowe', text: 'Jednorazowe wsparcie po narodzinach dziecka.' },
+  { badge: '🧸', title: 'Aktywny rodzic', text: 'Na żłobek, nianię albo opiekę w domu.' },
+  { badge: '🎒', title: 'Dobry Start', text: 'Co roku na wyprawkę do szkoły.' },
+  { badge: '🏫', title: 'Żłobek, przedszkole, szkoła', text: 'Terminy rekrutacji i dokumenty.' },
+  { badge: 'KDR', title: 'Karta Dużej Rodziny', text: 'Zniżki dla rodzin z trojgiem dzieci.' },
+  { badge: 'PIT', title: 'Ulga prorodzinna', text: 'Zwrot podatku za każde dziecko.' },
+  { badge: '📍', title: 'Wsparcie z twojej gminy', text: 'Lokalne programy, o których mało kto wie.' },
 ]
 
 function App() {
@@ -32,9 +32,9 @@ function App() {
           </span>
         </a>
         <nav>
-          <a href="#film">O projekcie</a>
-          <a href="#funkcje">Funkcje</a>
-          <a href="#cta">Kontakt</a>
+          <a href="#film">Film</a>
+          <a href="#jak-to-dziala">Jak to działa</a>
+          <a href="#cta">Zacznij</a>
         </nav>
       </header>
       <main id="top">
@@ -94,17 +94,9 @@ function App() {
           </div>
         </section>
 
-        <section id="funkcje" className="section features-section">
-          <h2>Funkcje</h2>
-          <div className="features-grid">
-            {FEATURES.map((f) => (
-              <article className="feature-card" key={f.title}>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+        <HowItWorks />
+
+        <Extras />
 
         <Timeline />
 

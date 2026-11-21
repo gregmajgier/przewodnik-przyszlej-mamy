@@ -5,10 +5,13 @@ import { formatDate } from '../../lib/format'
 import { useSession } from '../../lib/session'
 import ContractReview from './ContractReview'
 import ContractUpload from './ContractUpload'
+import { openDocumentPdf } from './documents'
+import EmploymentDocs from './EmploymentDocs'
 import RisksPanel from './RisksPanel'
 import './contracts.css'
 import { KIND_LABEL } from './types'
 import type { Contract, ScanResult } from './types'
+import { PageHeader } from '../../ui/controls'
 
 const money = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' })
 
@@ -78,8 +81,8 @@ export default function ContractsPage() {
     family?.members.find((m) => m.id === uid)?.name ?? (uid === user?.id ? user.name : 'Drugi rodzic')
 
   return (
-    <div className="stack">
-      <h1>Umowy</h1>
+    <div className="page page-narrow stack">
+      <PageHeader title="Umowy" eyebrow="Praca i ubezpieczenie" />
       <p className="muted">
         Z umów wiemy, jakie świadczenia Wam przysługują i co może je zablokować. Oboje rodzice widzą
         zatwierdzone dane, ale plik z umową widzi tylko osoba, która go wgrała.
@@ -105,15 +108,37 @@ export default function ContractsPage() {
                   {c.filename && <div className="muted">Plik: {c.filename}</div>}
                 </div>
                 {c.user_id === user?.id && (
-                  <button className="btn btn-danger" type="button" onClick={() => remove(c.id)}>
-                    Usuń
-                  </button>
+                  <div className="row">
+                    {c.source_doc_id && (
+                      <button
+                        className="btn btn-ghost"
+                        type="button"
+                        onClick={() =>
+                          void openDocumentPdf(c.source_doc_id!).catch((e) =>
+                            setError(e instanceof ApiError ? e.detail : 'Nie udało się otworzyć umowy.'),
+                          )
+                        }
+                      >
+                        Podgląd PDF
+                      </button>
+                    )}
+                    <button className="btn btn-danger" type="button" onClick={() => remove(c.id)}>
+                      Usuń
+                    </button>
+                  </div>
                 )}
               </li>
             ))}
           </ul>
         )}
       </section>
+      <EmploymentDocs
+        version={version}
+        onAdded={() => {
+          load()
+          setVersion((v) => v + 1)
+        }}
+      />
       <AddContractFlow
         onAdded={() => {
           load()

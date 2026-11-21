@@ -1,3 +1,5 @@
+import type { PillTone } from '../../ui/controls'
+
 // Typy panelu urzędnika (plan 07). Criteria/Condition/Benefit odpowiadają backend/app/models/benefit.py
 // (+ `OfficialBenefit` w models/official_benefit.py: stan zatwierdzenia warunków).
 
@@ -119,4 +121,28 @@ export function toForm(b: OfficialBenefit): BenefitForm {
     criteria: { ...EMPTY_CRITERIA, ...b.criteria },
     extra_text: b.extra_text,
   }
+}
+
+export const LEVEL_LABEL: Record<Unit['level'], string> = {
+  gmina: 'Gmina',
+  powiat: 'Powiat',
+  voivodeship: 'Województwo',
+}
+
+/** Kolejny krok urzędnika przy świadczeniu w danym stanie. */
+export const NEXT_STEP: Record<BenefitStatus, string> = {
+  draft: 'Uzupełnij i opublikuj',
+  awaiting_approval: 'Sprawdź i zatwierdź warunki',
+  published: 'Widoczne dla rodziców',
+}
+
+/** Etykieta stanu — „do zatwierdzenia” po zatwierdzeniu warunków znaczy już „gotowe do publikacji”. */
+export function statusLabel(b: Pick<OfficialBenefit, 'status' | 'conditions_approved'>): string {
+  return b.status === 'awaiting_approval' && b.conditions_approved ? 'Gotowe do publikacji' : STATUS_LABEL[b.status]
+}
+
+export const STATUS_TONE: Record<BenefitStatus, PillTone> = {
+  draft: 'neutral',
+  awaiting_approval: 'amber',
+  published: 'green',
 }

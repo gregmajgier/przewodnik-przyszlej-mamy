@@ -16,6 +16,8 @@ export interface Benefit {
   source_url: string
   extra_text: string | null
   verify: boolean
+  /** świadczenie „na dziecko” — silnik wskazuje dzieci w `match.child_ids` */
+  per_child?: boolean
 }
 
 export interface MatchQuestion {
@@ -28,6 +30,8 @@ export interface MatchResult {
   reasons: string[]
   unmet: string[]
   questions: MatchQuestion[]
+  /** dzieci, których dotyczy świadczenie `per_child` */
+  child_ids?: string[]
 }
 
 export interface BenefitMatch {

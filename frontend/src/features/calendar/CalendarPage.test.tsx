@@ -5,7 +5,6 @@ import { renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import CalendarPage from './CalendarPage'
 import type { CalendarEvent } from './types'
-import widget from './widget'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
@@ -68,11 +67,4 @@ describe('Kalendarz', () => {
     expect(await screen.findByText(/Wkrótce: przypomnienia mailem i SMS-em/)).toBeInTheDocument()
   })
 
-  it('widget „Najbliższe terminy” ma order 10 i stawia ostrzeżenia na górze', async () => {
-    routeApi({ 'GET /api/calendar': [base, RISK] })
-    renderWithSession(<widget.Component />)
-    const cards = await screen.findAllByRole('article')
-    expect(cards[0]).toHaveAccessibleName('Brak zasiłku przy zleceniu')
-    expect(widget.order).toBe(10)
-  })
 })

@@ -54,6 +54,7 @@ class Contract(ContractDraft):
     user_id: str
     family_id: str
     filename: str | None = None  # widoczna tylko dla właściciela; samego pliku nie przechowujemy
+    source_doc_id: str | None = None  # umowa dodana z e-teczki pracodawcy (PDF generujemy na żądanie, tylko właścicielowi)
     confirmed: bool = False
     created_at: datetime
 
@@ -67,3 +68,21 @@ class Risk(BaseModel):
     deadline: date | None = None
     user_id: str
     source_ref: str
+
+
+class EmploymentDocument(BaseModel):
+    """Umowa udostępniona rodzicowi „z e-teczki pracodawcy” (dane demo). `contract_id` = już dodana do mRodziny."""
+
+    id: str
+    title: str
+    filename: str
+    kind: ContractKind
+    employer_name: str
+    position: str | None = None
+    fte: float | None = None
+    gross_monthly: float | None = None
+    start_date: date
+    end_date: date | None = None
+    indefinite: bool
+    voluntary_sickness: bool | None = None
+    contract_id: str | None = None

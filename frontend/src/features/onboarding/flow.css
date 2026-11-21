@@ -1,0 +1,374 @@
+/* Ekrany krok po kroku (logowanie, onboarding): jeden temat na ekran, duży przycisk na dole. */
+.flow {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(50rem 26rem at 100% 0%, rgb(239 67 99 / 0.08), transparent 70%),
+    var(--paper);
+  overflow-x: hidden;
+}
+.flow-pink {
+  background: var(--pink);
+  color: #fff;
+}
+.flow-top {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: calc(0.9rem + env(safe-area-inset-top)) var(--gutter) 0.5rem;
+  min-height: 4rem;
+}
+.flow-top .progress {
+  flex: 1;
+}
+.flow-top .wordmark {
+  font-size: 1.6rem;
+}
+.flow-body {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 2rem;
+  display: flex;
+  flex-direction: column;
+}
+.flow-center {
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+.flow-art {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 1.75rem;
+  background: var(--white);
+  color: var(--pink);
+  box-shadow: var(--shadow);
+}
+.flow-art-pink {
+  background: var(--pink);
+  color: #fff;
+  box-shadow: var(--shadow-pink);
+}
+.flow-title {
+  font-size: clamp(1.85rem, 7vw, 2.5rem);
+  line-height: 1.1;
+  margin-bottom: 0.6rem;
+}
+.flow-lead {
+  font-size: 1.08rem;
+  color: var(--ink-2);
+  margin-bottom: 1.75rem;
+}
+.flow-pink .flow-lead {
+  color: rgb(255 255 255 / 0.92);
+}
+.flow-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 1rem var(--gutter) calc(1.25rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: linear-gradient(to top, var(--paper) 70%, rgb(251 247 245 / 0));
+}
+.flow-pink .flow-foot {
+  background: none;
+}
+.flow-foot .btn {
+  min-height: 3.5rem;
+  font-size: 1.05rem;
+}
+.flow-skip {
+  align-self: center;
+  border: 0;
+  background: none;
+  padding: 0.6rem 1rem;
+  color: var(--ink-2);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+.flow-pink .flow-skip {
+  color: #fff;
+}
+
+/* ---------- powitanie ---------- */
+.welcome-copy {
+  position: relative;
+  z-index: 2;
+  font-size: clamp(1.6rem, 6.5vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.25;
+}
+.welcome-copy p {
+  margin: 0;
+}
+.welcome-copy .wordmark {
+  font-size: 1.15em;
+  color: #fff;
+  margin: 0 0.15em;
+}
+.welcome-points {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
+}
+.welcome-points span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.16);
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+/* ---------- wybór (duże karty) ---------- */
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1.1rem 1.1rem;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow:
+    inset 0 0 0 2px var(--line),
+    0 4px 0 var(--line);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    box-shadow 0.25s var(--ease),
+    transform 0.25s var(--ease),
+    background-color 0.25s var(--ease);
+}
+.choice:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 0 0 2px var(--line),
+    0 2px 0 var(--line);
+}
+.choice[aria-pressed='true'],
+.choice[aria-checked='true'] {
+  background: var(--pink-50);
+  box-shadow:
+    inset 0 0 0 2px var(--pink),
+    0 4px 0 var(--pink-200);
+}
+.choice-main {
+  flex: 1;
+  min-width: 0;
+}
+.choice-title {
+  display: block;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+.choice-sub {
+  display: block;
+  color: var(--ink-2);
+  font-size: 0.92rem;
+  margin-top: 0.1rem;
+}
+.choice-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 2px var(--line-2);
+  color: transparent;
+  transition: all 0.3s var(--ease);
+}
+.choice[aria-pressed='true'] .choice-check,
+.choice[aria-checked='true'] .choice-check {
+  background: var(--pink);
+  box-shadow: none;
+  color: #fff;
+}
+.choice-add {
+  justify-content: center;
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--line-2);
+  border: 0;
+  color: var(--ink-2);
+  font-weight: 800;
+}
+.choice-add:active {
+  transform: none;
+}
+
+/* ---------- kod zaproszenia ---------- */
+.code-boxes {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin: 0.5rem 0 1rem;
+}
+.code-box {
+  display: grid;
+  place-items: center;
+  width: clamp(2.6rem, 11vw, 3.3rem);
+  height: clamp(3.2rem, 13vw, 4rem);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  box-shadow:
+    inset 0 0 0 2px var(--line-2),
+    0 3px 0 var(--line);
+  font-size: clamp(1.4rem, 6vw, 1.9rem);
+  font-weight: 900;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  color: var(--ink);
+}
+.code-box.is-active {
+  box-shadow:
+    inset 0 0 0 2px var(--pink),
+    0 3px 0 var(--pink-200);
+}
+.code-input-wrap {
+  position: relative;
+}
+.code-input-wrap input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  font-size: 16px;
+}
+
+/* ---------- łączenie (lista kroków) ---------- */
+.connect-steps {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  text-align: left;
+  width: min(22rem, 100%);
+}
+.connect-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-weight: 800;
+  font-size: 1.05rem;
+  animation: rise 0.6s var(--ease) both;
+}
+.connect-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.18);
+}
+.connect-steps li.is-done .connect-mark {
+  background: #fff;
+  color: var(--pink);
+}
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- konta z mObywatela ---------- */
+.idp {
+  overflow: hidden;
+  padding: 0;
+}
+.idp-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+  font-weight: 800;
+}
+.idp-head svg {
+  color: var(--ink);
+}
+.idp .list-row {
+  border-radius: 0;
+  padding: 1rem 1.25rem;
+}
+.idp li + li .list-row {
+  border-top: 1px solid var(--line);
+}
+.flow-note {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+.flow-note svg {
+  flex: none;
+  margin-top: 0.1rem;
+}
+.share-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+/* ---------- umowy z e-teczki pracodawcy ---------- */
+.doc-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.doc-choice .choice[aria-disabled='true'] {
+  cursor: default;
+}
+.doc-preview {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  background: none;
+  padding: 0.35rem 0.6rem;
+  color: var(--pink);
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.doc-preview:hover {
+  text-decoration: underline;
+}

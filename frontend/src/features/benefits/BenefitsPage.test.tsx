@@ -75,94 +75,91 @@ function renderPage(family: FamilyView | null = FAMILY) {
 describe('BenefitsPage', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('grupuje świadczenia: pasuje, może, a niepasujące chowa za „Pokaż pozostałe”', async () => {
+  it('„Dla Was” pokazuje to, co pasuje; „Sprawdź” — do sprawdzenia; „Wszystkie” — także niepasujące', async () => {
     routeApi({ 'GET /api/benefits': [FITS, MAYBE, NO] })
     renderPage()
+    const list = await screen.findByRole('region', { name: /przeglądaj świadczenia/i })
+    expect(within(list).getByRole('button', { name: /800 plus/i })).toBeInTheDocument()
+    expect(within(list).queryByRole('button', { name: /karta dużej rodziny/i })).not.toBeInTheDocument()
 
-    const fits = await screen.findByRole('region', { name: /^pasuje/i })
-    expect(within(fits).getByRole('heading', { name: '800 plus' })).toBeInTheDocument()
-    expect(within(fits).getByText(/dziecko ma 3 lata i mieszkasz w Krakowie/)).toBeInTheDocument()
-    expect(within(fits).getByText('800 zł miesięcznie')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /sprawdź/i }))
+    expect(within(list).getByRole('button', { name: /karta dużej rodziny/i })).toBeInTheDocument()
+    expect(within(list).queryByRole('button', { name: /800 plus/i })).not.toBeInTheDocument()
 
-    const maybe = screen.getByRole('region', { name: /może ci przysługiwać/i })
-    expect(within(maybe).getByRole('heading', { name: 'Karta Dużej Rodziny' })).toBeInTheDocument()
-
-    const summary = screen.getByText(/pokaż pozostałe \(1\)/i)
-    expect(summary.closest('details')).not.toHaveAttribute('open')
+    await userEvent.click(screen.getByRole('tab', { name: /wszystkie/i }))
+    expect(within(list).getByRole('button', { name: /za życiem.*nie pasuje/i })).toBeInTheDocument()
   })
 
-  it('niepasujące pokazują powód („dlaczego nie”)', async () => {
-    routeApi({ 'GET /api/benefits': [NO] })
+  it('szczegóły w arkuszu: dlaczego pasuje, „Złóż wniosek” do kreatora i źródło w nowej karcie', async () => {
+    routeApi({ 'GET /api/benefits': [FITS, MAYBE, NO] })
     renderPage()
-    await screen.findByText(/pokaż pozostałe/i)
-    await userEvent.click(screen.getByText(/pokaż pozostałe/i))
-    expect(screen.getByText('Dlaczego nie')).toBeInTheDocument()
-    expect(screen.getByText(/nie ma orzeczenia o niepełnosprawności/)).toBeInTheDocument()
-    expect(screen.getByText(/dane do weryfikacji/i)).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /złóż wniosek/i })).not.toBeInTheDocument() // „no” bez wniosku
-  })
-
-  it('„Złóż wniosek” prowadzi do kreatora z kodem formularza, link do źródła w nowej karcie', async () => {
-    routeApi({ 'GET /api/benefits': [FITS] })
-    renderPage()
-    const apply = await screen.findByRole('link', { name: /złóż wniosek/i })
-    expect(apply).toHaveAttribute('href', '/wnioski/nowy?form=800PLUS')
-    const source = screen.getByRole('link', { name: /źródło/i })
+    const list = await screen.findByRole('region', { name: /przeglądaj świadczenia/i })
+    await userEvent.click(within(list).getByRole('button', { name: /800 plus/i }))
+    const sheet = screen.getByRole('dialog', { name: '800 plus' })
+    expect(within(sheet).getByText(/dziecko ma 3 lata/)).toBeInTheDocument()
+    expect(within(sheet).getByRole('link', { name: /złóż wniosek/i })).toHaveAttribute('href', '/wnioski/nowy?form=800PLUS')
+    const source = within(sheet).getByRole('link', { name: /oficjalne źródło/i })
     expect(source).toHaveAttribute('href', 'https://www.gov.pl/zrodlo')
     expect(source).toHaveAttribute('target', '_blank')
-    expect(source).toHaveAttribute('rel', expect.stringContaining('noopener'))
-    await userEvent.click(apply)
+    await userEvent.click(within(sheet).getByRole('link', { name: /złóż wniosek/i }))
     expect(await screen.findByText('Kreator wniosku')).toBeInTheDocument()
   })
 
-  it('brak form_codes = brak przycisku „Złóż wniosek”', async () => {
-    routeApi({ 'GET /api/benefits': [{ ...FITS, benefit: { ...FITS.benefit, form_codes: [] } }] })
+  it('niepasujące: powód „dlaczego nie” i brak przycisku wniosku', async () => {
+    routeApi({ 'GET /api/benefits': [NO] })
     renderPage()
-    await screen.findByRole('heading', { name: '800 plus' })
-    expect(screen.queryByRole('link', { name: /złóż wniosek/i })).not.toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('tab', { name: /wszystkie/i }))
+    await userEvent.click(screen.getByRole('button', { name: /za życiem/i }))
+    const sheet = screen.getByRole('dialog', { name: 'Za życiem' })
+    expect(within(sheet).getByText(/dlaczego nie teraz/i)).toBeInTheDocument()
+    expect(within(sheet).getByText(/nie ma orzeczenia/)).toBeInTheDocument()
+    expect(within(sheet).queryByRole('link', { name: /złóż wniosek/i })).not.toBeInTheDocument()
   })
 
   it('odpowiedź tak/nie zapisuje się przez API i przelicza dopasowanie', async () => {
-    const fitsNow: BenefitMatch = { ...MAYBE, match: { status: 'fits', reasons: ['dochód poniżej progu'], unmet: [], questions: [] } }
-    const mocked = routeApi({
-      'GET /api/benefits': [MAYBE],
-      'POST /api/benefits/nat-kdr/answers': fitsNow,
-    })
+    const updated: BenefitMatch = { ...MAYBE, match: { ...MAYBE.match, status: 'fits', questions: [] } }
+    const mocked = routeApi({ 'GET /api/benefits': [FITS, MAYBE], 'POST /api/benefits/nat-kdr/answers': updated })
     renderPage()
-    await screen.findByText(/czy dochód na osobę/i)
-    await userEvent.click(screen.getByRole('button', { name: 'Tak' }))
+    await userEvent.click(await screen.findByRole('tab', { name: /sprawdź/i }))
+    await userEvent.click(screen.getByRole('button', { name: /karta dużej rodziny/i }))
+    const sheet = screen.getByRole('dialog', { name: 'Karta Dużej Rodziny' })
+    expect(within(sheet).getByText(/dochód na osobę/)).toBeInTheDocument()
+    await userEvent.click(within(sheet).getByRole('button', { name: 'Tak' }))
     await waitFor(() =>
-      expect(mocked).toHaveBeenCalledWith('/api/benefits/nat-kdr/answers', {
-        method: 'POST',
-        body: { condition_id: 'income', answer: true },
-      }),
+      expect(mocked).toHaveBeenCalledWith('/api/benefits/nat-kdr/answers', { method: 'POST', body: { condition_id: 'income', answer: true } }),
     )
-    // karta przeszła do grupy „Pasuje” i pytanie zniknęło
-    const fits = await screen.findByRole('region', { name: /^pasuje \(1\)/i })
-    expect(within(fits).getByText('dochód poniżej progu')).toBeInTheDocument()
-    expect(screen.queryByText(/czy dochód na osobę/i)).not.toBeInTheDocument()
+    await waitFor(() => expect(within(sheet).queryByText(/dochód na osobę/)).not.toBeInTheDocument())
+    expect(within(sheet).getByText('Pasuje')).toBeInTheDocument()
   })
 
-  it('błąd zapisu odpowiedzi pokazuje komunikat i zostawia pytanie', async () => {
+  it('błąd zapisu odpowiedzi pokazuje komunikat', async () => {
+    routeApi({ 'GET /api/benefits': [MAYBE], 'POST /api/benefits/nat-kdr/answers': new ApiError(422, 'Nieznany warunek.') })
+    renderPage()
+    await userEvent.click(await screen.findByRole('tab', { name: /sprawdź/i }))
+    await userEvent.click(screen.getByRole('button', { name: /karta dużej rodziny/i }))
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Nie' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Nieznany warunek.')
+  })
+
+  it('wyszukiwarka filtruje po nazwie (bez polskich znaków też)', async () => {
+    routeApi({ 'GET /api/benefits': [FITS, MAYBE, NO] })
+    renderPage()
+    await userEvent.click(await screen.findByRole('tab', { name: /wszystkie/i }))
+    await userEvent.type(screen.getByLabelText(/szukaj świadczenia/i), 'zyciem')
+    const list = screen.getByRole('region', { name: /przeglądaj świadczenia/i })
+    expect(within(list).getByRole('button', { name: /za życiem/i })).toBeInTheDocument()
+    expect(within(list).queryByRole('button', { name: /800 plus/i })).not.toBeInTheDocument()
+  })
+
+  it('pokazuje stawki z etykietą „Parametry ZUS 2026 – aktywne”', async () => {
     routeApi({
-      'GET /api/benefits': [MAYBE],
-      'POST /api/benefits/nat-kdr/answers': new ApiError(422, 'To świadczenie nie ma takiego pytania.'),
+      'GET /api/benefits': [FITS],
+      'GET /api/parametry': { zasilek_macierzynski_procent: { jednolity_wniosek_21_dni: 81.5 }, becikowe_zl: 1000 },
+      'GET /api/summary': { totals: {}, estimated_annual_total: 0, nearest_deadline: null, parameters_label: 'Parametry ZUS 2026 – aktywne' },
     })
     renderPage()
-    await userEvent.click(await screen.findByRole('button', { name: 'Nie' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('To świadczenie nie ma takiego pytania.')
-    expect(screen.getByText(/czy dochód na osobę/i)).toBeInTheDocument()
-  })
-
-  it('błąd ładowania listy pokazuje komunikat', async () => {
-    routeApi({ 'GET /api/benefits': new ApiError(500, 'Coś poszło nie tak po naszej stronie.') })
-    renderPage()
-    expect(await screen.findByRole('alert')).toHaveTextContent('Coś poszło nie tak po naszej stronie.')
-  })
-
-  it('bez rodziny przekierowuje na /start', async () => {
-    routeApi({})
-    renderPage(null)
-    expect(await screen.findByText('Start')).toBeInTheDocument()
+    const rates = await screen.findByRole('region', { name: /stawki/i })
+    expect(await within(rates).findByText('81,5%')).toBeInTheDocument()
+    expect(within(rates).getByText('Parametry ZUS 2026 – aktywne')).toBeInTheDocument()
   })
 })

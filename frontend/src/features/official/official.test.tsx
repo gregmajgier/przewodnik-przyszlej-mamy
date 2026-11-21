@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,6 +8,7 @@ import type { User } from '../../lib/types'
 import { makeSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import BenefitEditor from './BenefitEditor'
+import BenefitsList from './BenefitsList'
 import OfficialLayout from './OfficialLayout'
 import OfficialLogin from './OfficialLogin'
 import type { OfficialBenefit } from './types'
@@ -85,8 +86,9 @@ describe('Panel urzędnika', () => {
         </MemoryRouter>
       </SessionContext.Provider>,
     )
-    await userEvent.type(screen.getByLabelText('E-mail służbowy'), 'urzednik.krakow@mrodzina.local')
-    await userEvent.type(screen.getByLabelText('Hasło'), 'demo1234')
+    // formularz jest od razu wypełniony kontem testowym gminy Kraków
+    expect(screen.getByLabelText('E-mail służbowy')).toHaveValue('urzednik.krakow@mrodzina.local')
+    expect(screen.getByLabelText('Hasło')).toHaveValue('demo1234')
     await userEvent.click(screen.getByRole('button', { name: 'Zaloguj się' }))
     expect(session.loginOfficial).toHaveBeenCalledWith('urzednik.krakow@mrodzina.local', 'demo1234')
     expect(await screen.findByText('PANEL')).toBeInTheDocument()
@@ -106,7 +108,9 @@ describe('Panel urzędnika', () => {
         </MemoryRouter>
       </SessionContext.Provider>,
     )
+    await userEvent.clear(screen.getByLabelText('E-mail służbowy'))
     await userEvent.type(screen.getByLabelText('E-mail służbowy'), 'a@b.pl')
+    await userEvent.clear(screen.getByLabelText('Hasło'))
     await userEvent.type(screen.getByLabelText('Hasło'), 'zle')
     await userEvent.click(screen.getByRole('button', { name: 'Zaloguj się' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Nieprawidłowy e-mail lub hasło')
@@ -175,5 +179,55 @@ describe('Panel urzędnika', () => {
     expect(await screen.findByText(/dodaj je ręcznie/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Dodaj warunek ręcznie' }))
     expect(screen.getByLabelText('Warunek 1')).toBeInTheDocument()
+  })
+
+  it('lista: liczniki stanów, najpierw to, co czeka na urzędnika, filtr i wyszukiwarka', async () => {
+    routeApi({
+      'GET /api/official/benefits': [
+        { ...BENEFIT, id: 'p1', name: 'Karta Rodzinna', status: 'published', conditions_approved: true },
+        { ...BENEFIT, id: 'd1', name: 'Wyprawka', status: 'draft' },
+        { ...EXTRACTED, id: 'a1', name: 'Półkolonie' },
+      ],
+    })
+    render(
+      <MemoryRouter>
+        <BenefitsList />
+      </MemoryRouter>,
+    )
+    const rows = await screen.findAllByRole('link', { name: /karta|wyprawka|półkolonie/i })
+    expect(rows.map((r) => r.getAttribute('href'))).toEqual(['/urzednik/swiadczenia/a1', '/urzednik/swiadczenia/d1', '/urzednik/swiadczenia/p1'])
+    expect(within(rows[0]).getByText('Sprawdź i zatwierdź warunki')).toBeInTheDocument()
+    expect(screen.getByText(/2 świadczenia czekają/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /opublikowane/i }))
+    expect(screen.getAllByRole('link', { name: /karta|wyprawka|półkolonie/i })).toHaveLength(1)
+    await userEvent.click(screen.getByRole('tab', { name: /wszystkie/i }))
+    await userEvent.type(screen.getByRole('searchbox'), 'wypr')
+    expect(screen.getAllByRole('link', { name: /karta|wyprawka|półkolonie/i }).map((r) => r.getAttribute('href'))).toEqual(['/urzednik/swiadczenia/d1'])
+  })
+
+  it('bez opisu dla rodziców nie da się opublikować', async () => {
+    routeApi({ 'GET /api/official/benefits/b1': { ...BENEFIT, description: '', extra_text: null } })
+    renderEditor()
+    expect(await screen.findByRole('button', { name: 'Opublikuj' })).toBeDisabled()
+    fireEvent.change(screen.getByLabelText('Opis dla rodziców'), { target: { value: 'Dopłata dla rodzin.' } })
+    expect(screen.getByRole('button', { name: 'Zapisz' })).toBeInTheDocument() // pasek niezapisanych zmian
+    expect(screen.getByRole('button', { name: 'Opublikuj' })).toBeDisabled() // najpierw zapis
+  })
+
+  it('konto testowe loguje jednym kliknięciem', async () => {
+    const session = makeSession({ user: null, loginOfficial: vi.fn(async () => OFFICIAL) })
+    render(
+      <SessionContext.Provider value={session}>
+        <MemoryRouter initialEntries={['/urzednik/logowanie']}>
+          <Routes>
+            <Route path="/urzednik/logowanie" element={<OfficialLogin />} />
+            <Route path="/urzednik" element={<p>PANEL</p>} />
+          </Routes>
+        </MemoryRouter>
+      </SessionContext.Provider>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: /gmina miejska kraków/i }))
+    expect(session.loginOfficial).toHaveBeenCalledWith('urzednik.krakow@mrodzina.local', 'demo1234')
+    expect(await screen.findByText('PANEL')).toBeInTheDocument()
   })
 })

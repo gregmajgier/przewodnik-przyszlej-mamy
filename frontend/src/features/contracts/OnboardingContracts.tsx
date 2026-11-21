@@ -7,7 +7,7 @@ import type { Contract } from './types'
 export default function OnboardingContracts() {
   const [added, setAdded] = useState<Contract[]>([])
   return (
-    <div className="stack">
+    <div className="page page-narrow stack" style={{ paddingTop: '1.5rem' }}>
       <h1>Twoje umowy</h1>
       <p className="muted">
         Ten krok jest opcjonalny. Dodaj umowę, a sprawdzimy, czy nic nie zagraża Twoim świadczeniom

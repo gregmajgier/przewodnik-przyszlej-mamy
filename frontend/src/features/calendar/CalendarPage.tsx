@@ -3,6 +3,7 @@ import EventCard from './EventCard'
 import './calendar.css'
 import { isAtRisk } from './types'
 import { useCalendar } from './useCalendar'
+import { PageHeader } from '../../ui/controls'
 
 export default function CalendarPage() {
   const { events, error, busyId, toggle } = useCalendar()
@@ -13,8 +14,8 @@ export default function CalendarPage() {
   const riskCount = (events ?? []).filter(isAtRisk).length
 
   return (
-    <div className="stack">
-      <h1>Kalendarz</h1>
+    <div className="page page-narrow stack">
+      <PageHeader title="Kalendarz" eyebrow="Terminy całej rodziny" />
       <p className="muted">
         Terminy wniosków, złożone wnioski i ostrzeżenia całej rodziny. Odklikaj to, co już zrobione —
         drugi rodzic też to zobaczy.

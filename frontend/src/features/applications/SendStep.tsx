@@ -7,11 +7,15 @@ import type { Application } from './types'
 interface Props {
   app: Application
   onChange: (app: Application) => void
+  /** Wniosku nie ma już w systemie (404) — kreator pokazuje stan „Tego wniosku już nie ma”. */
+  onGone?: () => void
 }
+
+const isGone = (e: unknown) => e instanceof ApiError && e.status === 404
 
 const errText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.detail : fallback)
 
-export default function SendStep({ app, onChange }: Props) {
+export default function SendStep({ app, onChange, onGone }: Props) {
   const [signing, setSigning] = useState(false)
   const [signBusy, setSignBusy] = useState(false)
   const [signError, setSignError] = useState<string | null>(null)
@@ -28,6 +32,11 @@ export default function SendStep({ app, onChange }: Props) {
       onChange(await api<Application>(`/api/applications/${app.id}/sign`, { method: 'POST' }))
       setSigning(false)
     } catch (e) {
+      if (isGone(e) && onGone) {
+        setSigning(false)
+        onGone()
+        return
+      }
       setSignError(errText(e, 'Nie udało się podpisać wniosku.'))
     } finally {
       setSignBusy(false)
@@ -40,6 +49,10 @@ export default function SendStep({ app, onChange }: Props) {
     try {
       onChange(await api<Application>(`/api/applications/${app.id}/submit`, { method: 'POST' }))
     } catch (e) {
+      if (isGone(e) && onGone) {
+        onGone()
+        return
+      }
       setError(errText(e, 'Nie udało się wysłać wniosku.'))
       setSending(false)
     }
@@ -88,7 +101,7 @@ export default function SendStep({ app, onChange }: Props) {
           </button>
         ) : (
           <>
-            <span className="badge-sim">Podpisano (symulacja)</span>
+            <span className="pill pill-green">Podpisano Profilem Zaufanym</span>
             {app.channel === 'pdf_download' && (
               <button type="button" className="btn btn-secondary" onClick={() => void download()}>
                 Pobierz PDF

@@ -83,7 +83,7 @@ export default function JaskolkaHome() {
   )
 
   return (
-    <div className="sit-home stack">
+    <div className="page page-narrow sit-home stack">
       <header>
         <h1>Dla Was</h1>
         <p className="sit-lead">

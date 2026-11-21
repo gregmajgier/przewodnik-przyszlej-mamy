@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
-import { describeChild } from '../../lib/format'
 import { useSession } from '../../lib/session'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { Avatar, PageHeader, Pill } from '../../ui/controls'
+import { childLabel, childTone, describeAge } from '../matters/model'
 import { CHANNEL_LABEL } from './types'
 import type { Application, Channel, FormEntry, FormsResponse } from './types'
+import '../../ui/ui.css'
+import '../onboarding/flow.css'
 import './applications.css'
 
 const API_URL: string = import.meta.env.VITE_API_URL ?? ''
 
 export default function NewApplicationPage() {
-  const { family, loading } = useSession()
+  const { family } = useSession()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const requested = params.get('form') ?? ''
@@ -21,6 +25,9 @@ export default function NewApplicationPage() {
   const [childId, setChildId] = useState('')
   const [channel, setChannel] = useState<Channel | ''>('')
   const [busy, setBusy] = useState(false)
+  const [showAll, setShowAll] = useState(false)
+  // po wyborze lista zwija się do jednej karty, żeby dalsze kroki były od razu pod nią
+  const [picking, setPicking] = useState(false)
 
   useEffect(() => {
     if (!family) return
@@ -33,22 +40,32 @@ export default function NewApplicationPage() {
     }
   }, [family])
 
-  if (loading) return <p role="status">Ładowanie…</p>
-  if (!family) return <Navigate to="/start" replace />
+  const forms = useMemo(() => data?.forms ?? [], [data])
+  const recommended = useMemo(() => new Set(data?.recommended_flow ?? []), [data])
+  if (!family) return null
 
-  const forms = data?.forms ?? []
   const form: FormEntry | undefined = forms.find((f) => f.code === code)
-  const recommended = new Set(data?.recommended_flow ?? [])
   // wnioski nie dotyczą dzieci w sytuacji straty — poza wsparciem po stracie (`loss_ok`)
   const children = family.children.filter((c) => c.situation !== 'loss' || form?.loss_ok === true)
   const unsupported = data !== null && requested !== '' && !forms.some((f) => f.code === requested)
   const needsChild = form?.requires_child === true
   const effectiveChild = childId || (needsChild && children.length === 1 ? children[0].id : '')
   const effectiveChannel = channel || form?.default_channel || ''
-  const canStart = form !== undefined && (!needsChild || effectiveChild !== '') && !busy
+  const canStart = form !== undefined && !picking && (!needsChild || effectiveChild !== '') && !busy
+  const ordered = [...forms].sort((a, b) => Number(recommended.has(b.code)) - Number(recommended.has(a.code)))
+  const collapsed = form !== undefined && !picking
+  const top = ordered.slice(0, 6)
+  const visible = collapsed ? [form] : showAll || (form && !top.includes(form)) ? ordered : top
 
-  async function start(e: FormEvent) {
-    e.preventDefault()
+  function choose(f: FormEntry) {
+    if (f.code !== code) {
+      setCode(f.code)
+      setChannel('')
+    }
+    setPicking(false)
+  }
+
+  async function start() {
     if (!form || !canStart) return
     setBusy(true)
     setError(null)
@@ -65,8 +82,11 @@ export default function NewApplicationPage() {
   }
 
   return (
-    <div className="stack" style={{ maxWidth: '40rem' }}>
-      <h1>Nowy wniosek</h1>
+    <div className="page page-narrow">
+      <PageHeader title="Nowy wniosek" eyebrow="Wypełnimy go za Ciebie" back="/wnioski">
+        <p className="muted">Wybierz, co chcesz złożyć — dane uzupełnimy z ZUS, mObywatela i Waszego profilu.</p>
+      </PageHeader>
+
       {error && (
         <p role="alert" className="alert">
           {error}
@@ -74,76 +94,111 @@ export default function NewApplicationPage() {
       )}
       {unsupported && (
         <p role="note" className="notice">
-          Dla wniosku <strong>{requested}</strong> nie ma jeszcze kreatora w aplikacji. Wybierz inny wniosek albo pobierz{' '}
+          Dla wniosku <strong>{requested}</strong> nie mamy jeszcze kreatora. Wybierz inny wniosek albo pobierz{' '}
           <a href={`${API_URL}/api/wnioski/${encodeURIComponent(requested)}/pdf`}>pusty formularz</a>.
         </p>
       )}
-      {!data && !error && <p role="status">Wczytuję listę wniosków…</p>}
+      {!data && !error && <div className="skeleton" style={{ height: '16rem' }} role="status" aria-label="Wczytuję listę wniosków" />}
 
       {data && (
-        <form className="card stack" onSubmit={start} noValidate>
-          <div className="field">
-            <label htmlFor="form-code">Rodzaj wniosku</label>
-            <select
-              id="form-code"
-              value={code}
-              onChange={(e) => {
-                setCode(e.target.value)
-                setChannel('')
-              }}
-            >
-              <option value="">— wybierz —</option>
-              {forms.map((f) => (
-                <option key={f.code} value={f.code}>
-                  {f.name}
-                  {recommended.has(f.code) ? ' (polecany)' : ''}
-                </option>
+        <div className="stack">
+          <section aria-labelledby="pick-h">
+            <div className="section-head" style={{ marginBottom: '0.75rem' }}>
+              <h2 id="pick-h">Rodzaj wniosku</h2>
+              {collapsed && (
+                <button type="button" className="link-button" onClick={() => setPicking(true)}>
+                  Zmień wniosek
+                </button>
+              )}
+            </div>
+            <div className="form-picker" role="radiogroup" aria-labelledby="pick-h">
+              {visible.map((f) => (
+                <button
+                  key={f.code}
+                  type="button"
+                  role="radio"
+                  aria-checked={code === f.code}
+                  className="form-option"
+                  onClick={() => (collapsed ? setPicking(true) : choose(f))}
+                >
+                  <span className="icon-tile tone-sky">
+                    <Icon name={f.channels.includes('portal_agent') ? 'globe' : 'doc'} size={20} />
+                  </span>
+                  <span className="form-option-main">
+                    <strong>{f.name}</strong>
+                    <span>{[f.institution, f.deadline ? `termin: ${f.deadline}` : null].filter(Boolean).join(' · ')}</span>
+                  </span>
+                  {recommended.has(f.code) && <Pill tone="pink">Polecany</Pill>}
+                </button>
               ))}
-            </select>
-          </div>
+            </div>
+            {!collapsed && visible.length < ordered.length && (
+              <button type="button" className="flow-skip" style={{ marginTop: '0.5rem' }} onClick={() => setShowAll(true)}>
+                Pokaż wszystkie ({ordered.length})
+              </button>
+            )}
+          </section>
 
-          {form?.deadline && <p className="muted">Termin: {form.deadline}</p>}
-
-          {needsChild && (
-            <div className="field">
-              <label htmlFor="child">Dziecko, którego dotyczy wniosek</label>
+          {collapsed && needsChild && (
+            <section aria-labelledby="child-h">
+              <h2 id="child-h">Którego dziecka dotyczy?</h2>
               {children.length === 0 ? (
                 <p className="muted">
                   Najpierw dodaj dziecko w zakładce <Link to="/rodzina">Rodzina</Link>.
                 </p>
               ) : (
-                <select id="child" value={effectiveChild} onChange={(e) => setChildId(e.target.value)}>
-                  <option value="">— wybierz —</option>
-                  {children.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({describeChild(c)})
-                    </option>
+                <div className="form-picker" role="radiogroup" aria-labelledby="child-h">
+                  {children.map((c, i) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={effectiveChild === c.id}
+                      className="form-option"
+                      onClick={() => setChildId(c.id)}
+                    >
+                      <Avatar name={childLabel(c)} tone={childTone(i)} icon={c.status === 'expected' ? 'baby' : undefined} size={40} />
+                      <span className="form-option-main">
+                        <strong>{childLabel(c)}</strong>
+                        <span>{describeAge(c)}</span>
+                      </span>
+                    </button>
                   ))}
-                </select>
+                </div>
               )}
+            </section>
+          )}
+
+          {collapsed && form.channels.length > 1 && (
+            <div className="channel-picker" role="radiogroup" aria-label="Jak złożyć wniosek?">
+              <h2 style={{ margin: 0 }}>Jak złożyć wniosek?</h2>
+              {form.channels.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  role="radio"
+                  aria-checked={effectiveChannel === c}
+                  className="channel-option"
+                  onClick={() => setChannel(c)}
+                >
+                  <Icon name={c === 'portal_agent' ? 'globe' : c === 'employer_email' ? 'mail' : 'download'} size={20} />
+                  <span>{CHANNEL_LABEL[c]}</span>
+                  <span className="channel-radio" aria-hidden="true" />
+                </button>
+              ))}
             </div>
           )}
-
-          {form && form.channels.length > 1 && (
-            <fieldset className="stack channel-picker">
-              <legend>Jak złożyć wniosek?</legend>
-              {form.channels.map((c) => (
-                <label key={c} className="row">
-                  <input type="radio" name="channel" checked={effectiveChannel === c} onChange={() => setChannel(c)} />
-                  <span>{CHANNEL_LABEL[c]}</span>
-                </label>
-              ))}
-            </fieldset>
+          {collapsed && form.only_electronic && (
+            <p className="notice">
+              <Icon name="sparkle" size={18} style={{ display: 'inline', verticalAlign: '-3px' }} /> Ten wniosek składa się
+              tylko elektronicznie — formularz online wypełni za Ciebie agent.
+            </p>
           )}
-          {form?.only_electronic && <p className="muted">Ten wniosek składa się wyłącznie elektronicznie — wypełni go dla Ciebie agent.</p>}
 
-          <div className="row">
-            <button type="submit" className="btn" disabled={!canStart}>
-              Zacznij wypełnianie
-            </button>
-            <Link to="/wnioski">Anuluj</Link>
-          </div>
-        </form>
+          <Button block icon="arrowRight" disabled={!canStart} onClick={() => void start()}>
+            {busy ? 'Przygotowuję…' : 'Zacznij wypełnianie'}
+          </Button>
+        </div>
       )}
     </div>
   )

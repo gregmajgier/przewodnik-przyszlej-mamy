@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FamilyView } from '../../lib/types'
@@ -53,7 +53,8 @@ describe('FamilyPage', () => {
     })
     const session = makeSession()
     renderWithSession(<FamilyPage />, { session })
-    expect(await screen.findByText(/Piotr Nowak chce dołączyć/i)).toBeInTheDocument()
+    expect(await screen.findByText(/chce dołączyć/i)).toBeInTheDocument()
+    expect(screen.getByText('Piotr Nowak')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /akceptuj/i }))
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/families/me/join-requests/jr-1/accept', {
@@ -106,15 +107,36 @@ describe('FamilyPage', () => {
     })
     renderWithSession(<FamilyPage />)
     expect(await screen.findByText('ABCD2345')).toBeInTheDocument()
-    expect(screen.getByText('Maja')).toBeInTheDocument()
-    expect(screen.getByText(/w drodze, termin porodu 20\.01\.2027/i)).toBeInTheDocument()
-    expect(screen.getByText('Anna Nowak')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Maja' })).toBeInTheDocument()
+    expect(screen.getByText(/w drodze · termin 20\.01\.2027/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Anna Nowak/ })).toHaveAttribute('href', `/sprawy/${ANNA.id}`)
   })
 
-  it('bez rodziny kieruje do /start', async () => {
+  it('błąd pobrania rodziny pokazuje komunikat', async () => {
     const { ApiError } = await import('../../lib/api')
-    routeApi({ 'GET /api/families/me': new ApiError(404, 'Nie należysz jeszcze do żadnej rodziny.') })
+    routeApi({ 'GET /api/families/me': new ApiError(500, 'Coś poszło nie tak po naszej stronie.') })
     renderWithSession(<FamilyPage />)
-    expect(await screen.findByRole('link', { name: /załóż rodzinę/i })).toHaveAttribute('href', '/start')
+    expect(await screen.findByRole('alert')).toHaveTextContent(/coś poszło nie tak/i)
+  })
+
+  it('dodanie dziecka w arkuszu: imię, „w drodze”, termin w formacie DD.MM.RRRR', async () => {
+    const mocked = routeApi({ 'GET /api/families/me': view(), 'POST /api/families/me/children': { id: 'c9' } })
+    renderWithSession(<FamilyPage />)
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: /dodaj dziecko/i }))
+    const sheet = await screen.findByRole('dialog', { name: /dodaj dziecko/i })
+    await new Promise((r) => setTimeout(r, 50)) // arkusz ustawia fokus na pierwszym polu
+    await user.click(within(sheet).getByRole('tab', { name: /w drodze/i }))
+    await user.type(within(sheet).getByLabelText('Imię'), 'Zosia')
+    await user.type(within(sheet).getByLabelText(/termin porodu/i), '20012027')
+    const save = within(sheet).getByRole('button', { name: /^dodaj dziecko$/i })
+    await waitFor(() => expect(save).toBeEnabled())
+    await user.click(save)
+    await waitFor(() =>
+      expect(mocked).toHaveBeenCalledWith('/api/families/me/children', {
+        method: 'POST',
+        body: { name: 'Zosia', birth_date: null, due_date: '2027-01-20' },
+      }),
+    )
   })
 })

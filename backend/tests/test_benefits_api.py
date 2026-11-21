@@ -154,6 +154,27 @@ def test_answer_is_saved_in_profile_so_it_is_not_asked_again(client):
     assert _by_id(client, h)["nat-dobry-start"]["match"]["questions"] == []
 
 
+def test_per_child_benefits_point_at_children(client):
+    h = _setup_family(client)
+    kids = {c["name"]: c["id"] for c in client.get("/api/families/me", headers=h).json()["children"]}
+    items = _by_id(client, h)
+    assert items["nat-800-plus"]["benefit"]["per_child"] is True
+    assert sorted(items["nat-800-plus"]["match"]["child_ids"]) == sorted([kids["Maja"], kids["Antek"]])
+    # stypendium szkolne: tylko uczennica (7 lat), nie 3-latek ani dziecko w drodze
+    assert items["nat-stypendium-szkolne"]["match"]["child_ids"] == [kids["Maja"]]
+    assert items["nat-leki-dzieci"]["match"]["status"] == "fits"
+    assert items["nat-ulga-prorodzinna"]["match"]["child_ids"] == []  # świadczenie całej rodziny
+
+
+def test_income_answer_is_shared_with_benefits_with_higher_limit(client):
+    h = _setup_family(client)
+    client.post("/api/benefits/nat-zasilek-rodzinny/answers", json={"condition_id": "income", "answer": True}, headers=h)
+    items = _by_id(client, h)
+    # „dochód do 674 zł” rozstrzyga też próg 823 zł stypendium szkolnego — zostaje tylko pytanie o szkołę
+    assert [q["condition_id"] for q in items["nat-stypendium-szkolne"]["match"]["questions"]] == ["szkola"]
+    assert [q["condition_id"] for q in items["nat-dodatek-rok-szkolny"]["match"]["questions"]] == ["szkola"]
+
+
 def test_answer_unknown_condition_404(client):
     h = _setup_family(client)
     r = client.post(
@@ -226,7 +247,8 @@ def test_analysis_estimate_and_nearest_deadline(client):
     a = client.get("/api/analysis", headers=h).json()
     items = _by_id(client, h)
     expected = sum(
-        x["benefit"]["annual_value_estimate"] or 0
+        (x["benefit"]["annual_value_estimate"] or 0)
+        * (max(1, len(x["match"]["child_ids"])) if x["benefit"]["per_child"] else 1)
         for x in items.values()
         if x["match"]["status"] == "fits" and x["benefit"]["category"] == "benefit"
     )

@@ -22,8 +22,26 @@ export interface Contract extends ContractDraft {
   user_id: string
   family_id: string
   filename: string | null
+  source_doc_id?: string | null
   confirmed: boolean
   created_at: string
+}
+
+/** Umowa z e-teczki pracodawcy, przypisana do zalogowanego rodzica (GET /api/contracts/documents). */
+export interface EmploymentDocument {
+  id: string
+  title: string
+  filename: string
+  kind: ContractKind
+  employer_name: string
+  position: string | null
+  fte: number | null
+  gross_monthly: number | null
+  start_date: string
+  end_date: string | null
+  indefinite: boolean
+  voluntary_sickness: boolean | null
+  contract_id: string | null
 }
 
 export interface ScanResult {

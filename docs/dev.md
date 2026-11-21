@@ -228,6 +228,14 @@ i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę�
   porodem, zlecenie bez dobrowolnego chorobowego, zadłużenie JDG). Narzędzie MCP: `ryzyka`.
   Ryzyka pojawiają się tylko, gdy w rodzinie jest dziecko „w drodze” z terminem porodu.
 
+**Umowy z e-teczki pracodawcy (demo, onboarding):** każda persona ma w `seed/personas.py` (`employment_docs`) umowę
+o pracę i umowę zlecenia. `GET /api/contracts/documents` — lista umów zalogowanego rodzica,
+`GET /api/contracts/documents/{id}/pdf` — PDF generowany na żądanie (`services/employment_docs.py`, nic nie
+przechowujemy), `POST /api/contracts/documents/{id}/import` — dodaje umowę jako zatwierdzoną (idempotentnie).
+W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (SYMULACJA — dane
+pochodzą z persony, model nie jest wołany). Asystent czatu widzi umowy w `profil_rodziny` (bez wynagrodzenia) i może
+cytować ich paragrafy narzędziem `tresc_umowy` — tylko umowy własne, bez paragrafu o wynagrodzeniu.
+
 **Skan w trybie demo (bez Azure):** `DemoLLM` odczytuje umowę regexami (`app/seed/demo_handlers.py`) — działa
 dla plików tekstowych/PDF z etykietami „Pracodawca:”, „Stanowisko:”, „Wynagrodzenie:” itd. (zdjęć w demo nie
 odczytamy). Przykładowa umowa Anny Nowak jest w repo: `backend/app/seed/sample_umowa_anna_nowak.pdf`.

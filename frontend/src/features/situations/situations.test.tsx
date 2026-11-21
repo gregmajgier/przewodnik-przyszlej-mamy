@@ -4,6 +4,7 @@ import { Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppShell } from '../../components/AppShell'
 import type { Child, FamilyView } from '../../lib/types'
+import { markOnboarded } from '../../lib/onboarding'
 import { routeApi } from '../../test/routeApi'
 import { ANNA, makeSession, renderWithSession } from '../../test/utils'
 import FamilyPage from '../family/FamilyPage'
@@ -221,9 +222,12 @@ describe('JaskolkaHome', () => {
 })
 
 describe('AppShell w trybie jaskółki', () => {
+  beforeEach(() => markOnboarded(ANNA.id))
+
   function tree() {
     return (
       <Routes>
+        <Route path="/start" element={<p>Onboarding</p>} />
         <Route element={<AppShell />}>
           <Route path="/" element={<p>Panel z kolorowymi kafelkami</p>} />
           <Route path="/rodzina" element={<p>Strona rodziny</p>} />
@@ -255,10 +259,10 @@ describe('AppShell w trybie jaskółki', () => {
     expect(document.documentElement.dataset.theme).toBeUndefined()
   })
 
-  it('bez rodziny nie pyta o tryb', () => {
+  it('bez rodziny nie pyta o tryb (kieruje do onboardingu)', () => {
     const api = routeApi({})
     renderWithSession(tree(), { route: '/', session: makeSession() })
-    expect(screen.getByText('Panel z kolorowymi kafelkami')).toBeInTheDocument()
+    expect(screen.getByText('Onboarding')).toBeInTheDocument()
     expect(api).not.toHaveBeenCalled()
   })
 
@@ -283,10 +287,17 @@ describe('FamilyPage: zmiana sytuacji i „Za życiem”', () => {
   it('karta dziecka ma spokojną opcję „Zmiana sytuacji”; dziecko w sytuacji — tylko dyskretną informację', async () => {
     routeApi({ 'GET /api/families/me': view([MAJA, LOST]) })
     renderWithSession(<FamilyPage />, { session: makeSession({ family: view([MAJA, LOST]) }) })
-    expect(await screen.findByText('Maja')).toBeInTheDocument()
-    expect(screen.getAllByText('Zmiana sytuacji')).toHaveLength(1) // tylko dla Mai
+    const user = userEvent.setup()
+    expect(await screen.findByRole('heading', { name: 'Maja' })).toBeInTheDocument()
+    expect(screen.getByText('Jesteśmy z Wami')).toBeInTheDocument() // dziecko w sytuacji: tylko dyskretna informacja
+    await user.click(screen.getByRole('button', { name: 'Ustawienia: Maja' }))
+    expect(screen.getByText('Zmiana sytuacji')).toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: /ciężka, nieodwracalna choroba/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Zamknij' }))
+    await user.click(screen.getByRole('button', { name: 'Ustawienia: Maleństwo' }))
     expect(screen.getByText(/Zmiana sytuacji została zapisana/)).toBeInTheDocument()
-    expect(screen.getAllByRole('checkbox')).toHaveLength(1) // flaga „Za życiem” tylko dla Mai
+    expect(screen.queryByText('Zmiana sytuacji')).toBeNull()
+    expect(screen.queryByRole('switch')).toBeNull()
   })
 
   it('flaga „Za życiem” zapisuje się i pokazuje komunikat o dodanych świadczeniach', async () => {
@@ -299,8 +310,10 @@ describe('FamilyPage: zmiana sytuacji i „Za życiem”', () => {
       },
     })
     renderWithSession(<FamilyPage />, { session: makeSession({ family: view([MAJA]) }) })
-    await userEvent.setup().click(await screen.findByRole('checkbox', { name: /Za życiem/ }))
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Ustawienia: Maja' }))
+    await user.click(screen.getByRole('switch', { name: /ciężka, nieodwracalna choroba/i }))
     expect(api).toHaveBeenCalledWith('/api/families/me/children/c-maja/serious-illness', { method: 'PATCH', body: { value: true } })
-    expect(await screen.findByText(/dodaliśmy do Twojej listy świadczenia/)).toBeInTheDocument()
+    expect(await screen.findByText(/Dodaliśmy świadczenia z programu „Za życiem”/)).toBeInTheDocument()
   })
 })

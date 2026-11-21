@@ -7,7 +7,7 @@ import { routeApi } from '../../test/routeApi'
 import ContractsPage from './ContractsPage'
 import RisksPanel from './RisksPanel'
 import type { Contract, ScanResult } from './types'
-import widget from './widget'
+import { RisksWidget } from './RisksPanel'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
@@ -122,14 +122,53 @@ describe('ContractsPage', () => {
   })
 })
 
-describe('RisksPanel / widget', () => {
+describe('ContractsPage — umowy z e-teczki pracodawcy', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('niedodaną umowę można dodać jednym kliknięciem', async () => {
+    const doc = {
+      id: 'umowa-o-prace-kcuw',
+      title: 'Umowa o pracę na czas nieokreślony',
+      filename: 'umowa.pdf',
+      kind: 'employment',
+      employer_name: CONFIRMED.employer_name,
+      position: 'Specjalistka ds. kadr i płac',
+      start_date: '2021-11-22',
+      end_date: null,
+      indefinite: true,
+      contract_id: null,
+    }
+    let added = false
+    const api = routeApi({
+      'GET /api/contracts': () => (added ? [{ ...CONFIRMED, source_doc_id: doc.id }] : []),
+      'GET /api/risks': [],
+      'GET /api/contracts/documents': () => [{ ...doc, contract_id: added ? 'contract-1' : null }],
+      [`POST /api/contracts/documents/${doc.id}/import`]: () => {
+        added = true
+        return { ...CONFIRMED, source_doc_id: doc.id }
+      },
+    })
+    renderWithSession(<ContractsPage />)
+    const section = await screen.findByRole('region', { name: /umowy z e-teczki pracodawcy/i })
+    expect(section).toHaveTextContent('Specjalistka ds. kadr i płac')
+    await userEvent.click(screen.getByRole('button', { name: /^dodaj$/i }))
+    await waitFor(() =>
+      expect(api).toHaveBeenCalledWith(`/api/contracts/documents/${doc.id}/import`, { method: 'POST' }),
+    )
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: /umowy z e-teczki pracodawcy/i })).not.toBeInTheDocument(),
+    )
+    expect(await screen.findByRole('button', { name: /podgląd pdf/i })).toBeInTheDocument()
+  })
+})
+
+describe('RisksPanel', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('bez ryzyk pokazuje „Brak ostrzeżeń”', async () => {
     routeApi({ 'GET /api/risks': [] })
-    renderWithSession(<widget.Component />)
+    renderWithSession(<RisksWidget />)
     expect(await screen.findByText(/Brak ostrzeżeń/)).toBeInTheDocument()
-    expect(widget.order).toBe(20)
   })
 
   it('pokazuje ryzyko z akcją i terminem', async () => {

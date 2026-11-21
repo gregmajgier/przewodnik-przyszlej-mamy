@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
+import { formatDate, timeAgo } from '../../lib/format'
 import { useSession } from '../../lib/session'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { PageHeader, Pill } from '../../ui/controls'
+import type { MailThread } from './mailTypes'
+import { CHANNEL_SHORT, senderLabel, SHORT, STATUS_TONE } from './useApplications'
 import MissingFieldsStep from './MissingFieldsStep'
 import PreviewStep from './PreviewStep'
 import SendStep from './SendStep'
@@ -26,10 +32,55 @@ function Stepper({ current }: { current: StepKey }) {
     <ol className="stepper" aria-label="Postęp składania wniosku">
       {STEPS.map((s, i) => (
         <li key={s.key} aria-current={s.key === current ? 'step' : undefined} className={i < index ? 'is-past' : ''}>
-          <span className="stepper-n">{i + 1}</span> {s.label}
+          <span className="stepper-n">{i < index ? <Icon name="check" size={14} stroke={2.6} /> : i + 1}</span>
+          <span className="stepper-label">{s.label}</span>
         </li>
       ))}
     </ol>
+  )
+}
+
+/** Korespondencja w sprawie wniosku — wczytana z Gmaila; odpowiedzi czyta asystent i aktualizuje status. */
+function Correspondence({ appId }: { appId: string }) {
+  const [thread, setThread] = useState<MailThread | null | undefined>(undefined)
+  useEffect(() => {
+    let cancelled = false
+    api<MailThread[]>('/api/mail/threads')
+      .then((ts) => !cancelled && setThread(ts.find((t) => t.application.id === appId) ?? null))
+      .catch(() => !cancelled && setThread(null))
+    return () => {
+      cancelled = true
+    }
+  }, [appId])
+  if (!thread || thread.messages.length === 0) return null
+  return (
+    <section className="section" aria-labelledby="mail-h">
+      <h2 id="mail-h">Korespondencja</h2>
+      <ol className="mail-thread">
+        {thread.messages.map((m) => (
+          <li key={m.id} className={`mail-item ${m.folder === 'sent' ? 'is-sent' : ''}`}>
+            <span className="mail-dot" aria-hidden="true">
+              <Icon name={m.folder === 'sent' ? 'arrowUpRight' : 'inbox'} size={16} />
+            </span>
+            <details className="mail-card">
+              <summary>
+                <span className="mail-head">
+                  <strong>{m.folder === 'sent' ? 'Wysłano' : senderLabel(m)}</strong>
+                  <span className="mail-time">{timeAgo(m.received_at)}</span>
+                </span>
+                <span className="mail-subject">{m.subject}</span>
+                {m.classification_summary && (
+                  <span className="mail-ai">
+                    <Icon name="sparkle" size={15} /> {m.classification_summary}
+                  </span>
+                )}
+              </summary>
+              <p className="mail-body">{m.body}</p>
+            </details>
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }
 
@@ -51,15 +102,12 @@ function DoneStep({ app }: { app: Application }) {
               Wysłaliśmy go do pracodawcy (adres w domenie <strong>{app.recipient_domain}</strong>). Kopię znajdziesz w poczcie.
             </p>
           )}
-          {app.channel === 'portal_agent' && <p>Złożyliśmy go w makiecie portalu (symulacja).</p>}
+          {app.channel === 'portal_agent' && <p>Złożyliśmy go przez formularz online. Odpowiedź urzędu pokaże się tutaj.</p>}
           {app.channel === 'pdf_download' && <p>Oznaczyliśmy go jako złożony samodzielnie.</p>}
           <div className="row">
-            <Link className="btn" to="/kalendarz">
+            <Button to="/kalendarz" leading="calendar" variant="secondary">
               Zobacz w kalendarzu
-            </Link>
-            <Link className="btn btn-secondary" to="/poczta">
-              Zobacz pocztę
-            </Link>
+            </Button>
           </div>
         </>
       )}
@@ -95,12 +143,19 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
   const [actionError, setActionError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [stage, setStage] = useState<'preview' | 'send'>('preview')
+  // wniosek zniknął (usunięty albo dane po stronie serwera zostały odświeżone) — zamiast błędu pokazujemy drogę dalej
+  const [gone, setGone] = useState(false)
+  const markGone = useCallback(() => setGone(true), [])
 
   useEffect(() => {
     let cancelled = false
     api<Application>(`/api/applications/${applicationId}`)
       .then((a) => !cancelled && setApp(a))
-      .catch((e) => !cancelled && setError(errText(e, 'Nie udało się wczytać wniosku.')))
+      .catch((e) => {
+        if (cancelled) return
+        if (e instanceof ApiError && e.status === 404) setGone(true)
+        else setError(errText(e, 'Nie udało się wczytać wniosku.'))
+      })
     api<FormsResponse>('/api/applications/forms')
       .then((f) => !cancelled && setForms(f.forms))
       .catch(() => undefined) // katalog służy tylko do wyboru kanału — kreator działa bez niego
@@ -116,7 +171,8 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
     try {
       setApp(await action())
     } catch (e) {
-      setActionError(errText(e, fallback))
+      if (e instanceof ApiError && e.status === 404) setGone(true)
+      else setActionError(errText(e, fallback))
     } finally {
       setBusy(false)
     }
@@ -144,6 +200,29 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
     [applicationId, run],
   )
 
+  if (gone) {
+    return (
+      <div className="page page-narrow">
+        <PageHeader title="Tego wniosku już nie ma" eyebrow="Wniosek" back="/wnioski" />
+        <div className="card empty stack" role="status">
+          <Icon name="doc" size={36} />
+          <p>
+            Mógł zostać usunięty albo dane po naszej stronie zostały odświeżone. Zacznij od nowa — formularz wypełnimy za
+            Ciebie jeszcze raz.
+          </p>
+          <div className="row" style={{ justifyContent: 'center' }}>
+            <Button to="/wnioski" variant="secondary" leading="arrowLeft">
+              Wróć do wniosków
+            </Button>
+            <Button to={app ? `/wnioski/nowy?form=${encodeURIComponent(app.form_code)}` : '/wnioski/nowy'} leading="plus">
+              Nowy wniosek
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (error) {
     return (
       <p role="alert" className="alert">
@@ -159,9 +238,20 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
   const applicant = family?.members.find((m) => m.id === app.applicant_id)
 
   return (
-    <div className="stack wizard">
-      <h1>{title}</h1>
-      <Stepper current={step} />
+    <div className="page page-narrow wizard">
+      <PageHeader title={SHORT[app.form_code] ?? title} eyebrow={form?.institution ?? 'Wniosek'} back="/wnioski">
+        {SHORT[app.form_code] && <p className="muted small" style={{ margin: 0 }}>{title}</p>}
+        <div className="row" style={{ gap: '0.4rem', marginTop: '0.4rem' }}>
+          <Pill tone={STATUS_TONE[app.status]} dot>
+            {STATUS_LABEL[app.status]}
+          </Pill>
+          <Pill>
+            <Icon name={app.channel === 'portal_agent' ? 'globe' : 'doc'} size={14} /> {CHANNEL_SHORT[app.channel]}
+          </Pill>
+          {form?.deadline && <Pill tone="amber">Termin: {/^\d{4}-\d{2}-\d{2}$/.test(form.deadline) ? formatDate(form.deadline) : form.deadline}</Pill>}
+        </div>
+      </PageHeader>
+      {step !== 'done' && <Stepper current={step} />}
 
       {user && app.applicant_id !== user.id && !isFinal(app.status) ? (
         <ReadOnlyView app={app} applicantName={applicant?.name ?? 'drugi rodzic'} />
@@ -181,10 +271,12 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
           )}
           {step === 'send' && (
             <>
-              <SendStep app={app} onChange={setApp} />
+              <SendStep app={app} onChange={setApp} onGone={markGone} />
               {app.channel !== 'portal_agent' && (
                 <div className="row">
-                  <button type="button" className="btn btn-secondary" onClick={() => setStage('preview')}>
+                  <button style={{
+                    marginTop: '1rem',
+                  }} type="button" className="btn btn-secondary" onClick={() => setStage('preview')}>
                     Wróć do podglądu
                   </button>
                 </div>
@@ -194,6 +286,7 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
           {step === 'done' && <DoneStep app={app} />}
         </>
       )}
+      <Correspondence appId={app.id} />
     </div>
   )
 }

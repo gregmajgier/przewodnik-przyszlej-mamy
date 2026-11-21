@@ -1,8 +1,11 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Route, Routes } from 'react-router-dom'
 import { ApiError } from '../../lib/api'
-import { makeSession, renderWithSession } from '../../test/utils'
+import { markOnboarded } from '../../lib/onboarding'
+import { NOWAK } from '../../test/fixtures'
+import { ANNA, makeSession, renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import JoinPage from './JoinPage'
 
@@ -37,10 +40,10 @@ describe('JoinPage', () => {
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/families/join', {
         method: 'POST',
-        body: { code: 'abcd2345' },
+        body: { code: 'ABCD2345' }, // kod wpisujemy wielkimi literami, jak w aplikacji drugiego rodzica
       }),
     )
-    expect(await screen.findByText(/czekaj na akceptację/i)).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /prośba wysłana/i })).toBeInTheDocument()
   })
 
   it('"Sprawdź status" odświeża sesję', async () => {
@@ -53,5 +56,21 @@ describe('JoinPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /wyślij prośbę/i }))
     await userEvent.click(await screen.findByRole('button', { name: /sprawdź status/i }))
     expect(session.refresh).toHaveBeenCalled()
+  })
+
+  it('po przyjęciu do rodziny prowadzi do dalszych kroków onboardingu, a po onboardingu do panelu', () => {
+    const tree = (
+      <Routes>
+        <Route path="/dolacz" element={<JoinPage />} />
+        <Route path="/start" element={<p>Onboarding</p>} />
+        <Route path="/" element={<p>Panel</p>} />
+      </Routes>
+    )
+    const { unmount } = renderWithSession(tree, { route: '/dolacz', session: makeSession({ family: NOWAK }) })
+    expect(screen.getByText('Onboarding')).toBeInTheDocument()
+    unmount()
+    markOnboarded(ANNA.id)
+    renderWithSession(tree, { route: '/dolacz', session: makeSession({ family: NOWAK }) })
+    expect(screen.getByText('Panel')).toBeInTheDocument()
   })
 })

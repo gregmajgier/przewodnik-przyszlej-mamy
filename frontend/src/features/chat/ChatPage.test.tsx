@@ -3,11 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setToken } from '../../lib/api'
-import { ChatLauncher } from './ChatLauncher'
+import { AskFab } from './AskFab'
 import ChatPage from './ChatPage'
 import { parseSse } from './useChatStream'
 import navItem from './nav'
-import widget from './widget'
 
 const enc = new TextEncoder()
 
@@ -176,7 +175,7 @@ describe('ChatPage', () => {
     await screen.findByRole('link', { name: /Kodeks pracy/ })
     await user.click(screen.getByRole('button', { name: 'Nowa rozmowa' }))
     expect(screen.queryByRole('article')).toBeNull()
-    expect(screen.getByText(/Zapytaj o urlop/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /w czym mogę ci pomóc/i })).toBeInTheDocument()
 
     fetchMock.mockResolvedValueOnce(streamResponse([sse('token', { text: 'ok' }), sse('done', { session_id: 'sess-2' })]))
     await user.type(screen.getByLabelText('Twoje pytanie'), 'nowe');
@@ -188,7 +187,7 @@ describe('ChatPage', () => {
   it('przykładowe pytanie wysyła się jednym kliknięciem', async () => {
     fetchMock.mockResolvedValue(streamResponse([sse('token', { text: 'odp' }), sse('done', { session_id: 's' })]))
     renderChat()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Jak zapisać dziecko do przedszkola?' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: /Jak zapisać dziecko do przedszkola\?/ }))
     await screen.findByText('odp')
     expect(JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string).message).toBe('Jak zapisać dziecko do przedszkola?')
   })
@@ -218,43 +217,39 @@ describe('ChatPage', () => {
   })
 })
 
-describe('kafelek dashboardu', () => {
+describe('przycisk „Zapytaj” (FAB) i pytania z ekranów spraw', () => {
   function Where() {
     const loc = useLocation()
-    return <p data-testid="where">{loc.pathname + ((loc.state as { q?: string } | null)?.q ? `|${(loc.state as { q: string }).q}` : '')}</p>
+    const st = loc.state as { from?: string } | null
+    return <p data-testid="where">{`${loc.pathname}|${st?.from ?? ''}`}</p>
   }
 
-  function renderLauncher() {
-    return render(
-      <MemoryRouter initialEntries={['/']}>
+  it('FAB z każdego ekranu otwiera czat i zapamiętuje, skąd przyszliśmy', async () => {
+    render(
+      <MemoryRouter initialEntries={['/swiadczenia']}>
         <Routes>
-          <Route path="/" element={<ChatLauncher />} />
+          <Route path="/swiadczenia" element={<AskFab />} />
           <Route path="/czat" element={<Where />} />
         </Routes>
       </MemoryRouter>,
     )
-  }
-
-  it('pokazuje przykłady i przenosi pytanie do czatu', async () => {
-    renderLauncher()
-    expect(screen.getByRole('heading', { name: 'Zapytaj mRodzinę' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Jak działa urlop macierzyński?' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Jak zapisać dziecko do przedszkola?' })).toBeInTheDocument()
-    const user = userEvent.setup()
-    await user.type(screen.getByLabelText('Twoje pytanie'), 'Ile trwa urlop?')
-    await user.click(screen.getByRole('button', { name: 'Zapytaj' }))
-    expect(screen.getByTestId('where')).toHaveTextContent('/czat|Ile trwa urlop?')
-  })
-
-  it('przykład działa jednym kliknięciem', async () => {
-    renderLauncher()
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Jak działa urlop macierzyński?' }))
-    expect(screen.getByTestId('where')).toHaveTextContent('/czat|Jak działa urlop macierzyński?')
-  })
-
-  it('jest zarejestrowany jako widget (order 5) i pozycja nawigacji', () => {
-    expect(widget.order).toBe(5)
-    expect(widget.Component).toBe(ChatLauncher)
+    await userEvent.setup().click(screen.getByRole('link', { name: 'Zapytaj mRodzinę' }))
+    expect(screen.getByTestId('where')).toHaveTextContent('/czat|/swiadczenia')
     expect(navItem).toMatchObject({ path: '/czat', area: 'parent' })
+  })
+
+  it('pytanie z kafelka sprawy (router state + autoSend) wysyła się samo, z kontekstem osoby', async () => {
+    fetchMock.mockResolvedValueOnce(streamResponse(ANSWER_EVENTS))
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/czat', state: { q: 'Ile kosztuje przedszkole?', context: 'dziecka: Antek (3 lata)', autoSend: true } }]}>
+        <Routes>
+          <Route path="/czat" element={<ChatPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string)
+    expect(body.message).toBe('Ile kosztuje przedszkole?\n\n(Chodzi o: dziecka: Antek (3 lata).)')
+    expect(await screen.findByText(/trwa 20 tygodni/)).toBeInTheDocument()
   })
 })

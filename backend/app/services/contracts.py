@@ -125,16 +125,44 @@ async def confirm(store: Store, user_id: str, family_id: str | None, contract_id
         user_id=user_id,
         family_id=family_id or current.family_id,
         filename=current.filename,
+        source_doc_id=current.source_doc_id,
         confirmed=True,
         created_at=current.created_at,
     )
-    await store.put("contracts", contract.model_dump(mode="json"))
+    return await _store_confirmed(store, user_id, contract)
 
+
+async def _store_confirmed(store: Store, user_id: str, contract: Contract) -> Contract:
+    await store.put("contracts", contract.model_dump(mode="json"))
     profile_doc = await store.get("profiles", user_id)
     if profile_doc is not None:
         profile = merge_insurance(ParentProfile.model_validate({**profile_doc, "user_id": user_id}), contract)
         await store.put("profiles", {**profile.model_dump(mode="json"), "id": user_id})
     return contract
+
+
+async def import_document(
+    store: Store, user_id: str, family_id: str | None, doc_id: str, filename: str, draft: ContractDraft
+) -> Contract:
+    """Dodaje umowę z e-teczki pracodawcy jako zatwierdzoną (dane pochodzą od pracodawcy, nie z odczytu AI).
+    Ponowne dodanie tego samego dokumentu zwraca istniejącą umowę."""
+    for existing in await user_contracts(store, user_id):
+        if existing.source_doc_id == doc_id:
+            return existing
+    await ensure_capacity(store, user_id)
+    validate_required(draft)
+    contract = Contract(
+        **draft.model_dump(exclude={"missing"}),
+        missing=[],
+        id=f"contract-{uuid.uuid4().hex[:12]}",
+        user_id=user_id,
+        family_id=family_id or "",
+        filename=filename[:200],
+        source_doc_id=doc_id,
+        confirmed=True,
+        created_at=_now(),
+    )
+    return await _store_confirmed(store, user_id, contract)
 
 
 async def family_contracts(store: Store, viewer_id: str, family_id: str | None) -> list[Contract]:
@@ -143,7 +171,7 @@ async def family_contracts(store: Store, viewer_id: str, family_id: str | None) 
     for uid in await family_member_ids(store, viewer_id, family_id):
         for c in await user_contracts(store, uid):
             if c.user_id != viewer_id:
-                c = c.model_copy(update={"filename": None})
+                c = c.model_copy(update={"filename": None, "source_doc_id": None})
             out.append(c)
     return out
 

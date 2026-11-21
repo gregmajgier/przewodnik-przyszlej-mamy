@@ -4,7 +4,7 @@ import OnboardingContracts from './OnboardingContracts'
 
 const routes: RouteObject[] = [
   { path: '/umowy', element: <ContractsPage /> },
-  { path: '/start/umowy', element: <OnboardingContracts /> },
+  { path: '/start/umowy', element: <OnboardingContracts />, handle: { flow: true } },
 ]
 
 export default routes

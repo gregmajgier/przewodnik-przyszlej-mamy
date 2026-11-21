@@ -102,7 +102,7 @@ async def sync_family_mail(
                         kind="status_change",
                         text=f"Wniosek {app.form_code}: {STATUS_LABEL[result.status]}."
                         + (f" {result.summary}" if result.summary else ""),
-                        link="/poczta",
+                        link=f"/wnioski/{app.id}",
                         created_at=now,
                     ),
                 )
@@ -117,7 +117,7 @@ async def sync_family_mail(
                     user_ids=members,
                     kind="mail_review",
                     text=f"Nowa wiadomość w sprawie wniosku {app.form_code} — sprawdź.",
-                    link="/poczta",
+                    link=f"/wnioski/{app.id}",
                     created_at=now,
                 ),
             )
