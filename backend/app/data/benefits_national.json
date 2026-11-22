@@ -104,7 +104,8 @@
           "employment",
           "mandate",
           "jdg"
-        ]
+        ],
+        "parent_sex": "male"
       },
       "extra_conditions": [],
       "extra_text": "Ojcowie na umowie zlecenia i z własną działalnością muszą mieć dobrowolne ubezpieczenie chorobowe.",
@@ -600,7 +601,9 @@
         "note": "Wnioski przyjmowane od 1 lipca do 30 listopada."
       },
       "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, Emp@tia, bankowość elektroniczna.",
-      "form_codes": [],
+      "form_codes": [
+        "DOBRY-START"
+      ],
       "source_url": "https://www.gov.pl/web/rodzina/dobry-start",
       "criteria": {
         "child_age_min_months": 72,

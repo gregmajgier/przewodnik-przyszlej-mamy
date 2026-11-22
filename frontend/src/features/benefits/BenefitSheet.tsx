@@ -30,6 +30,9 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
       : payouts.length > 0
         ? (payouts.find((p) => p.form_code)?.form_code ?? undefined)
         : benefit.form_codes[0]
+  // świadczenie na jedno dziecko: kreator od razu zna dziecko
+  const onlyChild = benefit.per_child && match.child_ids?.length === 1 ? match.child_ids[0] : undefined
+  const childParam = onlyChild ? `&child=${encodeURIComponent(onlyChild)}` : ''
 
   return (
     <Sheet
@@ -56,7 +59,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
             Zapytaj
           </Button>
           {form ? (
-            <Button to={`/wnioski/nowy?form=${encodeURIComponent(form)}`} icon="arrowRight">
+            <Button to={`/wnioski/nowy?form=${encodeURIComponent(form)}${childParam}`} icon="arrowRight">
               Złóż wniosek
             </Button>
           ) : (
@@ -78,7 +81,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
 
         {why.length > 0 && (
           <section>
-            <h3>{match.status === 'no' ? 'Dlaczego nie teraz' : 'Dlaczego Wam pasuje'}</h3>
+            <h3>{match.status === 'no' ? 'Dlaczego nie teraz' : 'Co już wiemy'}</h3>
             <ul className="bsheet-why">
               {why.map((r) => (
                 <li key={r}>

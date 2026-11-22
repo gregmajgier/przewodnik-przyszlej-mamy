@@ -25,6 +25,8 @@ class Criteria(BaseModel):
     requires_disability: bool | None = None
     requires_foster: bool | None = None
     employment_kinds: list[Literal["employment", "mandate", "jdg"]] | None = None
+    # świadczenie osobiste rodzica danej płci (np. urlop ojcowski); płeć z PESEL zalogowanego rodzica
+    parent_sex: Literal["male", "female"] | None = None
 
 
 class Condition(BaseModel):
@@ -40,6 +42,9 @@ class Condition(BaseModel):
     negated_question: bool = False
     # Własny komunikat, gdy warunek nie jest spełniony (domyślnie „Warunek niespełniony: <text>.”).
     unmet_text: str | None = None
+    # Pytanie `ask` zadane „odwrotnie” do warunku (np. „Czy przysługuje ci…?” przy warunku „Nie przysługuje…”):
+    # odpowiedź „tak” oznacza wtedy warunek niespełniony.
+    negate: bool = False
 
 
 class Deadline(BaseModel):

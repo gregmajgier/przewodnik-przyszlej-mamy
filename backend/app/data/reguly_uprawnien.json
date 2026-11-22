@@ -2124,7 +2124,6 @@
       "typ": "swiadczenie_gminne",
       "instytucja": "Gmina (MOPS/OPS)",
       "etapy": [
-        "w_ciazy",
         "po_porodzie",
         "adopcja_zastepcza"
       ],
@@ -2560,7 +2559,7 @@
       "id": "R_BRAK_DOBROWOLNEGO",
       "nazwa": "Brak dobrowolnego ubezpieczenia chorobowego",
       "poziom": "wysokie",
-      "warunek": {"and":[{"==":[{"var":"ubezpieczenie.chorobowe"},"brak"]},{"in":[{"var":"ubezpieczenie.tytul"},["umowa_zlecenia","jdg","wspolpraca_jdg","ulga_na_start"]]},{"in":[{"var":"wnioskodawca.etap"},["planuje","w_ciazy"]]}]},
+      "warunek": {"and":[{"==":[{"var":"ubezpieczenie.chorobowe"},"brak"]},{"in":[{"var":"ubezpieczenie.tytul"},["umowa_zlecenia","jdg","wspolpraca_jdg"]]},{"in":[{"var":"wnioskodawca.etap"},["planuje","w_ciazy"]]}]},
       "komunikat": "Na zleceniu i w działalności zasiłek wymaga dobrowolnego ubezpieczenia chorobowego (okres wyczekiwania 90 dni).",
       "dotyczy": [
         "ZASILEK_CHOROBOWY_CIAZA",

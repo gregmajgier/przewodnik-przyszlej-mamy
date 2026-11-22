@@ -13,6 +13,8 @@ class CalendarEvent(BaseModel):
     title: str
     summary: str
     due_date: date | None = None
+    # For application events this labels the start/submission date, not a deadline.
+    date_label: Literal["Utworzono", "Złożono"] | None = None
     effect_until: date | None = None
     done: bool = False
     overdue: bool = False
@@ -23,5 +25,7 @@ class CalendarEvent(BaseModel):
     recipient: str | None = None
     status: str | None = None
     severity: Literal["info", "medium", "high"] | None = None
+    # termin ze świadczenia: kod wniosku do złożenia (frontend prowadzi z kalendarza prosto do kreatora)
+    form_code: str | None = None
     # tryb jaskółki: terminy innych dzieci są wyciszone (pokazywane spokojnie, bez przypominania)
     muted: bool = False

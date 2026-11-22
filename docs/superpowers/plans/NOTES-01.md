@@ -21,7 +21,7 @@
 - `ParentProfile` w kolekcji `profiles` ma `id == user_id` (wymóg `Store.put`). `GET /api/profile` zwraca
   `{members: [ParentProfile + user_name]}`. Profil z ZUS powstaje tylko, jeśli nie istnieje (odpowiedzi
   `answers` nie są resetowane przy kolejnym logowaniu).
-- `GET /api/profile/me/zus` zwraca symulowany podgląd PUE (`simulated: true`, `verify: true` dla stawki 13,71%).
+- `GET /api/profile/me/zus` zwraca testowy podgląd PUE (`simulated: true`, `verify: true` dla stawki 13,71%).
 - Istniejący router `wnioski` (publiczny katalog wniosków) pozostał bez wymogu tokena — to dane niewrażliwe;
   reszta `/api/*` poza `auth` wymaga tokena.
 - Frontend: oprócz `routes.tsx`/`nav.ts`/`widget.tsx` rejestr wykrywa `features/*/profile-section.tsx`

@@ -116,6 +116,7 @@ def test_forms_catalog_channels_and_recommended_flow(client):
     forms = {f["code"]: f for f in data["forms"]}
     assert data["recommended_flow"] == ["URLOP-MAC-ROD", "ZAM"]  # Anna jest pracownicą
     assert forms["800PLUS"]["channels"] == ["portal_agent"] and forms["800PLUS"]["only_electronic"] is True
+    assert forms["DOBRY-START"]["channels"] == ["portal_agent"] and forms["DOBRY-START"]["requires_child"] is True
     assert forms["ZAM"]["channels"] == ["portal_agent", "pdf_download"]
     assert forms["URLOP-MAC-ROD"]["channels"] == ["employer_email", "pdf_download"]
     assert forms["ZAS-53"]["channels"] == ["pdf_download"]

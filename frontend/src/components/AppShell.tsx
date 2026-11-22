@@ -106,7 +106,15 @@ export function AppShell() {
   }, [location.pathname])
 
   if (loading) return <Splash />
-  if (!user) return <Navigate to="/logowanie" replace state={{ from: location.pathname }} />
+  if (!user) {
+    return (
+      <Navigate
+        to="/logowanie"
+        replace
+        state={{ from: `${location.pathname}${location.search}${location.hash}` }}
+      />
+    )
+  }
   if (user.role === 'official') return <Navigate to="/urzednik" replace />
   if (!family || !isOnboarded(user.id)) return <Navigate to="/start" replace />
 

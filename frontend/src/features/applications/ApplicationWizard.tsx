@@ -222,7 +222,14 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
             <Button to="/wnioski" variant="secondary" leading="arrowLeft">
               Wróć do wniosków
             </Button>
-            <Button to={app ? `/wnioski/nowy?form=${encodeURIComponent(app.form_code)}` : '/wnioski/nowy'} leading="plus">
+            <Button
+              to={
+                app
+                  ? `/wnioski/nowy?form=${encodeURIComponent(app.form_code)}${app.child_id ? `&child=${encodeURIComponent(app.child_id)}` : ''}`
+                  : '/wnioski/nowy'
+              }
+              leading="plus"
+            >
               Nowy wniosek
             </Button>
           </div>

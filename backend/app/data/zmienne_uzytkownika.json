@@ -21,9 +21,9 @@
     },
     "zrodla_wartosci": {
       "uzytkownik": "wpisuje w formularzu",
-      "mobywatel": "logowanie mObywatel (symulowane w MVP)",
+      "mobywatel": "logowanie mObywatel (dane przykładowe w MVP)",
       "google": "logowanie Google (opcjonalne)",
-      "zus_symulacja": "symulowane pobranie z PUE/eZUS i zestawów testowych",
+      "zus_dane_testowe": "dane testowe pobrane z PUE/eZUS i zestawów przykładowych",
       "aplikacja": "generowane przez aplikację",
       "ocr_*": "odczyt z wgranego dokumentu (dowód, umowa, Z-3, akt urodzenia, zaświadczenie szpitala, PIT, świadectwo pracy)",
       "wyliczane": "liczone przez backend (przestrzeń wyl.)"
@@ -707,7 +707,7 @@
       "opis": "Tytuł ubezpieczenia. Decyduje o ścieżce: zasiłek ZUS czy świadczenie gminne",
       "zrodlo": [
         "ocr_umowy",
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -754,7 +754,7 @@
       "typ": "enum",
       "opis": "Rodzaj ubezpieczenia chorobowego",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_poswiadczenie"
       ],
       "wrazliwe": false,
@@ -791,7 +791,7 @@
       "typ": "date",
       "opis": "Początek ubezpieczenia chorobowego",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_poswiadczenie"
       ],
       "wrazliwe": false,
@@ -808,7 +808,7 @@
       "typ": "array",
       "opis": "Historia ubezpieczenia. Podstawa ciągłości i okresu wyczekiwania",
       "zrodlo": [
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "wymagane_dla": [
@@ -851,7 +851,7 @@
       "opis": "Data ustania tytułu ubezpieczenia",
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "wymagane_dla": [
@@ -939,7 +939,7 @@
       "opis": "Pracodawca lub zleceniodawca",
       "zrodlo": [
         "ocr_umowy",
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1036,7 +1036,7 @@
       "typ": "integer",
       "opis": "Dni wynagrodzenia chorobowego już wypłaconych w roku kalendarzowym (licznik 33 lub 14)",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_z3",
         "uzytkownik"
       ],
@@ -1051,7 +1051,7 @@
       "opis": "Podstawa wymiaru zasiłku: dane miesięczne z 12 miesięcy",
       "zrodlo": [
         "ocr_z3",
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": true,
@@ -1098,7 +1098,7 @@
       "typ": "integer|null",
       "opis": "Dni przerwy od poprzedniego zasiłku (np. chorobowego w ciąży). Przerwa < 1 miesiąca: podstawa wymiaru jak poprzedniego zasiłku (art. 43 ustawy zasiłkowej)",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1109,7 +1109,7 @@
       "typ": "number|null",
       "opis": "Podstawa wymiaru poprzedniego zasiłku (z decyzji/Z-3) — przejmowana przy przerwie < 1 miesiąca",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_z3",
         "uzytkownik"
       ],
@@ -1121,7 +1121,7 @@
       "typ": "array",
       "opis": "Podstawa składek osoby prowadzącej działalność",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": true,
@@ -1151,7 +1151,7 @@
       "opis": "Ryzyko: podwyższenie podstawy w ciąży (ZUS może zakwestionować)",
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "wymagane_dla": [
@@ -1217,7 +1217,7 @@
       "typ": "object",
       "opis": "Stan zadłużenia składkowego na dzień powstania prawa",
       "zrodlo": [
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": true,
       "wymagane_dla": [
@@ -1274,7 +1274,7 @@
       "typ": "array",
       "opis": "e-ZLA. Kod literowy B = ciąża, zasiłek 100%",
       "zrodlo": [
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": true,
       "wymagane_dla": [
@@ -1306,7 +1306,7 @@
       "typ": "integer",
       "opis": "Wykorzystane dni okresu zasiłkowego (limit 270)",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1356,7 +1356,7 @@
       "typ": "date|null",
       "opis": "Data wyczerpania zasiłku chorobowego",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1369,7 +1369,7 @@
       "typ": "integer",
       "opis": "Dni zasiłku opiekuńczego nad dzieckiem wykorzystane w bieżącym roku kalendarzowym (limit 60)",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1900,7 +1900,7 @@
       "opis": "Matka ubezpieczona w dniu porodu (ścieżka ojca)",
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "wymagane_dla": [
@@ -1918,7 +1918,7 @@
       "opis": "Matka wykorzystała 14 tygodni po porodzie",
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "wymagane_dla": [
@@ -1949,7 +1949,7 @@
       "typ": "boolean",
       "opis": "Oświadczenie ZAS-39",
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -2081,6 +2081,114 @@
       "dawny_klucz": "drugi_rodzic.tytul_ubezpieczenia",
       "uzywane_w_regulach": [
         "ZASILEK_POGRZEBOWY"
+      ]
+    },
+    {
+      "klucz": "drugi_rodzic.ubezpieczenie",
+      "typ": "object",
+      "opis": "Szczegóły tytułu, okresu chorobowego i podstawy składek drugiego rodzica",
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_umowy"
+      ],
+      "wrazliwe": false,
+      "wymagane_dla": [
+        "URLOP-ROD",
+        "URLOP-OJC"
+      ],
+      "pola": [
+        {
+          "nazwa": "tytul",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "chorobowe",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "data_objecia_chorobowym",
+          "typ": "date"
+        },
+        {
+          "nazwa": "okresy",
+          "typ": "array"
+        },
+        {
+          "nazwa": "data_ustania",
+          "typ": "date"
+        },
+        {
+          "nazwa": "umowa_rozwiazana_w_ciazy",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "przyczyna_rozwiazania_umowy",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "prawomocny_wyrok_naruszenie_przepisow",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "zapewniono_inne_zatrudnienie",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "platnik",
+          "typ": "object"
+        },
+        {
+          "nazwa": "wymiar_etatu",
+          "typ": "number"
+        },
+        {
+          "nazwa": "rodzaj_umowy_o_prace",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "data_konca_umowy",
+          "typ": "date"
+        },
+        {
+          "nazwa": "dni_wynagrodzenia_chorobowego_w_roku",
+          "typ": "integer"
+        },
+        {
+          "nazwa": "przychody_12_miesiecy",
+          "typ": "array"
+        },
+        {
+          "nazwa": "przerwa_od_poprzedniego_zasilku_dni",
+          "typ": "integer"
+        },
+        {
+          "nazwa": "podstawa_poprzedniego_zasilku",
+          "typ": "number"
+        },
+        {
+          "nazwa": "zadeklarowana_podstawa_jdg",
+          "typ": "array"
+        },
+        {
+          "nazwa": "zmiana_podstawy_w_ciazy",
+          "typ": "object"
+        },
+        {
+          "nazwa": "zmiana_warunkow_zatrudnienia_w_ciazy",
+          "typ": "object"
+        },
+        {
+          "nazwa": "zadluzenie_skladkowe",
+          "typ": "object"
+        },
+        {
+          "nazwa": "pobiera_emeryture_rente",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "zlozyla_wniosek_emerytura_renta",
+          "typ": "boolean"
+        }
       ]
     },
     {
@@ -2265,7 +2373,7 @@
       "opis": "Wykluczenia (np. świadczenie rodzicielskie vs zasiłek macierzyński)",
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "wymagane_dla": [
@@ -3552,7 +3660,7 @@
         "klucz": "tytul_ubezpieczenia",
         "typ": "enum[umowa_o_prace,umowa_zlecenia,jdg,wspolpraca_jdg,ulga_na_start,umowa_o_dzielo,duchowny,marynarz,sluzba_mundurowa,krus,bezrobocie_z_zasilkiem,bezrobocie_bez_zasilku,student,brak]",
         "opis": "Decyduje o ścieżce: zasiłek ZUS czy świadczenie rodzicielskie z gminy",
-        "zrodlo": "ocr_umowy|zus_symulacja|uzytkownik",
+        "zrodlo": "ocr_umowy|zus_dane_testowe|uzytkownik",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -3571,7 +3679,7 @@
         "klucz": "ubezpieczenie_chorobowe",
         "typ": "enum[obowiazkowe,dobrowolne,brak]",
         "opis": "Rodzaj ubezpieczenia chorobowego; okres wyczekiwania 30 dni (obowiązkowe) albo 90 dni (dobrowolne) przy zasiłku chorobowym",
-        "zrodlo": "zus_symulacja|ocr_poswiadczenie",
+        "zrodlo": "zus_dane_testowe|ocr_poswiadczenie",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -3588,7 +3696,7 @@
         "klucz": "data_objecia_ubezpieczeniem_chorobowym",
         "typ": "date",
         "opis": "Początek ubezpieczenia chorobowego",
-        "zrodlo": "zus_symulacja|ocr_poswiadczenie",
+        "zrodlo": "zus_dane_testowe|ocr_poswiadczenie",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -3601,7 +3709,7 @@
         "klucz": "okresy_ubezpieczenia",
         "typ": "array[{od,do,tytul,platnik_nip}]",
         "opis": "Historia ubezpieczenia; ciągłość do okresu wyczekiwania i ochrony",
-        "zrodlo": "zus_symulacja",
+        "zrodlo": "zus_dane_testowe",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -3628,7 +3736,7 @@
         "klucz": "data_ustania_ubezpieczenia",
         "typ": "date|null",
         "opis": "Data ustania tytułu ubezpieczenia",
-        "zrodlo": "uzytkownik|zus_symulacja",
+        "zrodlo": "uzytkownik|zus_dane_testowe",
         "wymagane_dla": [
           "ZAS-53",
           "ZAS-55",
@@ -3661,7 +3769,7 @@
         "klucz": "platnik",
         "typ": "object{nazwa,nip,regon,adres}",
         "opis": "Pracodawca lub zleceniodawca",
-        "zrodlo": "ocr_umowy|zus_symulacja|uzytkownik",
+        "zrodlo": "ocr_umowy|zus_dane_testowe|uzytkownik",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -3679,7 +3787,7 @@
         "klucz": "platnik_liczba_ubezpieczonych_chorobowo",
         "typ": "integer",
         "opis": "Stan na 30 listopada poprzedniego roku; >20 = płatnik wypłaca zasiłki sam (art. 61 ustawy zasiłkowej)",
-        "zrodlo": "uzytkownik|zus_symulacja",
+        "zrodlo": "uzytkownik|zus_dane_testowe",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53"
@@ -3717,7 +3825,7 @@
         "klucz": "podstawa_wymiaru_12_miesiecy",
         "typ": "array[{rok,miesiac,podstawa_wymiaru_skladek,dni_przepracowane,dni_do_przepracowania}]",
         "opis": "Do podstawy wymiaru zasiłku (średnia z 12 miesięcy, pomniejszona o 13,71%)",
-        "zrodlo": "ocr_z3|zus_symulacja|uzytkownik",
+        "zrodlo": "ocr_z3|zus_dane_testowe|uzytkownik",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53",
@@ -3730,7 +3838,7 @@
         "klucz": "zadeklarowana_podstawa_jdg",
         "typ": "array[{rok,miesiac,kwota}]",
         "opis": "Podstawa składek osoby prowadzącej działalność",
-        "zrodlo": "zus_symulacja|uzytkownik",
+        "zrodlo": "zus_dane_testowe|uzytkownik",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53"
@@ -3763,7 +3871,7 @@
         "klucz": "zadluzenie_skladkowe",
         "typ": "object{kwota,na_dzien}",
         "opis": "Stan zadłużenia na dzień powstania prawa (ważne dla JDG)",
-        "zrodlo": "zus_symulacja",
+        "zrodlo": "zus_dane_testowe",
         "wymagane_dla": [
           "ZAM",
           "ZAS-53"
@@ -3844,7 +3952,7 @@
         "klucz": "zaswiadczenia_e_zla",
         "typ": "array[{seria_numer,od,do,kod_literowy_b}]",
         "opis": "e-ZLA; kod literowy B = ciąża, zasiłek 100%",
-        "zrodlo": "zus_symulacja",
+        "zrodlo": "zus_dane_testowe",
         "wymagane_dla": [
           "ZAS-53",
           "Z-10"
@@ -3855,7 +3963,7 @@
         "klucz": "okres_zasilkowy_wykorzystany_dni",
         "typ": "integer",
         "opis": "Do limitu 270 dni w ciąży; przejście na świadczenie rehabilitacyjne",
-        "zrodlo": "wyliczane|zus_symulacja",
+        "zrodlo": "wyliczane|zus_dane_testowe",
         "wymagane_dla": [
           "ZNp-7",
           "ZAS-53"
@@ -4201,6 +4309,17 @@
         "dane_wrazliwe": false
       },
       {
+        "klucz": "drugi_rodzic.ubezpieczenie",
+        "typ": "object (jak ubezpieczenie wnioskodawcy)",
+        "opis": "Szczegóły tytułu, okresu chorobowego i podstawy składek drugiego rodzica",
+        "zrodlo": "uzytkownik|eZUS",
+        "wymagane_dla": [
+          "URLOP-ROD",
+          "URLOP-OJC"
+        ],
+        "dane_wrazliwe": false
+      },
+      {
         "klucz": "drugi_rodzic.platnik",
         "typ": "object{nazwa,nip,regon,adres}",
         "opis": "Pracodawca drugiego rodzica",
@@ -4251,7 +4370,7 @@
         "klucz": "matka_pobiera_zasilek_8_tyg_po_porodzie",
         "typ": "boolean",
         "opis": "Oświadczenie ZAS-39",
-        "zrodlo": "zus_symulacja|uzytkownik",
+        "zrodlo": "zus_dane_testowe|uzytkownik",
         "wymagane_dla": [
           "ZAS-39"
         ],
@@ -4377,7 +4496,7 @@
         "klucz": "inne_pobierane_swiadczenia",
         "typ": "array[{rodzaj,instytucja,od}]",
         "opis": "Wykluczenia (np. świadczenie rodzicielskie vs zasiłek macierzyński)",
-        "zrodlo": "uzytkownik|zus_symulacja",
+        "zrodlo": "uzytkownik|zus_dane_testowe",
         "wymagane_dla": [
           "SR-7",
           "SR-1",

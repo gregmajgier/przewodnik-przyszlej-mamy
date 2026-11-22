@@ -140,6 +140,7 @@ def normalize_conditions(items: list[RawCondition | Condition | dict]) -> list[C
                 kind="auto" if auto else "ask",
                 profile_key=profile_key if auto else None,
                 question=_question_for(text, data.get("question")),
+                negate=bool(data.get("negate")) and not auto,
             )
         )
         if len(out) >= MAX_CONDITIONS:

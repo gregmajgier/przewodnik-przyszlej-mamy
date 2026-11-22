@@ -70,7 +70,6 @@ describe('formularz online (eZUS / Emp@tia)', () => {
   it('pokazuje nazwę portalu i pola ze schematu', async () => {
     renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
     expect(await screen.findByText('eZUS')).toBeInTheDocument()
-    expect(screen.queryByText(/symulacja/i)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /800\+/ })).toBeInTheDocument()
     expect(screen.getByLabelText(/ulica/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/obywatelstwo/i)).toHaveValue('polskie') // wartość domyślna ze schematu

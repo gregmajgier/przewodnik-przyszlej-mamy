@@ -1,4 +1,4 @@
-# Poczta (symulowana, podłączona domyślnie), statusy wniosków i kalendarz — Implementation Plan
+# Poczta testowa (podłączona domyślnie), statusy wniosków i kalendarz — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -9,9 +9,9 @@
 **Spec:** §9, §10. Konwencje: `00-conventions.md`. Zależy od 08 (Application, MailProvider), 03 (Benefit.deadline), 02 (LLM).
 
 ## Global Constraints
-- Poczta symulowana, **domyślnie podłączona**; w ustawieniach „Gmail podłączony” z opisem: czytamy tylko wątki wniosków i maile z dokładnych adresów odbiorców (+ domeny instytucjonalne: `zus.pl`, `gov.pl`, domeny urzędów z katalogu); **nigdy cała domena publiczna** (`gmail.com`, `onet.pl`, `wp.pl`, `outlook.com`, …). Skrzynka zawiera też maile niezwiązane, które filtr pomija.
+- Poczta testowa, **domyślnie podłączona**; w ustawieniach „Gmail podłączony” z opisem: czytamy tylko wątki wniosków i maile z dokładnych adresów odbiorców (+ domeny instytucjonalne: `zus.pl`, `gov.pl`, domeny urzędów z katalogu); **nigdy cała domena publiczna** (`gmail.com`, `onet.pl`, `wp.pl`, `outlook.com`, …). Skrzynka zawiera też maile niezwiązane, które filtr pomija.
 - Klasyfikacja LLM: statusy `received|more_info|accepted|rejected|other`; `confidence ≥ 0.8` → status zmienia się automatycznie + powiadomienie; poniżej → powiadomienie „Nowa wiadomość w sprawie wniosku X — sprawdź” bez zmiany statusu.
-- Odpowiedzi symulowane: pracodawca → „otrzymaliśmy” (potem „zatwierdzony”), ZUS → „wezwanie do uzupełnienia”, gmina → „decyzja pozytywna”; dostarczane po `MAIL_SIM_REPLY_DELAY_S` (domyślnie 20 s) albo natychmiast przez `POST /api/mail/simulate-replies` (do demo).
+- Odpowiedzi testowe: pracodawca → „otrzymaliśmy” (potem „zatwierdzony”), ZUS → „wezwanie do uzupełnienia”, gmina → „decyzja pozytywna”; dostarczane po `MAIL_SIM_REPLY_DELAY_S` (domyślnie 20 s) albo natychmiast przez `POST /api/mail/simulate-replies` (do demo).
 - Kalendarz: wpisy można odkliknąć (`done`), mają przyjazne podsumowanie, uwzględniają „do kiedy złożyć” i „jak długo trwa efekt”, zagrożenie utraty świadczenia, zmiany stawek; widać „kto złożył”.
 - Prototyp: ostrzeżenia **tylko w aplikacji**. E-mail/SMS = wizja (nie implementować; zostaw w UI wzmiankę „Wkrótce: przypomnienia mailem i SMS-em”).
 - Treść maili nie trafia do logów.
@@ -26,7 +26,7 @@
 
 ---
 
-### Task 1: Filtr i skrzynka symulowana
+### Task 1: Filtr i skrzynka testowa
 **Files:** Create `backend/app/models/mail.py`, `backend/app/services/mail_filter.py`, `backend/app/mail/sim_inbox.py`, `backend/app/seed/mail_seed.py`, `backend/tests/test_mail_filter.py`.
 **Interfaces:** Produces `MailMessage(id, family_id, folder: inbox|sent, from_addr, to_addr, subject, body, thread_id|None, message_id, in_reply_to|None, received_at, related_application_id|None, classified: bool)`; `PUBLIC_DOMAINS: frozenset[str]`, `INSTITUTIONAL_DOMAINS: frozenset[str]` (z katalogu + `zus.pl`, `gov.pl`); `def matches_application(msg: MailMessage, app: Application) -> bool` (reguły: `in_reply_to`/`thread_id` zgodny, albo `from_addr == app.recipient_email`, albo domena nadawcy ∈ institutional i == `app.recipient_domain`; wiadomość sprzed `sent_at` nie pasuje); `SimMailProvider.deliver_reply(app)`.
 - [ ] Testy: `test_thread_match`, `test_exact_address_match`, `test_institutional_domain_match`, `test_public_domain_never_matches_by_domain`, `test_message_before_sent_at_ignored`, `test_unrelated_inbox_mails_present_in_seed_and_ignored`. Seed: 5–6 niezwiązanych maili Nowaków (sklep, szkoła, przychodnia, newsletter). Commit.
@@ -52,4 +52,4 @@
 - [ ] Testy: odklikanie wpisu wywołuje PATCH; wątki pokazują status; dzwonek pokazuje licznik; ustawienia pokazują zakres czytania. Commit.
 
 ### Task 6: Weryfikacja
-- [ ] Test integracyjny `tests/test_flow_mail_calendar_e2e.py`: Anna składa wniosek → odpowiedzi symulowane → status zmienia się → wpis w kalendarzu i powiadomienie. Pełne testy/build zielone; `docs/dev.md`. Commit.
+- [ ] Test integracyjny `tests/test_flow_mail_calendar_e2e.py`: Anna składa wniosek → odpowiedzi testowe → status zmienia się → wpis w kalendarzu i powiadomienie. Pełne testy/build zielone; `docs/dev.md`. Commit.

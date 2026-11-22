@@ -82,5 +82,5 @@ Zanim zbudujesz UI, obejrzyj `landing/src/App.tsx`, `landing/src/App.css`, `land
 - **Logo**: używaj komponentu `Logo`/wordmarku z `frontend/src/components` (animacja rysowania wstążki, wyłączona przy `prefers-reduced-motion`); nagłówek aplikacji: logo + „Rodzina” po lewej, nawigacja po prawej, na tle akcentu z tekstem `#f8fbef`.
 - **Ton tekstów**: ciepły, bezpośredni, „ty” (np. „Mamo! Tato!”, „Pozwól, że mRodzina pomoże.”), krótkie zdania, bez urzędniczego żargonu; wyjaśniaj „dlaczego”. Wyjątek: `/jaskolka` i tryb jaskółki — spokojny, rzeczowy, bez wykrzykników i bez kolorów akcentu (`data-theme="mono"`), ale ta sama typografia i kształty.
 - **Dekoracje**: wstążki/ikony jak na landingu tylko tam, gdzie nie przeszkadzają w pracy (np. ekran analizy, puste stany, nagłówek dashboardu); nie na formularzach i listach. Ruch minimalny, respektuj `prefers-reduced-motion`.
-- **Elementy AI/symulacji** (makiety portali, badge „SYMULACJA”, plan agenta) mają osobny kolor `--ai` i wyraźną etykietę.
+- **Elementy AI i demonstracyjne** (makiety portali, etykieta „DANE TESTOWE”, plan agenta) mają osobny kolor `--ai` i wyraźną etykietę.
 - **Dostępność**: kontrast AA (biały/`#f8fbef` tekst na `#ef4363` tylko dla dużego/pogrubionego tekstu; drobny tekst na akcencie → `#191919` lub użyj ciemniejszego odcienia), widoczny fokus, cele dotykowe ≥ 44 px, układ od 360 px.

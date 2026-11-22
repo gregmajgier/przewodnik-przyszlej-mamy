@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { formatPln, plural } from '../../lib/format'
 import { useSession } from '../../lib/session'
+import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
 import { Avatar, PageHeader, Pill } from '../../ui/controls'
 import { BenefitSheet, STATUS_TONE } from '../benefits/BenefitSheet'
@@ -133,6 +134,14 @@ export default function MattersPage() {
                 </div>
                 <h3>{g.title}</h3>
                 <p>{g.text}</p>
+                {g.action && (
+                  <div className="guide-action">
+                    <Button to={g.action.to} size="sm" icon="arrowRight">
+                      {g.action.label}
+                      <span className="sr-only">: {g.title}</span>
+                    </Button>
+                  </div>
+                )}
                 {g.source && (
                   <a href={g.source.url} target="_blank" rel="noopener noreferrer" className="guide-src">
                     {g.source.label} <Icon name="external" size={14} />

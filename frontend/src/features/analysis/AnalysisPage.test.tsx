@@ -108,6 +108,25 @@ describe('AnalysisPage', () => {
     expect(result).toHaveTextContent('5 do sprawdzenia')
   })
 
+  it('wyróżnia pełną nazwę najpilniejszego terminu', async () => {
+    routeApi({
+      'GET /api/analysis': {
+        ...ANALYSIS,
+        nearest_deadline: {
+          date: '2026-11-25',
+          benefit_id: 'pregnancy-certificate',
+          benefit_name: 'Zaświadczenie lekarskie o ciąży dla pracodawcy (Dziecko w drodze)',
+        },
+      },
+    })
+    renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
+    await finishAnalysis()
+
+    expect(screen.getByText('Najpilniejsze: Zaświadczenie lekarskie o ciąży dla pracodawcy (Dziecko w drodze)')).toHaveClass(
+      'analysis-deadline',
+    )
+  })
+
   it('przycisk prowadzi do panelu', async () => {
     renderWithSession(<Tree />, { route: '/analiza', session: makeSession({ family: FAMILY }) })
     await finishAnalysis()

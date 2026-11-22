@@ -28,7 +28,9 @@ from .schemas import Dziecko, OkresUbezpieczenia, UserProfile
 CHOROBOWE_AKTYWNE = ("obowiazkowe", "dobrowolne")
 TYTULY_AKTYWNE_ZAWODOWO = ("umowa_o_prace", "umowa_zlecenia", "jdg", "wspolpraca_jdg", "ulga_na_start")
 TYTULY_JDG = ("jdg", "wspolpraca_jdg", "duchowny")  # podstawa z zadeklarowanej kwoty, zasiłki wypłaca ZUS
-TYTULY_BEZ_CHOROBOWEGO = ("student", "bezrobotna_z_zasilkiem", "bezrobotna_bez_zasilku", "umowa_o_dzielo", "krus", "brak")
+TYTULY_BEZ_CHOROBOWEGO = (
+    "student", "bezrobotna_z_zasilkiem", "bezrobotna_bez_zasilku", "umowa_o_dzielo", "krus", "ulga_na_start", "brak",
+)
 STAN_ZGONU = ("martwe", "zgon_do_8_tyg", "zgon_po_8_tyg")
 # Świadczenia wykluczające świadczenie rodzicielskie (ustawa o świadczeniach rodzinnych art. 17c ust. 6);
 # `rodzina.inne_pobierane_swiadczenia[].rodzaj` porównujemy po normalizacji (małe litery, `_`).

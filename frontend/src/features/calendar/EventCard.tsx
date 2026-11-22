@@ -1,10 +1,11 @@
 import { formatDate } from '../../lib/format'
+import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
 import { Pill } from '../../ui/controls'
 import './calendar.css'
 import { parseDay, relativeDay, weekdayShort } from './dates'
 import { KIND_META, tidy } from './labels'
-import { isAtRisk, KIND_LABEL } from './types'
+import { eventAction, isAtRisk, KIND_LABEL } from './types'
 import type { CalendarEvent } from './types'
 
 /** Okrągły „odhacz” zamiast natywnego checkboxa. */
@@ -36,6 +37,7 @@ export default function EventCard({
   const risk = isAtRisk(event)
   const title = tidy(event.title)
   const meta = KIND_META[event.kind]
+  const action = eventAction(event)
   const urgent = event.kind === 'warning' && event.severity === 'high' && !event.done && !event.muted
   const cls = ['agenda-item', `kind-${event.kind}`, event.done && 'is-done', risk && 'is-risk', event.muted && 'is-muted'].filter(Boolean).join(' ')
 
@@ -63,7 +65,11 @@ export default function EventCard({
           {event.due_date && (
             <span className="agenda-when">
               <span className="sr-only">{formatDate(event.due_date)}, </span>
-              {event.done ? 'zrobione' : relativeDay(event.due_date)}
+              {event.date_label
+                ? `${event.date_label.toLowerCase()} ${relativeDay(event.due_date)}`
+                : event.done
+                  ? 'zrobione'
+                  : relativeDay(event.due_date)}
             </span>
           )}
         </div>
@@ -88,9 +94,19 @@ export default function EventCard({
             )}
           </ul>
         )}
+        {action && (
+          <div className="agenda-action">
+            <Button to={action.to} size="sm" variant="secondary" icon="arrowRight">
+              {action.label}
+              <span className="sr-only">: {title}</span>
+            </Button>
+          </div>
+        )}
       </div>
 
-      {onToggle && <CheckButton event={event} title={title} busy={busy} onToggle={onToggle} />}
+      {onToggle && event.date_label !== 'Złożono' && (
+        <CheckButton event={event} title={title} busy={busy} onToggle={onToggle} />
+      )}
     </article>
   )
 }
