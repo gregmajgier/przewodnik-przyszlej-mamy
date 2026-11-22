@@ -15,7 +15,7 @@ def test_report_status_and_mode_returned_to_both_parents(client, store):
 
     for h in (ha, hp):  # oboje rodzice widzą ten sam tryb
         mode = client.get("/api/me/mode", headers=h).json()
-        assert mode["mode"] == "jaskolka" and mode["child_id"] == ids["Dziecko w drodze"] and mode["undo_until"]
+        assert mode["mode"] == "jaskolka" and mode["child_id"] == ids["Dziecko w drodze"] and mode["can_undo"] is True
     assert client.get("/api/notifications", headers=hp).status_code in (200, 404)  # plan 09 może jeszcze nie istnieć
     # zgłoszenie sytuacji nie tworzy powiadomień (jest tylko to o dołączeniu Piotra do rodziny)
     assert {n["kind"] for n in store._data.get("notifications", {}).values()} <= {"family"}
@@ -59,7 +59,7 @@ def test_parent_without_family_gets_404_and_normal_mode(client):
     assert r.status_code == 404
 
 
-def test_undo_over_api_and_409_after_window(client, store, monkeypatch):
+def test_undo_over_api_any_time(client, store, monkeypatch):
     _, _, ids, _, (ha, hp) = make_family(client, store)
     url = f"/api/families/me/children/{ids['Maja']}/situation"
     client.post(url, json={"kind": "smierc-dziecka"}, headers=ha)
@@ -69,11 +69,12 @@ def test_undo_over_api_and_409_after_window(client, store, monkeypatch):
     assert client.delete(url, headers=ha).status_code == 409  # nic do cofnięcia
 
     client.post(url, json={"kind": "poronienie"}, headers=ha)
-    monkeypatch.setattr(situations, "_now", lambda: datetime.now(timezone.utc) + timedelta(days=8))
-    r = client.delete(url, headers=ha)
-    assert r.status_code == 409 and "Czas na cofnięcie" in r.json()["detail"]
+    monkeypatch.setattr(situations, "_now", lambda: datetime.now(timezone.utc) + timedelta(days=400))
     mode = client.get("/api/me/mode", headers=ha).json()
-    assert mode["mode"] == "jaskolka" and mode["undo_until"] is None
+    assert mode["mode"] == "jaskolka" and mode["can_undo"] is True
+    r = client.delete(url, headers=ha)  # ponad rok później nadal można cofnąć
+    assert r.status_code == 200 and r.json()["situation"] is None
+    assert client.get("/api/me/mode", headers=ha).json() == {"mode": "normal", "since": None, "child_id": None, "can_undo": False}
 
 
 def test_exit_mode_over_api(client, store):

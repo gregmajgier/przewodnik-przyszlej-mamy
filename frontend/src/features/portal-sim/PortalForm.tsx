@@ -31,6 +31,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
   // pole świeżo wypełnione przez agenta — po renderze odsyłamy potwierdzenie z położeniem pola (dla kursora)
   const [ackRequest, setAckRequest] = useState<{ fieldId: string; n: number } | null>(null)
   const counter = useRef(0)
+  const valuesRef = useRef(values)
 
   useEffect(() => {
     let cancelled = false
@@ -38,7 +39,9 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
       .then((s) => {
         if (cancelled) return
         setSchema(s)
-        setValues(initialValues(s))
+        const initial = initialValues(s)
+        valuesRef.current = initial
+        setValues(initial)
       })
       .catch((e) => {
         if (cancelled) return
@@ -59,7 +62,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
     if (!schema) return
     const missing = schema.fields.filter((f) => {
       if (!f.required) return false
-      const v = values[f.id]
+      const v = valuesRef.current[f.id]
       return f.type === 'bool' ? v !== true : typeof v !== 'string' || v.trim() === ''
     })
     setInvalid(new Set(missing.map((f) => f.id)))
@@ -69,7 +72,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
     }
     setSubmitted({ upo: makeUpoNumber(), at: new Date() })
     postToParent({ type: 'submitted' })
-  }, [schema, values])
+  }, [schema])
 
   const handleParent = useCallback(
     (msg: ToFrame) => {
@@ -85,6 +88,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
         postToParent({ type: 'ack', fieldId: msg.fieldId, ok: false })
         return
       }
+      valuesRef.current = { ...valuesRef.current, [field.id]: value }
       setValues((prev) => ({ ...prev, [field.id]: value }))
       setFilled((prev) => new Set(prev).add(field.id))
       setAckRequest({ fieldId: field.id, n: ++counter.current })
@@ -114,6 +118,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
   }, [ackRequest])
 
   function edit(field: PortalField, value: FieldValue) {
+    valuesRef.current = { ...valuesRef.current, [field.id]: value }
     setValues((prev) => ({ ...prev, [field.id]: value }))
     setInvalid((prev) => {
       const next = new Set(prev)

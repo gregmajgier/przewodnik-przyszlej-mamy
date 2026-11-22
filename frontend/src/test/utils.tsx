@@ -32,7 +32,8 @@ export function makeSession(over: Partial<SessionValue> = {}): SessionValue {
 
 export function renderWithSession(
   ui: ReactElement,
-  { session = makeSession(), route = '/' }: { session?: SessionValue; route?: string } = {},
+  // `route` może nieść stan nawigacji (np. `{ pathname: '/rodzina', state: { hardSituation: true } }`)
+  { session = makeSession(), route = '/' }: { session?: SessionValue; route?: string | { pathname: string; state?: unknown } } = {},
 ) {
   return {
     session,
