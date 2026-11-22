@@ -23,6 +23,11 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
   const cat = catMeta(categoryOf(benefit))
   const why = match.status === 'no' ? match.unmet : match.reasons
   const form = match.status !== 'no' ? benefit.form_codes[0] : undefined
+  // świadczenie dotyczy dokładnie jednego dziecka — wniosek od razu jest do niego przypisany
+  const childIds = match.child_ids ?? []
+  const formQuery = form
+    ? `form=${encodeURIComponent(form)}${benefit.per_child && childIds.length === 1 ? `&child=${encodeURIComponent(childIds[0])}` : ''}`
+    : ''
 
   return (
     <Sheet
@@ -49,7 +54,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
             Zapytaj
           </Button>
           {form ? (
-            <Button to={`/wnioski/nowy?form=${encodeURIComponent(form)}`} icon="arrowRight">
+            <Button to={`/wnioski/nowy?${formQuery}`} icon="arrowRight">
               Złóż wniosek
             </Button>
           ) : (
