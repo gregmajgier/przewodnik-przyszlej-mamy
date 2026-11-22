@@ -691,7 +691,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
           )}
           {insured && (
             <>
-              <Field label="Od kiedy podlegasz ubezpieczeniu chorobowemu?" hint="Dokładna data jest ważniejsza niż przybliżony staż.">
+              <Field label="Od kiedy podlegasz ubezpieczeniu chorobowemu?" hint="Jeśli nie pamiętasz dokładnej daty, pozostaw puste — wynik oznaczy brakujące dane.">
                 {(id) => <input id={id} type="date" value={a.insuranceStart} onChange={(e) => set('insuranceStart', e.target.value)} />}
               </Field>
               <Field label="Czy ubezpieczenie już ustało? Jeśli tak, podaj datę">
@@ -979,7 +979,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                     )}
                   </Field>
                 )}
-                <Field label="Data objęcia ubezpieczeniem chorobowym drugiego rodzica">
+                <Field label="Data objęcia ubezpieczeniem chorobowym drugiego rodzica" hint="Jeśli nie znasz daty, pozostaw puste — wynik oznaczy brakujące dane.">
                   {(id) => <input id={id} type="date" value={a.secondParentInsuranceStart} onChange={(e) => set('secondParentInsuranceStart', e.target.value)} />}
                 </Field>
                 <Field label="Data ustania ubezpieczenia (jeśli ustało)">

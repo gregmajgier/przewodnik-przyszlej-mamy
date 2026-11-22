@@ -269,18 +269,12 @@ export function validate(a: Answers, today = new Date()): string | null {
   }
   if (a.insuranceStart && (!isValidDate(a.insuranceStart) || parseDate(a.insuranceStart) > t))
     return 'Sprawdź datę objęcia ubezpieczeniem chorobowym.'
-  if (needsPay(a) && !a.insuranceStart) return 'Podaj dokładną datę rozpoczęcia ubezpieczenia chorobowego, żeby sprawdzić okres wyczekiwania.'
   if (a.insuranceEnd && (!isValidDate(a.insuranceEnd) || (a.insuranceStart && parseDate(a.insuranceEnd) < parseDate(a.insuranceStart))))
     return 'Data ustania ubezpieczenia nie może poprzedzać daty jego rozpoczęcia.'
   if (a.secondParentWork && a.secondParentInsuranceStart && (!isValidDate(a.secondParentInsuranceStart) || parseDate(a.secondParentInsuranceStart) > t))
     return 'Sprawdź datę objęcia ubezpieczeniem drugiego rodzica.'
   if (a.secondParentInsuranceEnd && (!isValidDate(a.secondParentInsuranceEnd) || (a.secondParentInsuranceStart && parseDate(a.secondParentInsuranceEnd) < parseDate(a.secondParentInsuranceStart))))
     return 'Data ustania ubezpieczenia drugiego rodzica nie może poprzedzać daty rozpoczęcia.'
-  const secondParentPayRequired =
-    a.secondParentWork !== '' &&
-    needsPay({ ...a, work: a.secondParentWork, sickness: a.secondParentSickness })
-  if (secondParentPayRequired && !a.secondParentInsuranceStart)
-    return 'Podaj dokładną datę rozpoczęcia ubezpieczenia chorobowego drugiego rodzica.'
   if (a.secondParentPayerCount && (!Number.isInteger(Number(a.secondParentPayerCount)) || Number(a.secondParentPayerCount) < 0))
     return 'Liczba osób zgłoszonych do ubezpieczenia przez płatnika drugiego rodzica nie może być ujemna.'
   if (a.contractEnd && !isValidDate(a.contractEnd)) return 'Sprawdź datę końca umowy.'
