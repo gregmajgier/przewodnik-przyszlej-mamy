@@ -47,7 +47,7 @@ async def notify(store: Store, n: Notification) -> None:
 async def sync_family_mail(
     store: Store, mail, llm: LLM, family_id: str, now: datetime, *, budget=None
 ) -> SyncReport:
-    """`mail` — MailProvider (z opcjonalnym `deliver_due` symulacji). `budget` — TokenBudget dla pracy w tle."""
+    """`mail` — MailProvider (z opcjonalnym `deliver_due` dla odpowiedzi testowych). `budget` — TokenBudget dla pracy w tle."""
     report = SyncReport()
     if hasattr(mail, "deliver_due"):
         await mail.deliver_due(family_id, now)

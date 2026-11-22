@@ -1,4 +1,4 @@
-"""E2E planu 09: Anna składa wniosek -> symulowane odpowiedzi -> zmiana statusu -> wpis w kalendarzu i powiadomienia.
+"""E2E planu 09: Anna składa wniosek -> odpowiedzi testowe -> zmiana statusu -> wpis w kalendarzu i powiadomienia.
 
 Wniosek składany prawdziwym kreatorem planu 08 (`send_application`).
 """
@@ -25,7 +25,7 @@ def test_anna_application_reply_status_calendar_notification(client):
     [entry] = [e for e in cal if e["source_ref"] == f"application:{app['id']}"]
     assert entry["actor_name"] == "Anna Nowak" and entry["status"] == "sent"
 
-    # 3. odpowiedzi pracodawcy (symulacja) -> klasyfikacja (DemoLLM) -> status
+    # 3. odpowiedzi pracodawcy (testowe) -> klasyfikacja (DemoLLM) -> status
     r = client.post("/api/mail/simulate-replies", headers=anna).json()
     assert r["status_changes"] == 2
     [thread] = client.get("/api/mail/threads", headers=piotr).json()

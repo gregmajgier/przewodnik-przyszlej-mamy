@@ -80,7 +80,7 @@ def test_map_field_ids_and_pdf_fields_unique(code):
 
 
 def test_portal_schemas_parse_and_ids_unique():
-    for pid in ("ezus_800plus", "ezus_aktywny_rodzic", "ezus_zam", "emp_kdr", "emp_za_zyciem"):
+    for pid in ("pue_800plus", "pue_aktywny_rodzic", "pue_zam", "pue_zas_53", "pue_zas_26", "emp_kdr", "emp_za_zyciem"):
         fields = portal_schema(pid)
         assert fields and len({f.id for f in fields}) == len(fields)
 
@@ -117,13 +117,13 @@ def test_prefill_zam_for_expected_child_uses_due_date():
 
 
 def test_missing_pesel_listed():
-    r = prefill_portal("ezus_800plus", view(), [anna()], "c3")  # dziecko w drodze nie ma PESEL
+    r = prefill_portal("pue_800plus", view(), [anna()], "c3")  # dziecko w drodze nie ma PESEL
     assert "child_pesel" in {q.field_id for q in r.missing}
     assert "child_pesel" not in r.values  # nie wstawiamy pustej wartości
 
 
 def test_born_child_pesel_is_prefilled_from_family_data():
-    r = prefill_portal("ezus_800plus", view(), [anna()], "c1")
+    r = prefill_portal("pue_800plus", view(), [anna()], "c1")
     assert r.values["child_pesel"] == "18210112345"
     assert r.values["citizenship"] == "polskie"  # wartość domyślna do poprawy w podglądzie
 
@@ -166,7 +166,7 @@ def test_other_family_child_404():
 
 
 def test_child_fields_missing_without_child():
-    r = prefill_portal("ezus_800plus", view(), [anna()], None)
+    r = prefill_portal("pue_800plus", view(), [anna()], None)
     assert {"child_first_name", "child_birth_date", "child_pesel"} <= {q.field_id for q in r.missing}
 
 

@@ -144,6 +144,13 @@ export interface Guide {
   /** wyróżnienie, np. zbliżający się termin */
   urgent?: string
   source?: { label: string; url: string }
+  /** przycisk prowadzący do kreatora wniosku */
+  action?: { label: string; to: string }
+}
+
+/** Dobry Start: wnioski przyjmowane od 1 lipca do 30 listopada. */
+function dobryStartOpen(today: Date): boolean {
+  return today.getMonth() >= 6 && today.getMonth() <= 10
 }
 
 function daysUntil(month: number, day: number, today: Date): number {
@@ -271,6 +278,10 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
       text: 'Wniosek na dany rok szkolny przyjmuje ZUS od 1 lipca do 30 listopada, przez internet.',
       urgent: left >= 0 && left <= 45 ? `Zostało ${left} dni` : undefined,
       source: { label: 'zus.pl', url: 'https://www.zus.pl/swiadczenia/dobry-start' },
+      action:
+        person.child && dobryStartOpen(today)
+          ? { label: 'Złóż wniosek', to: `/wnioski/nowy?form=DOBRY-START&child=${encodeURIComponent(person.child.id)}` }
+          : undefined,
     })
     if (m >= 13 * 12) {
       out.push({

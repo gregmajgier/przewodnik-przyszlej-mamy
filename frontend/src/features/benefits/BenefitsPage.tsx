@@ -78,14 +78,24 @@ export default function BenefitsPage() {
                 <span>rocznie, szacunkowo, z tego, co już pasuje</span>
               </div>
             )}
-            <div>
+            <button
+              type="button"
+              aria-label="Pokaż świadczenia, które pasują do Was"
+              aria-pressed={view === 'yours'}
+              onClick={() => setView('yours')}
+            >
               <span className="benefits-summary-num">{fits.length}</span>
               <span>pasuje do Was</span>
-            </div>
-            <div>
+            </button>
+            <button
+              type="button"
+              aria-label="Pokaż świadczenia do sprawdzenia"
+              aria-pressed={view === 'check'}
+              onClick={() => setView('check')}
+            >
               <span className="benefits-summary-num">{maybe.length}</span>
               <span>do sprawdzenia</span>
-            </div>
+            </button>
           </section>
 
           {featured.length > 0 && view === 'yours' && cat === 'all' && !query && (

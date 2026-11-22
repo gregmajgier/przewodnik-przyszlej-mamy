@@ -2,7 +2,7 @@
 
 Zasady (spec §8):
 - Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje.
-- Zawsze podgląd i zatwierdzenie przed wysyłką. Podpis (symulowany Profil Zaufany) obejmuje kanały PDF;
+- Zawsze podgląd i zatwierdzenie przed wysyłką. Podpis testowy Profilem Zaufanym obejmuje kanały PDF;
   zapisujemy odcisk danych z chwili podpisu — zmiana czegokolwiek unieważnia podpis.
 - Wysyłka jest idempotentna po `application.id` (podwójne kliknięcie = jedna wiadomość).
 - Dane wniosków (PESEL, PDF-y) nie trafiają do logów.
@@ -33,6 +33,7 @@ from ..models.family import Child, FamilyView
 from ..models.profile import ParentProfile
 from ..storage import Store
 from . import prefill as pf
+from .application_children import child_block_reason
 from .employer_pdf import TITLES, EmployerData, render_employer_application
 from .families import NO_FAMILY, FamilyService
 from .pdf_fill import fill_pdf
@@ -44,6 +45,7 @@ SIGNED_CHANNELS = ("employer_email", "pdf_download")
 
 MSG_FINAL = "Ten wniosek został już złożony i nie można go zmieniać."
 MSG_LOSS = "Dla tego dziecka nie składamy już wniosków. Jeśli to pomyłka, zmień dane dziecka w zakładce „Rodzina”."
+MSG_DEMO = "To przykładowy wniosek, który pokazuje, jak działa aplikacja. Załóż własny wniosek, żeby go wypełnić i złożyć."
 
 
 # ---------- katalog i kanały ----------
@@ -59,6 +61,16 @@ def loss_forms() -> frozenset[str]:
 
 def _catalog() -> dict[str, dict]:
     return {w["kod"]: w for w in pf._read_json(pf.DATA / "katalog_wnioskow_pdf.json")["wnioski"]}
+
+
+def pdf_recipient(code: str) -> str | None:
+    """Gdzie trafia wniosek PDF złożony w aplikacji (symulacja PUE ZUS / skrzynki urzędu): ZUS albo gmina."""
+    institution = (_catalog().get(code, {}).get("instytucja") or "").lower()
+    if institution.startswith("zus"):
+        return "wnioski@zus.pl"
+    if "gmina" in institution or "mops" in institution:
+        return "swiadczenia@um.krakow.pl"
+    return None
 
 
 def channels_for(code: str) -> list[Channel]:
@@ -160,6 +172,8 @@ class ApplicationService:
         if doc is None or doc.get("family_id") != family_id:
             raise DomainError(404, "Nie znaleziono takiego wniosku.")
         app = Application.model_validate(doc)
+        if mutate and app.demo:
+            raise DomainError(403, MSG_DEMO)
         if mutate and app.applicant_id != user_id:
             raise DomainError(403, "Ten wniosek składa drugi rodzic. Możesz go tylko przeglądać.")
         return app
@@ -211,14 +225,21 @@ class ApplicationService:
     # ---------- katalog ----------
 
     async def forms(self, user_id: str) -> dict:
-        _, profiles = await self._context(user_id)
+        view, profiles = await self._context(user_id)
         me = next((p for p in profiles if p.user_id == user_id), profiles[0])
         kind = me.insurance[0].kind if me.insurance else None
         catalog = _catalog()
+        today = date.today()
         items = []
         for code in supported_codes():
             channels = channels_for(code)
             entry = catalog.get(code, {})
+            # dzieci, o które tego wniosku nie da się złożyć (np. urlop ojcowski na 7-latka), z powodem do pokazania
+            blocks = {
+                c.id: reason
+                for c in view.children
+                if (reason := child_block_reason(code, c, view.children, today)) is not None
+            }
             items.append(
                 {
                     "code": code,
@@ -229,6 +250,7 @@ class ApplicationService:
                     "default_channel": channels[0],
                     "only_electronic": bool(entry.get("tylko_elektronicznie")),
                     "requires_child": pf.requires_child(code),
+                    "child_blocks": blocks,
                     "loss_ok": code in loss_forms(),
                     "portal_id": pf.CODE_TO_PORTAL.get(code),
                 }
@@ -251,6 +273,10 @@ class ApplicationService:
         child = pf._select_child(view, data.child_id)  # cudze/nieistniejące dziecko → 404
         if child is not None and child.situation == "loss" and data.form_code not in loss_forms():
             raise DomainError(409, MSG_LOSS)
+        if child is not None and child.situation != "loss":
+            reason = child_block_reason(data.form_code, child, view.children, date.today())
+            if reason is not None:
+                raise DomainError(422, reason)
         app = Application(
             id=f"app-{uuid.uuid4().hex[:12]}",
             family_id=view.family.id,
@@ -452,10 +478,14 @@ class ApplicationService:
                 logger.error("Nie wysłano wniosku %s: %s", app.id, type(e).__name__)
                 raise DomainError(502, "Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę.") from None
             app.thread_id = sent.thread_id
+        elif app.channel == "pdf_download":
+            # SYMULACJA złożenia przez PUE ZUS / skrzynkę urzędu: adresat według instytucji z katalogu wniosków
+            app.recipient_email = pdf_recipient(app.form_code)
+            app.recipient_domain = app.recipient_email.rsplit("@", 1)[1] if app.recipient_email else None
         app.status, app.sent_at = "sent", _now()
         app = await self._save(app)
-        if app.channel == "employer_email":
-            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy (plan 09)
+        if app.channel == "employer_email" or app.recipient_email:
+            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy/urzędu (plan 09)
         return app
 
     async def portal_submitted(self, user_id: str, app_id: str) -> Application:
@@ -475,12 +505,12 @@ class ApplicationService:
                     await self._save(app)
                     raise DomainError(409, "Brakuje danych we wniosku. Uzupełnij je przed wysłaniem.")
                 app.status, app.sent_at = "sent", _now()
-                # makieta portalu = adresat do filtra poczty: ZUS (eZUS) albo urząd gminy (Emp@tia)
-                zus = (pf.CODE_TO_PORTAL.get(app.form_code) or "").startswith("ezus")
+                # makieta portalu = adresat do filtra poczty: ZUS (PUE) albo urząd gminy (Emp@tia)
+                zus = (pf.CODE_TO_PORTAL.get(app.form_code) or "").startswith("pue_")
                 app.recipient_email = "wnioski@zus.pl" if zus else "swiadczenia@um.krakow.pl"
                 app.recipient_domain = app.recipient_email.rsplit("@", 1)[1]
                 app = await self._save(app)
-                await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź urzędu (plan 09)
+                await schedule_reply(self.store, app, app.sent_at)  # odpowiedź testowa urzędu (plan 09)
                 return app
         finally:
             if not lock.locked():

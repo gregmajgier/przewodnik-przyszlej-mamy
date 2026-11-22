@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-mRodzina is a Polish app for expecting parents: it knows the family (simulated mObywatel/ZUS data and employment contracts), tells them which benefits they qualify for and why, fills in applications, and tracks deadlines. A separate public path, `/jaskolka`, needs no login and serves parents after a loss or during a child's serious illness.
+mRodzina is a Polish app for expecting parents: it knows the family (demonstration mObywatel/ZUS data and employment contracts), tells them which benefits they qualify for and why, fills in applications, and tracks deadlines. A separate public path, `/jaskolka`, needs no login and serves parents after a loss or during a child's serious illness.
 
 **Detailed docs** (Polish): `docs/dev.md` is the developer guide. Every subsystem has a section there: env vars, AI limits, benefits engine, applications/agent, contracts, official panel, mail/calendar, chat, loss mode. Product spec: `docs/superpowers/specs/2026-11-21-mrodzina-design.md`. Implementation plans and conventions: `docs/superpowers/plans/` (start with `00-conventions.md`; decision notes are in `NOTES-*.md`). Read the relevant `docs/dev.md` section before changing a subsystem.
 
@@ -36,7 +36,7 @@ Data/maintenance scripts in `backend/scripts/` need network access: `build_laws_
 
 ## Runs fully offline by default
 
-With no env configured, the app uses `MemoryStore` (in-process data, reset on restart), `DemoLLM` (deterministic demo answers) and simulated ZUS/mObywatel/mail/e-signature. Code and tests **must keep working without Azure**. Setting `COSMOS_*` switches the backend to `CosmosStore`, and setting `AZURE_OPENAI_*` switches it to the real model (`FoundryLLM`). `ENV` other than `dev` (or a set `COSMOS_ENDPOINT`) turns on fail-closed startup validation: a real `SESSION_SECRET` of at least 32 characters is required, and the `demo1234` official password is disabled. All env vars are listed in `backend/.env.example`. The frontend reads `VITE_API_URL` (see `frontend/.env.example`).
+With no env configured, the app uses `MemoryStore` (in-process data, reset on restart), `DemoLLM` (deterministic demo answers) and demonstration ZUS/mObywatel/mail/e-signature flows. Code and tests **must keep working without Azure**. Setting `COSMOS_*` switches the backend to `CosmosStore`, and setting `AZURE_OPENAI_*` switches it to the real model (`FoundryLLM`). `ENV` other than `dev` (or a set `COSMOS_ENDPOINT`) turns on fail-closed startup validation: a real `SESSION_SECRET` of at least 32 characters is required, and the `demo1234` official password is disabled. All env vars are listed in `backend/.env.example`. The frontend reads `VITE_API_URL` (see `frontend/.env.example`).
 
 Login personas: parents `persona-nowak-anna` and `persona-nowak-piotr` (on `/logowanie`). Officials `urzednik.krakow@mrodzina.local` and `urzednik.malopolska@mrodzina.local` log in at `/urzednik/logowanie` with password `demo1234` in dev.
 
@@ -60,7 +60,7 @@ Backend tests: the fixtures `store` and `client`, and the helpers `login(client,
 
 - **Feature registry:** `features/registry.ts` collects `features/*/routes.tsx` (default export `RouteObject[]`; mark public routes with `handle: { public: true }`), plus the optional `nav.ts`, `widget.tsx`, `profile-section.tsx` and `header-slot.tsx`, all via `import.meta.glob`. A feature plugs itself in without touching shared files.
 - `lib/api.ts`: `api<T>(path, init)` adds the bearer token and throws `ApiError{status, detail}`. `lib/session.tsx`: `useSession()`. `components/AppShell.tsx` is the parent shell; it switches to `JaskolkaHome` and `data-theme="mono"` in loss mode. `features/official/` is a separate shell for officials.
-- Styling: plain CSS, one file per feature. Always use the tokens in `theme.css`, never hard-coded hex values. Shared UI primitives are in `ui/`, brand elements in `brand/`. The visual style follows `landing/` (Nunito; Sniglet only for the word "Rodzina" in the wordmark; pill buttons; accent `#ef4363` on `#f8fbef`). Simulated or AI elements use `--ai` and carry a visible "SYMULACJA" label. Transition/splash screens always show the logo together with the "Rodzina" text.
+- Styling: plain CSS, one file per feature. Always use the tokens in `theme.css`, never hard-coded hex values. Shared UI primitives are in `ui/`, brand elements in `brand/`. The visual style follows `landing/` (Nunito; Sniglet only for the word "Rodzina" in the wordmark; pill buttons; accent `#ef4363` on `#f8fbef`). Demonstration or AI elements use `--ai` and carry a visible "DANE TESTOWE" label. Transition/splash screens always show the logo together with the "Rodzina" text.
 - Tests: vitest + Testing Library, `*.test.tsx` next to the code. Use the helpers in `src/test/` (`renderWithSession`, `makeSession`, fixtures, `routeApi` for mocking API routes).
 
 ## Product rules that tests enforce

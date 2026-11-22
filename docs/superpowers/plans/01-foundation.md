@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Szkielet backendu i frontendu: storage, auth (persona mObywatel + urzędnik), rodzina z kodem dołączania, dzieci, profil „Moje dane” z symulacją ZUS dla Nowaków, powłoka aplikacji z motywem.
+**Goal:** Szkielet backendu i frontendu: storage, auth (persona mObywatel + urzędnik), rodzina z kodem dołączania, dzieci, profil „Moje dane” z testowymi danymi ZUS dla Nowaków, powłoka aplikacji z motywem.
 
 **Architecture:** FastAPI z auto-wykrywanymi routerami i `Store` (Memory/Cosmos); React + react-router z auto-wykrywanymi `features/*`. Wszystko działa bez Azure.
 
@@ -54,9 +54,9 @@
 - [ ] Testy (serwis + API): `test_create_family_sets_owner_and_code`, `test_second_family_for_same_user_409`, `test_join_flow_pending_then_accept_adds_member`, `test_reject_keeps_user_out`, `test_only_owner_can_decide_403`, `test_invalid_code_404`, `test_join_own_family_409`, `test_third_member_409`, `test_single_parent_family_view_ok`, `test_child_requires_birth_or_due_date_422`, `test_children_isolated_between_families`, `test_expected_child_allowed_with_due_date`.
 - [ ] Kod: `NOWAK-` nie; losowy 8 znaków `[A-Z2-9]`, `secrets`. Commit.
 
-### Task 5: Profil „Moje dane” + symulacja ZUS
+### Task 5: Profil „Moje dane” + testowe dane ZUS
 **Files:** Create `backend/app/models/profile.py`, `backend/app/services/zus_sim.py`, `backend/app/routers/profile.py`; Test `tests/test_profile.py`, `tests/test_zus_sim.py`.
-**Interfaces:** Produces `ParentProfile(user_id, first_name, last_name, pesel, birth_date, address: Address(city,gmina,powiat,voivodeship,postal_code), insurance: list[Insurance(kind: "employment"|"mandate"|"jdg", payer, contribution_base: float, voluntary_sickness: bool|None, since: date)], ezla: list[Ezla(code,from_date,to_date)], contribution_debt: Debt|None, known_children: list[KnownChild(name,birth_date|None,due_date|None)], answers: dict[str,bool|str])`; `fetch_zus_data(persona_id: str, today: date) -> ParentProfile` (daty względne do `today`); endpointy `GET /api/profile -> {members:[ParentProfile+user name]}` (profile obojga rodziców rodziny), `GET /api/profile/me`, `PATCH /api/profile/me/answers {key: value}`, `GET /api/profile/me/zus` (symulowany podgląd PUE: konto, składki).
+**Interfaces:** Produces `ParentProfile(user_id, first_name, last_name, pesel, birth_date, address: Address(city,gmina,powiat,voivodeship,postal_code), insurance: list[Insurance(kind: "employment"|"mandate"|"jdg", payer, contribution_base: float, voluntary_sickness: bool|None, since: date)], ezla: list[Ezla(code,from_date,to_date)], contribution_debt: Debt|None, known_children: list[KnownChild(name,birth_date|None,due_date|None)], answers: dict[str,bool|str])`; `fetch_zus_data(persona_id: str, today: date) -> ParentProfile` (daty względne do `today`); endpointy `GET /api/profile -> {members:[ParentProfile+user name]}` (profile obojga rodziców rodziny), `GET /api/profile/me`, `PATCH /api/profile/me/answers {key: value}`, `GET /api/profile/me/zus` (testowy podgląd PUE: konto, składki).
 - [ ] Testy: `test_zus_sim_nowak_anna_has_employment_ezla_b_and_known_children` (e-ZLA code "B", 2 znane dzieci + 1 w drodze z `due_date` ≈ today+60d), `test_zus_sim_dates_relative_to_today`, `test_login_creates_profile_from_zus`, `test_profile_visible_to_both_parents_after_join`, `test_profile_not_visible_to_other_family`, `test_patch_answers_merges_and_persists`, `test_pesel_not_in_logs` (caplog bez PESEL).
 - [ ] Logowanie mObywatel (Task 3) po utworzeniu usera zapisuje `profiles/{user_id}` z `fetch_zus_data`. Persony w danych (`app/seed/personas.py`), nie w kodzie logiki. Commit.
 

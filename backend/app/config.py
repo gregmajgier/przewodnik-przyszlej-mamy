@@ -14,7 +14,12 @@ class Settings(BaseSettings):
     cosmos_endpoint: str = ""
     cosmos_key: str = ""
     cosmos_database: str = "mrodzina"
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+    ]
     session_secret: str = DEFAULT_SESSION_SECRET
     session_ttl_hours: int = 12
     official_default_password: str = DEFAULT_OFFICIAL_PASSWORD
@@ -46,7 +51,7 @@ class Settings(BaseSettings):
     # Czat (plan 06): wyszukiwarka dla `szukaj_w_sieci`. `none` = brak dostępu do sieci (domyślnie).
     web_search_provider: str = "none"  # none | brave | serper
     web_search_api_key: str = ""
-    # Poczta symulowana (plan 09): opóźnienie predefiniowanych odpowiedzi i cykl pobierania (0 = wyłączony).
+    # Poczta testowa (plan 09): opóźnienie predefiniowanych odpowiedzi i cykl pobierania (0 = wyłączony).
     mail_sim_reply_delay_s: int = 20
     mail_poll_s: int = 30
 

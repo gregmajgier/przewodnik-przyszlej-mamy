@@ -3,6 +3,7 @@ import type { FormEvent, ReactNode } from 'react'
 import { useNavigate, useOutletContext, useParams, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
 import { formatPln } from '../../lib/format'
+import { decimalToNumber, sanitizeIntegerInput } from '../../lib/numeric'
 import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
 import type { IconName } from '../../ui/Icon'
@@ -23,8 +24,7 @@ const EMPLOYMENT: [NonNullable<Criteria['employment_kinds']>[number], string][] 
 ]
 
 function num(v: string): number | null {
-  const n = Number(v.replace(',', '.').replace(/\s/g, ''))
-  return v.trim() === '' || Number.isNaN(n) ? null : n
+  return decimalToNumber(v)
 }
 
 function errText(e: unknown, fallback: string) {
@@ -359,7 +359,7 @@ export default function BenefitEditor() {
                 </Field>
                 <Field id="b-annual" label="Szacowana wartość roczna">
                   <Suffixed suffix="zł">
-                    <input id="b-annual" inputMode="numeric" value={form.annual_value_estimate ?? ''} onChange={(e) => set('annual_value_estimate', num(e.target.value))} />
+                    <input id="b-annual" type="number" min="0" step="1" inputMode="numeric" value={form.annual_value_estimate ?? ''} onChange={(e) => set('annual_value_estimate', num(e.target.value))} />
                   </Suffixed>
                 </Field>
               </div>
@@ -406,24 +406,36 @@ export default function BenefitEditor() {
                   <Suffixed suffix={ageUnit === 'years' ? 'lat' : 'mies.'}>
                     <input
                       id="b-age-min"
+                      type="number"
+                      min="0"
+                      step="1"
                       inputMode="numeric"
                       value={c.child_age_min_months === null ? '' : String(c.child_age_min_months / factor)}
-                      onChange={(e) => setCrit('child_age_min_months', ageMin(e.target.value))}
+                      onChange={(e) => {
+                        const clean = sanitizeIntegerInput(e.target.value)
+                        if (clean !== null) setCrit('child_age_min_months', ageMin(clean))
+                      }}
                     />
                   </Suffixed>
                 </Field>
                 <Field id="b-age-max" label={ageUnit === 'years' ? 'Do ukończenia' : 'Do (włącznie)'}>
                   <Suffixed suffix={ageUnit === 'years' ? 'lat' : 'mies.'}>
-                    <input id="b-age-max" inputMode="numeric" value={showAge(c.child_age_max_months)} onChange={(e) => setCrit('child_age_max_months', ageMax(e.target.value))} />
+                    <input id="b-age-max" type="number" min="0" step="1" inputMode="numeric" value={showAge(c.child_age_max_months)} onChange={(e) => {
+                      const clean = sanitizeIntegerInput(e.target.value)
+                      if (clean !== null) setCrit('child_age_max_months', ageMax(clean))
+                    }} />
                   </Suffixed>
                 </Field>
                 <Field id="b-income" label="Maks. dochód na osobę" hint="Puste = bez progu dochodowego">
                   <Suffixed suffix="zł">
-                    <input id="b-income" inputMode="decimal" value={c.max_income_per_person ?? ''} onChange={(e) => setCrit('max_income_per_person', num(e.target.value))} />
+                    <input id="b-income" type="number" min="0" step="0.01" inputMode="decimal" value={c.max_income_per_person ?? ''} onChange={(e) => setCrit('max_income_per_person', num(e.target.value))} />
                   </Suffixed>
                 </Field>
                 <Field id="b-children" label="Min. liczba dzieci">
-                  <input id="b-children" inputMode="numeric" value={c.min_children ?? ''} onChange={(e) => setCrit('min_children', num(e.target.value))} />
+                  <input id="b-children" type="number" min="0" step="1" inputMode="numeric" value={c.min_children ?? ''} onChange={(e) => {
+                    const clean = sanitizeIntegerInput(e.target.value)
+                    if (clean !== null) setCrit('min_children', clean === '' ? null : Number(clean))
+                  }} />
                 </Field>
                 <div className="field field-wide off-toggles">
                   <Toggle

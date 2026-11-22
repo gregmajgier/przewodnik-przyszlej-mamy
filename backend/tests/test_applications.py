@@ -116,9 +116,14 @@ def test_forms_catalog_channels_and_recommended_flow(client):
     forms = {f["code"]: f for f in data["forms"]}
     assert data["recommended_flow"] == ["URLOP-MAC-ROD", "ZAM"]  # Anna jest pracownicą
     assert forms["800PLUS"]["channels"] == ["portal_agent"] and forms["800PLUS"]["only_electronic"] is True
+    assert forms["DOBRY-START"]["channels"] == ["portal_agent"] and forms["DOBRY-START"]["requires_child"] is True
     assert forms["ZAM"]["channels"] == ["portal_agent", "pdf_download"]
     assert forms["URLOP-MAC-ROD"]["channels"] == ["employer_email", "pdf_download"]
-    assert forms["ZAS-53"]["channels"] == ["pdf_download"]
+    # wnioski ZUS składa się przez PUE: agent w makiecie jest domyślnym kanałem, PDF zostaje dodatkiem
+    assert forms["Z-10"]["channels"] == ["portal_agent"]  # mapa bez wzoru PDF — tylko PUE
+    for code in ("ZAS-53", "ZAS-55", "ZNp-7", "ZAS-26", "ZAS-33", "ZAS-39"):
+        assert forms[code]["channels"] == ["portal_agent", "pdf_download"], code
+        assert forms[code]["default_channel"] == "portal_agent" and forms[code]["portal_id"].startswith("pue_")
     assert "Z-3" not in forms and "Z-3a" not in forms  # dokumenty źródłowe parsera nie są wnioskami
 
 
@@ -406,6 +411,7 @@ def test_portal_submitted_is_idempotent(client):
     app = _complete_zam(client, h, ids["Dziecko w drodze"])
     first = client.post(f"/api/applications/{app['id']}/portal-submitted", headers=h)
     assert first.status_code == 200 and first.json()["status"] == "sent"
+    assert first.json()["recipient_domain"] == "zus.pl"  # wniosek z makiety PUE trafia do ZUS (filtr poczty)
     second = client.post(f"/api/applications/{app['id']}/portal-submitted", headers=h)
     assert second.status_code == 200 and second.json()["sent_at"] == first.json()["sent_at"]
 
@@ -422,10 +428,26 @@ def test_agent_plan_demo_mode_builds_steps_from_profile(client):
     r = client.post(f"/api/applications/{app['id']}/agent-plan", headers=h)
     assert r.status_code == 200, r.text
     plan = r.json()
-    assert plan["portal_id"] == "ezus_zam" and plan["kind"] == "ezus" and plan["blocked"] == []
+    assert plan["portal_id"] == "pue_zam" and plan["kind"] == "pue" and plan["blocked"] == []
     by_id = {s["field_id"]: s for s in plan["steps"]}
     assert by_id["first_name"]["value"] == "Anna" and by_id["street"]["value"] == "Floriańska"
     assert all(s["reason"] for s in plan["steps"])
+
+
+def test_zus_pdf_form_goes_through_pue_and_sends_to_zus(client):
+    """Wniosek ZUS, który miał tylko PDF (ZAS-53), składa się teraz agentem w makiecie PUE."""
+    h, _ = _family(client)
+    app = _create(client, h, "ZAS-53")
+    assert app["channel"] == "portal_agent"
+    plan = client.post(f"/api/applications/{app['id']}/agent-plan", headers=h)
+    assert plan.status_code == 200, plan.text
+    assert plan.json()["portal_id"] == "pue_zas_53" and plan.json()["kind"] == "pue"
+    portal = client.get("/api/applications/portals/pue_zas_53", headers=h).json()
+    assert portal["kind"] == "pue" and portal["title"].startswith("PUE ZUS")
+    done = client.post(f"/api/applications/{app['id']}/portal-submitted", headers=h)
+    # bez kompletu danych wniosek nie wychodzi do ZUS
+    assert plan.json()["blocked"]
+    assert client.post(f"/api/applications/{app['id']}/portal-submitted", headers=h).status_code == 409
 
 
 def test_agent_plan_blocks_on_missing_data(client):
@@ -474,7 +496,7 @@ def test_portal_schema_endpoint(client):
     assert data["kind"] == "empatia" and data["form_code"] == "KDR"
     assert {"id", "label", "type"} <= set(data["fields"][0]) and "source_key" not in data["fields"][0]
     assert client.get("/api/applications/portals/nie-ma", headers=h).status_code == 404
-    assert client.get("/api/applications/portals/ezus_zam", headers=h).json()["fields"]  # extends_form
+    assert client.get("/api/applications/portals/pue_zam", headers=h).json()["fields"]  # extends_form
 
 
 # ---------- tryb straty (plan 10) ----------

@@ -8,9 +8,11 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from app.engine.engine import evaluate_user_profile, ocen
 from app.engine.kontrakt import DATA, load_kontrakt
+from app.engine.schemas import Porod, Ubezpieczenie
 
 DZIS = date(2026, 11, 21)
 PERSONY = {p["id"]: p["profil"] for p in json.loads((DATA / "persony_mock.json").read_text(encoding="utf-8"))["persony"]}
@@ -68,6 +70,74 @@ def test_p1_plan_bledny_przy_10_tyg_dla_ojca():
     assert ("rod_nieprzenoszalne", "blad") in bledy
 
 
+def test_plan_drugiego_rodzica_uwzglednia_prace_i_nie_stosuje_81_5_do_ojca():
+    profil = copy.deepcopy(PERSONY["P1_MAMA_UOP_81_5"])
+    profil["plan"]["czesci_urlopu_rodzicielskiego"][1]["wymiar_pracy_w_trakcie"] = 0.5
+    profil["drugi_rodzic"]["ubezpieczenie"] = {
+        "chorobowe": "obowiazkowe",
+        "data_objecia_chorobowym": "2020-01-01",
+        "przychody_12_miesiecy": [
+            {"rok": 2026, "miesiac": m, "podstawa_wymiaru_skladek": 5000} for m in range(1, 13)
+        ],
+    }
+
+    wynik = ocena(profil)
+    rodzicielski = next(
+        w for w in wynik.swiadczenia_drugiego_rodzica if w.id == "ZASILEK_URLOP_RODZICIELSKI"
+    ).wyliczenie
+    assert [o.dni for o in rodzicielski.okresy] == [63, 31]
+    assert [o.procent for o in rodzicielski.okresy] == [70.0, 70.0]
+    assert rodzicielski.okresy[0].stawka_dzienna < rodzicielski.okresy[1].stawka_dzienna
+
+
+def test_adopcja_uwzglednia_prace_podczas_urlopu_rodzicielskiego():
+    profil = copy.deepcopy(PERSONY["P1_MAMA_UOP_81_5"])
+    profil["wnioskodawca"].update(etap="adopcja_zastepcza", rola="przysposabiajacy")
+    profil["dzieci"][0]["przyjete_na_wychowanie"] = {
+        "rodzaj": "przysposobienie",
+        "data_przyjecia": "2026-11-10",
+    }
+    profil["porod"] = {"data_porodu": None, "stan_dziecka": None, "liczba_dzieci": None}
+    profil["plan"] = {
+        "czesci_urlopu_rodzicielskiego": [
+            {"rodzic": None, "od": "2027-03-30", "do": "2027-05-31", "wymiar_pracy_w_trakcie": 0.5}
+        ]
+    }
+
+    rodzicielski = sw(ocena(profil), "ZASILEK_ADOPCJA_ZASTEPCZA").wyliczenie
+    okresy = [o for o in rodzicielski.okresy if o.nazwa.startswith("Urlop rodzicielski")]
+    assert [o.dni for o in okresy] == [63, 224]
+    assert [o.procent for o in okresy] == [70.0, 70.0]
+    wydluzenie = next(o for o in rodzicielski.okresy if o.nazwa.startswith("Wydłużenie urlopu"))
+    assert wydluzenie.dni == 31 and wydluzenie.procent == 70.0
+    assert okresy[0].stawka_dzienna < okresy[1].stawka_dzienna
+    assert rodzicielski.szczegoly["rodzicielski_wydluzenie_dni"] == 31
+
+
+def test_ulga_na_start_nie_daje_dobrowolnego_chorobowego_ani_blednego_ryzyka():
+    assert Ubezpieczenie.model_validate({"tytul": "ulga_na_start"}).chorobowe == "brak"
+    with pytest.raises(ValidationError):
+        Ubezpieczenie.model_validate({"tytul": "ulga_na_start", "chorobowe": "dobrowolne"})
+
+    profil = copy.deepcopy(PERSONY["P2_JDG_DLUG"])
+    profil["ubezpieczenie"].update(tytul="ulga_na_start", chorobowe="brak")
+    wynik = ocena(profil)
+    assert "R_BRAK_DOBROWOLNEGO" not in {r.id for r in wynik.ryzyka}
+
+
+def test_swiadczenie_rodzicielskie_nie_jest_dostepne_w_ciazy():
+    profil = copy.deepcopy(PERSONY["P1_MAMA_UOP_81_5"])
+    profil["wnioskodawca"]["etap"] = "w_ciazy"
+    profil["ciaza"]["w_ciazy"] = True
+    profil["porod"].update(data_porodu=None, stan_dziecka=None)
+
+    assert "SWIADCZENIE_RODZICIELSKIE" not in {w.id for w in ocena(profil).swiadczenia}
+
+
+def test_tydzien_ciazy_w_pierwszym_trymestrze_jest_poprawny():
+    assert Porod(tydzien_ciazy=12).tydzien_ciazy == 12
+
+
 # ── Persona 2: JDG, zadłużenie, podwyższona podstawa ──────────────────────────
 
 @pytest.fixture(scope="module")
@@ -117,6 +187,38 @@ def test_p3_sr7_dla_matki_studentki(p3):
 
 def test_p3_ojciec_nie_przejmuje_macierzynskiego_bez_przeslanek(p3):
     assert sw(p3, "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE").status == "nie_przysluguje"
+
+
+def test_szczegolowe_ubezpieczenie_drugiego_rodzica_pokazuje_jego_kwote():
+    profil = copy.deepcopy(PERSONY["P3_OJCIEC_MATKA_STUDENTKA"])
+    profil["drugi_rodzic"]["tytul_ubezpieczenia"] = "umowa_o_prace"
+    profil["drugi_rodzic"]["ubezpieczenie"] = {
+        "chorobowe": "obowiazkowe",
+        "data_objecia_chorobowym": "2020-01-01",
+        "przychody_12_miesiecy": [
+            {"rok": 2026, "miesiac": m, "podstawa_wymiaru_skladek": 5000} for m in range(1, 13)
+        ],
+    }
+
+    wynik = ocena(profil)
+    macierzynski = next(w for w in wynik.swiadczenia_drugiego_rodzica if w.id == "ZASILEK_MACIERZYNSKI_MATKA")
+    assert macierzynski.wyliczenie.kwota_miesieczna == 4314.5
+    assert any(w.id == "ZASILEK_URLOP_RODZICIELSKI" for w in wynik.swiadczenia_drugiego_rodzica)
+
+
+def test_brak_podstawy_drugiego_rodzica_nie_generuje_szacunku_kwoty():
+    profil = copy.deepcopy(PERSONY["P3_OJCIEC_MATKA_STUDENTKA"])
+    profil["drugi_rodzic"]["tytul_ubezpieczenia"] = "umowa_o_prace"
+    profil["drugi_rodzic"]["ubezpieczenie"] = {
+        "chorobowe": "obowiazkowe",
+        "data_objecia_chorobowym": "2020-01-01",
+    }
+
+    wynik = ocena(profil)
+    macierzynski = next(w for w in wynik.swiadczenia_drugiego_rodzica if w.id == "ZASILEK_MACIERZYNSKI_MATKA")
+    assert macierzynski.status == "przysluguje"
+    assert macierzynski.wyliczenie.kwota_miesieczna is None
+    assert macierzynski.wyliczenie.kwota_laczna is None
 
 
 def test_ojciec_przejmuje_gdy_matka_bez_ubezpieczenia_podjela_prace():

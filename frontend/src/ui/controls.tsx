@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Calendar } from './Calendar'
 import { Icon } from './Icon'
 import type { IconName } from './Icon'
 
@@ -319,6 +320,10 @@ export function DateField({
   const id = idProp ?? autoId
   const [text, setText] = useState(() => isoToPl(value))
   const [touched, setTouched] = useState(false)
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLSpanElement>(null)
+  const input = useRef<HTMLInputElement>(null)
+  const calId = `${id}-cal`
 
   useEffect(() => {
     if (value === '' || plToIso(text) !== value) {
@@ -336,24 +341,74 @@ export function DateField({
     onChange(plToIso(out) ?? '')
   }
 
+  // kalendarz zamyka się po kliknięciu poza polem i kalendarzem
+  useEffect(() => {
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      if (box.current && !box.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [open])
+
+  function pick(iso: string) {
+    setText(isoToPl(iso))
+    onChange(iso)
+    setOpen(false)
+    input.current?.focus()
+  }
+
   const invalid = touched && text.length === 10 && plToIso(text) === null
   return (
-    <label className="field" htmlFor={id}>
-      {label}
-      <span className="date-field">
-        <input
-          id={id}
-          inputMode="numeric"
-          autoComplete="off"
-          placeholder="DD.MM.RRRR"
-          value={text}
-          aria-invalid={invalid || undefined}
-          onBlur={() => setTouched(true)}
-          onChange={(e) => handle(e.target.value)}
-        />
-        <Icon name="calendar" size={20} className="date-field-icon" />
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <span className="date-field" ref={box}>
+        <span className="date-field-row">
+          <input
+            ref={input}
+            id={id}
+            inputMode="numeric"
+            autoComplete="off"
+            placeholder="DD.MM.RRRR"
+            value={text}
+            aria-invalid={invalid || undefined}
+            aria-expanded={open}
+            aria-controls={open ? calId : undefined}
+            onClick={() => setOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape' && open) {
+                e.stopPropagation()
+                setOpen(false)
+              }
+            }}
+            onBlur={() => setTouched(true)}
+            onChange={(e) => handle(e.target.value)}
+          />
+          <button
+            type="button"
+            className="date-field-btn"
+            aria-label={open ? 'Zamknij kalendarz' : 'Otwórz kalendarz'}
+            aria-expanded={open}
+            onClick={() => setOpen((o) => !o)}
+          >
+            <Icon name="calendar" size={20} />
+          </button>
+        </span>
+        {open && (
+          <span id={calId} className="date-field-cal">
+            <Calendar
+              value={value}
+              label={label}
+              onSelect={pick}
+              onClose={() => {
+                setOpen(false)
+                input.current?.focus()
+              }}
+            />
+          </span>
+        )}
       </span>
       {invalid && <span className="field-error">Sprawdź datę: taki dzień nie istnieje.</span>}
-    </label>
+    </div>
   )
 }

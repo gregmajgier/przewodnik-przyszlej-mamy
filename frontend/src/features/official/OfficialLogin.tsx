@@ -137,7 +137,7 @@ export default function OfficialLogin() {
             {busy ? 'Loguję…' : 'Zaloguj się'}
           </Button>
           <p className="off-login-foot">
-            <Icon name="lock" size={16} /> Połączenie szyfrowane. Sesja wygasa po 12 godzinach.
+            <Icon name="clock" size={20} /> Połączenie szyfrowane. Sesja wygasa po 12 godzinach.
           </p>
         </form>
         <section className="off-demo rise" style={{ ['--i' as string]: 1 }} aria-labelledby="off-demo-h">

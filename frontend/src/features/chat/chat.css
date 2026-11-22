@@ -383,3 +383,67 @@
   font-size: 0.875rem;
   color: var(--ink-3);
 }
+
+/* Karta „Ostatnia rozmowa” nad przyciskiem „Zapytaj” (AskFab) */
+.ask-last {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(1.1rem + 3.75rem + 0.6rem + env(safe-area-inset-bottom));
+  z-index: 45;
+  display: flex;
+  align-items: stretch;
+  width: min(20rem, calc(100vw - 2rem));
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow:
+    inset 0 0 0 1.5px var(--line),
+    var(--shadow);
+  animation: rise 0.8s var(--ease) 0.5s both;
+}
+.ask-last-open {
+  flex: 1;
+  min-width: 0;
+  min-height: 3.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.4rem 0.6rem 0.9rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+.ask-last-open svg {
+  flex: none;
+  color: var(--ink-2);
+}
+.ask-last-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ask-last-label {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+.ask-last-preview {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ask-last-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.ask-last-close:hover,
+.ask-last-open:hover .ask-last-preview {
+  color: var(--ink);
+}

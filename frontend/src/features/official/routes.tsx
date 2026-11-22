@@ -3,6 +3,7 @@ import BenefitEditor from './BenefitEditor'
 import BenefitsList from './BenefitsList'
 import OfficialLayout from './OfficialLayout'
 import OfficialLogin from './OfficialLogin'
+import NationalParameters from './NationalParameters'
 
 // Panel urzędnika ma własną powłokę i strażnika sesji (OfficialLayout), więc trasy są poza AppShell rodzica.
 const routes: RouteObject[] = [
@@ -14,6 +15,7 @@ const routes: RouteObject[] = [
     children: [
       { index: true, element: <BenefitsList /> },
       { path: 'swiadczenia/:id', element: <BenefitEditor /> },
+      { path: 'parametry', element: <NationalParameters /> },
     ],
   },
 ]

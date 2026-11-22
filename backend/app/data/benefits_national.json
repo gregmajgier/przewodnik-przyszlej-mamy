@@ -19,16 +19,16 @@
       "deadline": {
         "anchor": "due",
         "offset_days": -49,
-        "note": "Pracownica: wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu (urlop możesz zacząć do 6 tygodni przed porodem). Zleceniobiorczyni i przedsiębiorczyni: wniosek ZAM do ZUS."
+        "note": "Pracownica: wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu (urlop możesz zacząć do 6 tygodni przed porodem). Zleceniobiorczyni: wniosek ZAM u zleceniodawcy albo w ZUS. Przedsiębiorczyni: wniosek ZAM w ZUS."
       },
-      "how_to_apply": "Pracownik: wniosek o urlop do pracodawcy (w mRodzinie wygenerujemy go i wyślemy z Twojej skrzynki); zasiłek wypłaca pracodawca na podstawie ZUS Z-3. Zleceniobiorca i przedsiębiorca z dobrowolnym ubezpieczeniem chorobowym: wniosek ZAM do ZUS.",
+      "how_to_apply": "Pracownik: wniosek o urlop składasz u pracodawcy (w mRodzinie wygenerujemy go i wyślemy z Twojej skrzynki). Zleceniobiorca: wniosek ZAM u zleceniodawcy albo w ZUS. Przedsiębiorca: wniosek ZAM bezpośrednio w ZUS. Zasiłek wypłaca pracodawca lub zleceniodawca, jeśli zgłasza do ubezpieczenia chorobowego więcej niż 20 osób. W mniejszej firmie wypłaca ZUS, a płatnik przesyła do ZUS zaświadczenie Z-3 (przy zleceniu Z-3a).",
       "form_codes": [
         "URLOP-MAC-ROD",
         "ZAM"
       ],
       "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski",
       "criteria": {
-        "pregnant_or_child_max_months": 8,
+        "pregnant_or_in_maternity_leave": true,
         "employment_kinds": [
           "employment",
           "mandate",
@@ -36,7 +36,7 @@
         ]
       },
       "extra_conditions": [],
-      "extra_text": "Zleceniobiorcy i przedsiębiorcy muszą mieć dobrowolne ubezpieczenie chorobowe od co najmniej 90 dni.",
+      "extra_text": "Zleceniobiorcy i przedsiębiorcy muszą mieć dobrowolne ubezpieczenie chorobowe w dniu porodu. Zasiłek macierzyński nie ma okresu wyczekiwania, więc liczy się samo ubezpieczenie, a nie to, jak długo trwa.",
       "status": "published",
       "verify": true,
       "tags": [
@@ -44,7 +44,8 @@
         "poród",
         "pracodawca",
         "urlop",
-        "zus"
+        "zus",
+        "wyplata-platnik-zus"
       ]
     },
     {
@@ -52,31 +53,36 @@
       "name": "Urlop rodzicielski",
       "scope": "national",
       "category": "perk",
-      "description": "41 tygodni na jedno dziecko (43 przy mnogiej) do podziału między rodziców, w tym 9 tygodni tylko dla drugiego rodzica. Zasiłek 70% (81,5% przy jednolitym wniosku).",
+      "description": "41 tygodni na jedno dziecko (43 przy mnogiej; 65 i 67 przy dziecku z zaświadczeniem „Za życiem”) do podziału między rodziców, w tym 9 tygodni tylko dla każdego z rodziców. Można go wziąć jednorazowo albo w najwyżej 5 częściach, do końca roku kalendarzowego, w którym dziecko kończy 6 lat, także łącząc go z pracą do połowy etatu. Zasiłek 70% (81,5% przy jednolitym wniosku).",
       "amount_text": "70% podstawy; 81,5% przy jednolitym wniosku złożonym w ciągu 21 dni po porodzie",
       "deadline": {
         "anchor": "birth",
         "offset_days": 21,
         "note": "Jednolity wniosek (81,5%) złóż w ciągu 21 dni po porodzie."
       },
-      "how_to_apply": "Wniosek do pracodawcy; można wnioskować o części (do 5) i o łączenie z pracą w wymiarze do 1/2 etatu.",
+      "how_to_apply": "Pracownik: wniosek o urlop do pracodawcy (najpóźniej 21 dni przed jego rozpoczęciem); można wnioskować o części (do 5) i o łączenie z pracą w wymiarze do 1/2 etatu. Zleceniobiorca i przedsiębiorca nie dostają urlopu, ale mają prawo do zasiłku macierzyńskiego za okres odpowiadający urlopowi rodzicielskiemu: wniosek ZAM.",
       "form_codes": [
         "URLOP-ROD",
-        "URLOP-ROD-PRACA"
+        "URLOP-ROD-PRACA",
+        "ZAM"
       ],
       "source_url": "https://www.gov.pl/web/rodzina/urlop-rodzicielski",
       "criteria": {
-        "pregnant_or_child_max_months": 12,
+        "pregnant_or_child_until_year_end_of_age": 6,
         "employment_kinds": [
-          "employment"
+          "employment",
+          "mandate",
+          "jdg"
         ]
       },
       "extra_conditions": [],
+      "extra_text": "Zleceniobiorcy i przedsiębiorcy muszą mieć dobrowolne ubezpieczenie chorobowe.",
       "status": "published",
       "verify": true,
       "tags": [
         "urlop",
-        "pracodawca"
+        "pracodawca",
+        "wyplata-platnik-zus"
       ]
     },
     {
@@ -84,25 +90,31 @@
       "name": "Urlop ojcowski",
       "scope": "national",
       "category": "perk",
-      "description": "14 dni płatnego urlopu dla ojca (w jednej lub dwóch częściach po 7 dni), do ukończenia przez dziecko 24 miesięcy.",
+      "description": "14 dni płatnego urlopu dla ojca, jednorazowo albo w dwóch częściach po co najmniej 7 dni, do ukończenia przez dziecko 12 miesięcy. Przy adopcji: w ciągu 12 miesięcy od uprawomocnienia się przysposobienia, nie dłużej niż do 14. urodzin dziecka. Bliźnięta nie wydłużają urlopu, a niewykorzystany w terminie przepada.",
       "amount_text": "Zasiłek 100% podstawy",
-      "how_to_apply": "Wniosek do pracodawcy najpóźniej 7 dni przed rozpoczęciem urlopu.",
+      "how_to_apply": "Pracownik: wniosek o urlop do pracodawcy najpóźniej 7 dni przed jego rozpoczęciem (w mRodzinie go wygenerujemy). Ojciec na umowie zlecenia albo z własną działalnością nie dostaje urlopu, ale ma prawo do zasiłku macierzyńskiego za 14 dni odpowiadające urlopowi ojcowskiemu: wniosek ZAM.",
       "form_codes": [
-        "URLOP-OJC"
+        "URLOP-OJC",
+        "ZAM"
       ],
       "source_url": "https://www.gov.pl/web/rodzina/urlop-ojcowski",
       "criteria": {
-        "pregnant_or_child_max_months": 23,
+        "pregnant_or_child_max_months": 11,
         "employment_kinds": [
-          "employment"
-        ]
+          "employment",
+          "mandate",
+          "jdg"
+        ],
+        "parent_sex": "male"
       },
       "extra_conditions": [],
+      "extra_text": "Ojcowie na umowie zlecenia i z własną działalnością muszą mieć dobrowolne ubezpieczenie chorobowe.",
       "status": "published",
       "verify": true,
       "tags": [
         "urlop",
-        "tata"
+        "tata",
+        "wyplata-platnik-zus"
       ]
     },
     {
@@ -110,10 +122,10 @@
       "name": "Zasiłek chorobowy w ciąży (e-ZLA, kod B)",
       "scope": "national",
       "category": "benefit",
-      "description": "Zwolnienie lekarskie w ciąży (kod literowy B) płatne w 100% podstawy, bez okresu wyczekiwania.",
+      "description": "Zwolnienie lekarskie w ciąży (kod literowy B) płatne w 100% podstawy, najdłużej przez 270 dni (okres zasiłkowy). Prawo do zasiłku powstaje co do zasady po 30 dniach nieprzerwanego ubezpieczenia chorobowego (umowa o pracę) albo po 90 dniach, gdy ubezpieczenie jest dobrowolne (umowa zlecenia, własna działalność).",
       "amount_text": "100% podstawy wymiaru",
       "annual_value_estimate": 8000,
-      "how_to_apply": "Lekarz wystawia e-ZLA. Pracownik: pracodawca wypłaca wynagrodzenie/zasiłek. Zleceniobiorca i przedsiębiorca: wniosek ZAS-53 do ZUS.",
+      "how_to_apply": "Lekarz wystawia e-ZLA z kodem B, a zwolnienie samo trafia do ZUS i do płatnika. Pracownik: za pierwsze 33 dni zwolnienia w roku płaci pracodawca (wynagrodzenie chorobowe), potem zasiłek. Zasiłek wypłaca pracodawca lub zleceniodawca, jeśli zgłasza do ubezpieczenia chorobowego więcej niż 20 osób. W mniejszej firmie wypłaca ZUS, a płatnik przesyła do ZUS zaświadczenie Z-3 (przy zleceniu Z-3a). Przedsiębiorca: wniosek ZAS-53 do ZUS.",
       "form_codes": [
         "ZAS-53"
       ],
@@ -139,7 +151,135 @@
       "tags": [
         "ciąża",
         "zus",
-        "ezla"
+        "ezla",
+        "wyplata-platnik-zus"
+      ]
+    },
+    {
+      "id": "nat-swiadczenie-rehabilitacyjne",
+      "name": "Świadczenie rehabilitacyjne",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Gdy wykorzystasz cały okres zasiłkowy (270 dni zwolnienia), a lekarz uważa, że nadal nie możesz pracować, ale dalsze leczenie rokuje powrót do pracy, ZUS może przyznać świadczenie rehabilitacyjne, najdłużej na 12 miesięcy. W ciąży wynosi 100% podstawy, poza ciążą 90% przez pierwsze 3 miesiące i 75% później.",
+      "amount_text": "100% podstawy wymiaru w ciąży",
+      "how_to_apply": "Wniosek ZNp-7 składasz w ZUS, najlepiej co najmniej 6 tygodni przed końcem okresu zasiłkowego. O prawie do świadczenia decyduje lekarz orzecznik ZUS. Świadczenie zawsze wypłaca ZUS.",
+      "form_codes": [
+        "ZNp-7"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/zasilki/swiadczenie-rehabilitacyjne",
+      "criteria": {
+        "requires_pregnancy": true,
+        "employment_kinds": [
+          "employment",
+          "mandate",
+          "jdg"
+        ]
+      },
+      "extra_conditions": [
+        {
+          "id": "okres-zasilkowy",
+          "text": "Kończy się okres zasiłkowy, a nadal nie możesz pracować",
+          "kind": "ask",
+          "question": "Czy wykorzystujesz już blisko 270 dni zwolnienia (okres zasiłkowy), a lekarz uważa, że nadal nie możesz pracować?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-zasilek-w-wysokosci-macierzynskiego",
+      "name": "Zasiłek w wysokości zasiłku macierzyńskiego (utrata pracy w ciąży)",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Jeśli w ciąży straciłaś pracę z powodu upadłości, likwidacji albo śmierci pracodawcy (albo sąd prawomocnie uznał, że rozwiązanie umowy naruszało prawo) i nie masz innego zatrudnienia, ZUS wypłaca zasiłek w wysokości 100% podstawy od dnia po ustaniu zatrudnienia do dnia porodu.",
+      "amount_text": "100% podstawy wymiaru",
+      "how_to_apply": "Wniosek ZAS-55 składasz w ZUS. Dołącz dokument o rozwiązaniu umowy (świadectwo pracy) oraz zaświadczenie lekarskie o ciąży, a przy naruszeniu prawa także prawomocny wyrok sądu. Zasiłek wypłaca ZUS.",
+      "form_codes": [
+        "ZAS-55"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski",
+      "criteria": {
+        "requires_pregnancy": true
+      },
+      "extra_conditions": [
+        {
+          "id": "utrata-pracy",
+          "text": "W ciąży umowa o pracę ustała z powodu upadłości, likwidacji lub śmierci pracodawcy albo z naruszeniem prawa",
+          "kind": "ask",
+          "question": "Czy w ciąży straciłaś pracę z powodu upadłości, likwidacji lub śmierci pracodawcy (albo sąd prawomocnie uznał, że zwolnienie naruszało prawo)?"
+        }
+      ],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "ciąża",
+        "zus"
+      ]
+    },
+    {
+      "id": "nat-urlop-przyjecie-dziecka",
+      "name": "Urlop i zasiłek przy przyjęciu dziecka (adopcja, rodzina zastępcza)",
+      "scope": "national",
+      "category": "perk",
+      "description": "Gdy przyjmiesz dziecko na wychowanie jako rodzina zastępcza niezawodowa albo złożysz wniosek o przysposobienie, przysługuje urlop na warunkach urlopu macierzyńskiego (do 20 tygodni przy jednym dziecku, nie krócej niż 9 tygodni) z zasiłkiem 100%, a po nim urlop rodzicielski z zasiłkiem 70%. Dotyczy dziecka do 14 lat przy przysposobieniu i do 7 lat (10 przy odroczonym obowiązku szkolnym) w rodzinie zastępczej.",
+      "amount_text": "100% podstawy, potem 70% za urlop rodzicielski",
+      "how_to_apply": "Pracownik: wniosek o urlop na warunkach urlopu macierzyńskiego do pracodawcy. Zleceniobiorca i przedsiębiorca z dobrowolnym ubezpieczeniem chorobowym: wniosek ZAM. Do wniosku dołącz oświadczenie o przyjęciu dziecka na wychowanie (ZAS-26) i dokument z sądu.",
+      "form_codes": [
+        "URLOP-MAC-PRZYJECIE",
+        "ZAM",
+        "ZAS-26"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski/prawo-do-zasilku-i-okres-przyslugiwania/za-okres-urlopu-macierzynskiego-albo-urlopu-na-warunkach-urlopu-macierzynskiego",
+      "criteria": {
+        "child_age_max_months": 167,
+        "requires_foster": true,
+        "employment_kinds": [
+          "employment",
+          "mandate",
+          "jdg"
+        ]
+      },
+      "extra_conditions": [],
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "urlop",
+        "adopcja",
+        "zus",
+        "wyplata-platnik-zus"
+      ]
+    },
+    {
+      "id": "nat-zasilek-opiekunczy",
+      "name": "Zasiłek opiekuńczy",
+      "scope": "national",
+      "category": "benefit",
+      "description": "Gdy opiekujesz się chorym dzieckiem do 14 lat albo zdrowym dzieckiem do 8 lat, np. przy nieprzewidzianym zamknięciu żłobka, przedszkola lub szkoły, dostajesz 80% podstawy za każdy dzień opieki, łącznie najwyżej 60 dni w roku na wszystkie dzieci. Zasiłek nie ma okresu wyczekiwania.",
+      "amount_text": "80% podstawy wymiaru",
+      "how_to_apply": "Przy chorobie dziecka lekarz wystawia e-ZLA na opiekę. Wniosek Z-15A (opieka nad dzieckiem) składasz u płatnika: wypłaca pracodawca lub zleceniodawca, jeśli zgłasza do ubezpieczenia chorobowego więcej niż 20 osób, w mniejszej firmie i przy własnej działalności ZUS.",
+      "form_codes": [
+        "Z-15"
+      ],
+      "source_url": "https://www.zus.pl/swiadczenia/zasilki/zasilek-opiekunczy",
+      "criteria": {
+        "child_age_max_months": 167,
+        "employment_kinds": [
+          "employment",
+          "mandate",
+          "jdg"
+        ]
+      },
+      "extra_conditions": [],
+      "extra_text": "Zleceniobiorcy i przedsiębiorcy muszą mieć dobrowolne ubezpieczenie chorobowe.",
+      "status": "published",
+      "verify": true,
+      "tags": [
+        "opieka",
+        "zus"
       ]
     },
     {
@@ -206,6 +346,14 @@
           "text": "Dzieckiem opiekuje się niania, babcia lub inny opiekun (poza żłobkiem)",
           "kind": "ask",
           "question": "Czy dzieckiem opiekuje się niania, babcia lub opiekun dzienny, a nie żłobek?"
+        },
+        {
+          "id": "oboje-pracuja",
+          "text": "Oboje rodzice pracują (albo pracujący rodzic wychowuje dziecko samodzielnie)",
+          "kind": "auto",
+          "profile_key": "family.all_parents_working",
+          "question": "Czy drugi rodzic też pracuje? Odpowiedz „tak” także wtedy, gdy wychowujesz dziecko samodzielnie.",
+          "unmet_text": "„Aktywnie w pracy” wymaga, żeby pracowali oboje rodzice (albo rodzic wychowujący dziecko samodzielnie). Sprawdź tryb „aktywnie w domu” albo „w żłobku”."
         }
       ],
       "status": "published",
@@ -314,10 +462,13 @@
       },
       "extra_conditions": [
         {
-          "id": "bez-zasilku",
-          "text": "Nie przysługuje zasiłek macierzyński",
-          "kind": "ask",
-          "question": "Czy nie przysługuje ci zasiłek macierzyński (np. umowa o dzieło, studia, bezrobocie, brak ubezpieczenia chorobowego)?"
+          "id": "zasilek-macierzynski",
+          "text": "Nie przysługuje Wam zasiłek macierzyński",
+          "kind": "auto",
+          "profile_key": "family.no_maternity_allowance",
+          "question": "Czy przysługuje ci zasiłek macierzyński? Masz go przy umowie o pracę albo przy dobrowolnym ubezpieczeniu chorobowym na zleceniu lub we własnej działalności.",
+          "negated_question": true,
+          "unmet_text": "Przysługuje Wam zasiłek macierzyński (umowa o pracę albo dobrowolne ubezpieczenie chorobowe), a świadczenie rodzicielskie jest dla rodziców bez tego zasiłku."
         }
       ],
       "status": "published",
@@ -450,7 +601,9 @@
         "note": "Wnioski przyjmowane od 1 lipca do 30 listopada."
       },
       "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, Emp@tia, bankowość elektroniczna.",
-      "form_codes": [],
+      "form_codes": [
+        "DOBRY-START"
+      ],
       "source_url": "https://www.gov.pl/web/rodzina/dobry-start",
       "criteria": {
         "child_age_min_months": 72,

@@ -18,6 +18,7 @@ from .situations import loss_support_applies
 from .units import units_for
 from .matching import FamilyContext, MatchResult, build_context, income_answer_key, match_benefit, next_deadline
 from .milestones import milestones_for
+from .payout import Payout, payouts_for
 
 PARAMETERS_LABEL = "Parametry ZUS 2026 – aktywne"
 INCOME_CONDITION = "income"
@@ -26,6 +27,8 @@ INCOME_CONDITION = "income"
 class BenefitMatch(BaseModel):
     benefit: Benefit
     match: MatchResult
+    # kto wypłaci zasiłek i gdzie złożyć dokumenty, osobno dla każdego tytułu ubezpieczenia (services/payout.py)
+    payouts: list[Payout] = Field(default_factory=list)
 
 
 class AnalysisStep(BaseModel):
@@ -112,7 +115,12 @@ class BenefitService:
         )
 
     async def _matches(self, ctx: FamilyContext) -> list[BenefitMatch]:
-        return [BenefitMatch(benefit=b, match=match_benefit(ctx, b)) for b in await self._visible(ctx)]
+        out = []
+        for b in await self._visible(ctx):
+            match = match_benefit(ctx, b)
+            payouts = payouts_for(b, ctx.parents) if match.status != "no" else []
+            out.append(BenefitMatch(benefit=b, match=match, payouts=payouts))
+        return out
 
     # ---------- lista i szczegóły ----------
 

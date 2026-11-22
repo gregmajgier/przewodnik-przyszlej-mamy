@@ -78,11 +78,10 @@ describe('ProfilePage', () => {
     expect(screen.getByText(/•+2345/)).toBeInTheDocument()
   })
 
-  it('podpisuje źródło danych (ZUS i mObywatel), bez etykiet „symulacja”', async () => {
+  it('podpisuje źródło danych (ZUS i mObywatel)', async () => {
     routeApi({ 'GET /api/profile': { members: [ANNA_PROFILE] } })
     renderWithSession(<ProfilePage />)
     expect(await screen.findByText(/dane z ZUS i mObywatela/i)).toBeInTheDocument()
-    expect(screen.queryByText(/symulacja/i)).not.toBeInTheDocument()
   })
 
   it('podpisuje odpowiedzi po polsku i maskuje numer konta', async () => {

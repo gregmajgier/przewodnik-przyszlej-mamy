@@ -14,7 +14,7 @@ describe('rejestr funkcji: plany 03 i 08', () => {
 
   it('makiety portali są trasami publicznymi (bez powłoki aplikacji)', () => {
     const sim = featureRoutes.filter((r) => r.path?.startsWith('/sim/'))
-    expect(sim.map((r) => r.path).sort()).toEqual(['/sim/empatia/:portalId', '/sim/ezus/:portalId'])
+    expect(sim.map((r) => r.path).sort()).toEqual(['/sim/empatia/:portalId', '/sim/pue/:portalId'])
     expect(sim.every((r) => (r.handle as { public?: boolean } | undefined)?.public === true)).toBe(true)
   })
 

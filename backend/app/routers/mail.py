@@ -1,4 +1,4 @@
-"""Poczta „ZUS / urzędy” (plan 09): symulowana skrzynka (domyślnie podłączona), wątki wniosków, sync."""
+"""Poczta „ZUS / urzędy” (plan 09): testowa skrzynka (domyślnie podłączona), wątki wniosków, sync."""
 
 from datetime import datetime, timezone
 

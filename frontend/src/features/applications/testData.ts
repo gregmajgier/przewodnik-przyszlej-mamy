@@ -58,8 +58,8 @@ export const FORMS: FormsResponse = {
   recommended_flow: ['URLOP-MAC-ROD', 'ZAM'],
   forms: [
     { code: 'URLOP-MAC-ROD', name: 'Wniosek o urlop macierzyński i rodzicielski', institution: 'pracodawca', deadline: 'do 21 dni po porodzie', channels: ['employer_email', 'pdf_download'], default_channel: 'employer_email', only_electronic: false, requires_child: true, portal_id: null },
-    { code: 'ZAM', name: 'Wniosek o zasiłek macierzyński', institution: 'ZUS', deadline: null, channels: ['portal_agent', 'pdf_download'], default_channel: 'portal_agent', only_electronic: false, requires_child: true, portal_id: 'ezus_zam' },
-    { code: '800PLUS', name: 'Świadczenie wychowawcze 800+', institution: 'ZUS', deadline: null, channels: ['portal_agent'], default_channel: 'portal_agent', only_electronic: true, requires_child: true, portal_id: 'ezus_800plus' },
+    { code: 'ZAM', name: 'Wniosek o zasiłek macierzyński', institution: 'ZUS', deadline: null, channels: ['portal_agent', 'pdf_download'], default_channel: 'portal_agent', only_electronic: false, requires_child: true, portal_id: 'pue_zam' },
+    { code: '800PLUS', name: 'Świadczenie wychowawcze 800+', institution: 'ZUS', deadline: null, channels: ['portal_agent'], default_channel: 'portal_agent', only_electronic: true, requires_child: true, portal_id: 'pue_800plus' },
     { code: 'ZAS-53', name: 'Wniosek o zasiłek chorobowy', institution: 'ZUS', deadline: null, channels: ['pdf_download'], default_channel: 'pdf_download', only_electronic: false, requires_child: false, portal_id: null },
   ],
 }

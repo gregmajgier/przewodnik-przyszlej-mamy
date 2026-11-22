@@ -55,6 +55,36 @@ describe('NewApplicationPage', () => {
     expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeEnabled()
   })
 
+  it('dziecko, którego wniosek nie dotyczy, jest wyszarzone z powodem i nie da się go wybrać', async () => {
+    const reason = 'Urlop ojcowski można wykorzystać do ukończenia przez dziecko 12 miesięcy, a Maja ma 7 lat.'
+    const forms = {
+      ...FORMS,
+      forms: [{ ...FORMS.forms[1], code: 'URLOP-OJC', name: 'Wniosek o urlop ojcowski', child_blocks: { 'c-maja': reason } }],
+    }
+    routeApi({ 'GET /api/applications/forms': forms })
+    renderPage('/wnioski/nowy?form=URLOP-OJC')
+    const kids = within(await screen.findByRole('radiogroup', { name: /którego dziecka dotyczy/i }))
+    const maja = kids.getByRole('radio', { name: /Maja/ })
+    expect(maja).toHaveAttribute('aria-disabled', 'true')
+    expect(maja).toHaveAccessibleDescription(reason)
+    await userEvent.click(maja)
+    expect(maja).toHaveAttribute('aria-checked', 'false')
+    // jedyne pasujące dziecko wybiera się samo
+    expect(kids.getByRole('radio', { name: /Maleństwo/ })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeEnabled()
+  })
+
+  it('gdy wniosek nie dotyczy żadnego dziecka, mówi to wprost', async () => {
+    const forms = {
+      ...FORMS,
+      forms: [{ ...FORMS.forms[2], child_blocks: { 'c-maja': 'za stara', 'c-drodze': 'Wniosek o 800+ złożysz po urodzeniu dziecka.' } }],
+    }
+    routeApi({ 'GET /api/applications/forms': forms })
+    renderPage('/wnioski/nowy?form=800PLUS')
+    expect(await screen.findByText(/nie dotyczy żadnego dziecka w Waszej rodzinie/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /zacznij wypełnianie/i })).toBeDisabled()
+  })
+
   it('wybrany wniosek zwija listę do jednej karty; „Zmień wniosek” ją rozwija, a kolejny wybór znów zwija', async () => {
     routeApi({ 'GET /api/applications/forms': FORMS })
     renderPage('/wnioski/nowy?form=ZAM')
@@ -103,6 +133,26 @@ describe('NewApplicationPage', () => {
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/applications', { method: 'POST', body: { form_code: '800PLUS', child_id: 'c-maja' } }),
     )
+  })
+
+  it('wniosek przypisany do dziecka (?child=) nie pokazuje innych dzieci do wyboru i zakłada się od razu', async () => {
+    const mocked = routeApi({ 'GET /api/applications/forms': FORMS, 'POST /api/applications': makeApp({ id: 'app-4' }) })
+    renderPage('/wnioski/nowy?form=ZAM&child=c-drodze')
+    await screen.findByRole('radio', { name: /zasiłek macierzyński/i })
+    expect(screen.queryByRole('radiogroup', { name: /którego dziecka dotyczy/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /Maja/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: /wniosek dotyczy/i })).toHaveTextContent(/Maleństwo/)
+    await userEvent.click(screen.getByRole('button', { name: /zacznij wypełnianie/i }))
+    await waitFor(() =>
+      expect(mocked).toHaveBeenCalledWith('/api/applications', expect.objectContaining({ method: 'POST', body: expect.objectContaining({ child_id: 'c-drodze' }) })),
+    )
+  })
+
+  it('nieznane ?child= nie blokuje użytkownika — wraca zwykły wybór dziecka', async () => {
+    routeApi({ 'GET /api/applications/forms': FORMS })
+    renderPage('/wnioski/nowy?form=ZAM&child=nie-ma-takiego')
+    const kids = within(await screen.findByRole('radiogroup', { name: /którego dziecka dotyczy/i }))
+    expect(kids.getAllByRole('radio').length).toBeGreaterThan(1)
   })
 
   it('wniosek bez dziecka (np. zasiłek chorobowy) nie pyta o dziecko', async () => {

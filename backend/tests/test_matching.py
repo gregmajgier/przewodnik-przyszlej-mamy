@@ -279,6 +279,20 @@ def test_ask_condition_answered_false_no():
     assert any("zameldowanie" in u.lower() for u in result.unmet)
 
 
+def test_negated_ask_condition_inverts_the_answer():
+    cond = Condition(
+        id="bez-zasilku",
+        text="Nie przysługuje zasiłek macierzyński",
+        kind="ask",
+        question="Czy przysługuje ci zasiłek macierzyński?",
+        negate=True,
+    )
+    b = benefit(id="sr", conditions=[cond])
+    assert match_benefit(ctx([]), b).questions[0].text == "Czy przysługuje ci zasiłek macierzyński?"
+    assert match_benefit(ctx([], answers={"benefit:sr:bez-zasilku": False}), b).status == "fits"
+    assert match_benefit(ctx([], answers={"benefit:sr:bez-zasilku": True}), b).status == "no"
+
+
 def test_auto_condition_uses_profile_key():
     cond = Condition(id="ill", text="Dziecko z ciężką chorobą", kind="auto", profile_key="family.child_serious_illness")
     b = benefit(conditions=[cond])
@@ -499,3 +513,22 @@ def test_benefit_specific_income_answer_wins():
     answers = {"income_le:674": True, "benefit:b1:income": False}
     r = match_benefit(ctx([born_months_ago(100)], answers=answers), benefit(max_income_per_person=823))
     assert r.status == "no"
+
+
+# ---------- płeć rodzica (urlop ojcowski) ----------
+
+
+def test_parent_sex_benefit_is_personal_for_the_viewer():
+    mother = parent("u-anna")  # PESEL z cyfrą płci 4 → kobieta
+    father = parent("u-piotr").model_copy(update={"pesel": "90010112375"})  # cyfra 7 → mężczyzna
+    b = benefit(parent_sex="male")
+    kids = [born_months_ago(3)]
+
+    as_mother = ctx(kids, parents=[mother, father]).model_copy(update={"viewer_id": "u-anna"})
+    as_father = ctx(kids, parents=[mother, father]).model_copy(update={"viewer_id": "u-piotr"})
+
+    res = match_benefit(as_mother, b)
+    assert res.status == "no" and "ojcu" in res.unmet[0]
+    assert match_benefit(as_father, b).status == "fits"
+    # bez wskazanego rodzica nie zgadujemy
+    assert match_benefit(ctx(kids, parents=[mother, father]), b).status == "no"

@@ -428,9 +428,9 @@
       "nazwa": "Wniosek o odpis zupełny lub skrócony aktu urodzenia",
       "instytucja": "USC",
       "instytucja_typ": "usc",
-      "adresat_opis": "Rodzic; symulacja wymagana w zadaniu",
+      "adresat_opis": "Rodzic; wersja demonstracyjna wymagana w zadaniu",
       "rola": "wniosek",
-      "tryb_aplikacji": "e_usluga_symulacja",
+      "tryb_aplikacji": "e_usluga_demo",
       "tylko_elektronicznie": false,
       "wysylka": [
         "gov.pl (e-usługa)",
@@ -446,7 +446,7 @@
       "swiadczenia": [
         "FORMALNOSC_ODPIS_AKTU"
       ],
-      "kto": "Rodzic; symulacja wymagana w zadaniu",
+      "kto": "Rodzic; wersja demonstracyjna wymagana w zadaniu",
       "uwaga": "Wzór USC-08-01 (m.st. Warszawa); online: https://www.gov.pl/web/cyfryzacja/rejestr-stanu-cywilnego"
     },
     {
@@ -487,7 +487,7 @@
       "instytucja_typ": "zus",
       "adresat_opis": null,
       "rola": "usluga_elektroniczna",
-      "tryb_aplikacji": "ściąga danych + deep link + symulacja",
+      "tryb_aplikacji": "ściąga danych + deep link + wersja demonstracyjna",
       "tylko_elektronicznie": true,
       "wysylka": [
         "eZUS/mZUS",
@@ -517,7 +517,7 @@
       "instytucja_typ": "zus",
       "adresat_opis": null,
       "rola": "usluga_elektroniczna",
-      "tryb_aplikacji": "ściąga danych + deep link + symulacja",
+      "tryb_aplikacji": "ściąga danych + deep link + wersja demonstracyjna",
       "tylko_elektronicznie": true,
       "wysylka": [
         "eZUS/mZUS",
@@ -864,6 +864,30 @@
       "swiadczenia": [
         "ZASILEK_ADOPCJA_ZASTEPCZA"
       ]
+    },
+    {
+      "kod": "DOBRY-START",
+      "nazwa": "Dobry Start (300 zł na wyprawkę szkolną)",
+      "instytucja": "ZUS",
+      "instytucja_typ": "zus",
+      "adresat_opis": null,
+      "rola": "usluga_elektroniczna",
+      "tryb_aplikacji": "ściąga danych + deep link + symulacja",
+      "tylko_elektronicznie": true,
+      "wysylka": [
+        "eZUS/mZUS",
+        "Emp@tia",
+        "bankowość elektroniczna"
+      ],
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "opis": "od 1 lipca do 30 listopada"
+        }
+      ],
+      "swiadczenia": [],
+      "pdf": false,
+      "termin": "od 1 lipca do 30 listopada"
     }
   ]
 }

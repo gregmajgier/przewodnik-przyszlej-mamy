@@ -75,6 +75,7 @@ async def _fill(svc: ApplicationService, user_id: str, app: Application, child_b
 
 
 async def _put_app(store: Store, app: Application) -> None:
+    app.demo = True  # przykład tylko do podglądu: nie da się go edytować ani złożyć (ApplicationService._own)
     await store.put("applications", app.model_dump(mode="json"))
 
 

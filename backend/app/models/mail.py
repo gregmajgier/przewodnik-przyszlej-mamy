@@ -12,7 +12,7 @@ class AttachmentInfo(BaseModel):
 
 
 class MailMessage(BaseModel):
-    """Wiadomość w (symulowanej) skrzynce rodziny. Treść nigdy nie trafia do logów."""
+    """Wiadomość w testowej skrzynce rodziny. Treść nigdy nie trafia do logów."""
 
     id: str
     family_id: str

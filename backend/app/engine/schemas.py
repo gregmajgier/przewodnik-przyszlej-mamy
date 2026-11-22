@@ -201,6 +201,14 @@ class Ubezpieczenie(_Model):
     pobiera_emeryture_rente: bool | None = None
     zlozyla_wniosek_emerytura_renta: bool | None = None
 
+    @model_validator(mode="after")
+    def _ulga_na_start_bez_chorobowego(self):
+        if self.tytul == "ulga_na_start":
+            if self.chorobowe not in (None, "brak"):
+                raise ValueError("ulga na start nie daje ubezpieczenia chorobowego")
+            self.chorobowe = "brak"
+        return self
+
 
 class Ezla(_ZakresDat):
     seria_numer: str | None = None
@@ -227,7 +235,7 @@ class Porod(_Model):
     stan_dziecka: StanDziecka | None = "zywe"  # domyślna z kontraktu: przed porodem przyjmujemy „zywe”
     data_zgonu_dziecka: date | None = None
     liczba_dzieci: int | None = Field(default=None, ge=1, le=10)
-    tydzien_ciazy: int | None = Field(default=None, ge=20, le=45)
+    tydzien_ciazy: int | None = Field(default=None, ge=1, le=45)
 
 
 class Niepelnosprawnosc(_Model):
@@ -295,6 +303,7 @@ class DrugiRodzic(_Model):
     dane: DaneDrugiegoRodzica | None = None
     tytul_ubezpieczenia: TytulUbezpieczenia | None = None
     platnik: PlatnikDrugiegoRodzica | None = None
+    ubezpieczenie: Ubezpieczenie | None = None
     aktywny_zawodowo: bool | None = None
 
 

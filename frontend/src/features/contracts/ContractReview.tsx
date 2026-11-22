@@ -4,6 +4,8 @@ import { api, ApiError } from '../../lib/api'
 import './contracts.css'
 import { KIND_LABEL } from './types'
 import type { Contract, ContractDraft, ContractKind, ScanResult } from './types'
+import { decimalToNumber } from '../../lib/numeric'
+import { openNativePicker } from '../../ui/nativePicker'
 
 const LABELS: Record<string, string> = {
   kind: 'Rodzaj umowy',
@@ -20,8 +22,7 @@ const LABELS: Record<string, string> = {
 }
 
 function toNumber(v: string): number | null {
-  const n = Number(v.replace(',', '.').replace(/\s/g, ''))
-  return v.trim() === '' || Number.isNaN(n) ? null : n
+  return decimalToNumber(v)
 }
 
 function Field({ name, missing, children }: { name: string; missing: boolean; children: ReactNode }) {
@@ -117,6 +118,10 @@ export function ContractReview({
           <Field name="fte" missing={missing.has('fte')}>
             <input
               {...inputProps('fte')}
+              type="number"
+              min="0"
+              max="10"
+              step="0.01"
               inputMode="decimal"
               value={d.fte ?? ''}
               onChange={(e) => set('fte', toNumber(e.target.value))}
@@ -126,6 +131,9 @@ export function ContractReview({
         <Field name="gross_monthly" missing={missing.has('gross_monthly')}>
           <input
             {...inputProps('gross_monthly')}
+            type="number"
+            min="0"
+            step="0.01"
             inputMode="decimal"
             value={d.gross_monthly ?? ''}
             onChange={(e) => set('gross_monthly', toNumber(e.target.value))}
@@ -135,6 +143,7 @@ export function ContractReview({
           <input
             {...inputProps('start_date')}
             type="date"
+            onClick={(e) => openNativePicker(e.currentTarget)}
             value={d.start_date ?? ''}
             onChange={(e) => set('start_date', e.target.value || null)}
           />
@@ -157,6 +166,7 @@ export function ContractReview({
             <input
               {...inputProps('end_date')}
               type="date"
+            onClick={(e) => openNativePicker(e.currentTarget)}
               value={d.end_date ?? ''}
               onChange={(e) => set('end_date', e.target.value || null)}
             />

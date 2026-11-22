@@ -93,7 +93,7 @@ export default function AnalysisPage() {
               </div>
               {analysis.nearest_deadline && (
                 <p className="analysis-deadline">
-                  <Icon name="clock" size={18} /> Najpilniejsze: {analysis.nearest_deadline.benefit_name}
+                  <Icon name="clock" size={24} /> Najpilniejsze: {analysis.nearest_deadline.benefit_name}
                 </p>
               )}
             </section>

@@ -88,6 +88,18 @@ def test_nowak_family_fits_expected_benefits(client):
     assert "reasons" in items["nat-800-plus"]["match"] and items["nat-800-plus"]["match"]["reasons"]
 
 
+def test_urlop_ojcowski_only_for_the_father(client):
+    anna = _by_id(client, _setup_family(client, "persona-nowak-anna"))
+    assert anna["nat-urlop-ojcowski"]["match"]["status"] == "no"
+    piotr = _by_id(client, _setup_family(client, "persona-nowak-piotr"))
+    assert piotr["nat-urlop-ojcowski"]["match"]["status"] == "fits"
+
+
+def test_dobry_start_has_application_form(client):
+    items = _by_id(client, _setup_family(client))
+    assert items["nat-dobry-start"]["benefit"]["form_codes"] == ["DOBRY-START"]
+
+
 def test_third_child_born_unlocks_kdr(client):
     h = _setup_family(client, third_born=True)
     items = _by_id(client, h)
@@ -317,8 +329,10 @@ def test_calendar_for_pregnancy_has_pre_and_post_birth_deadlines(client):
     titles = [e["title"] for e in client.get("/api/calendar", headers=h).json()]
     joined = " | ".join(titles)
     for expected in ("Zaświadczenie lekarskie o ciąży", "Przewidywany termin porodu", "Urlop rodzicielski: wniosek po porodzie",
-                     "Świadczenie rodzicielskie (1000 zł miesięcznie): wniosek po porodzie", "Zgłoszenie urodzenia w USC"):
+                     "Zgłoszenie urodzenia w USC"):
         assert expected in joined, f"brak w kalendarzu: {expected}"
+    # Anna ma umowę o pracę, więc dostanie zasiłek macierzyński; świadczenie rodzicielskie (1000 zł) jej nie przysługuje
+    assert "Świadczenie rodzicielskie" not in joined
 
 
 def test_tool_swiadczenia_query_returns_only_the_best_matches_with_details(client, store, fresh_tools):

@@ -1,31 +1,56 @@
 # mRodzina — przewodnik developera
 
-## Szybki start (bez Azure)
+## Szybki start Windows (bez Azure)
 
 Wszystko działa lokalnie bez żadnej konfiguracji: dane w pamięci procesu (`MemoryStore`),
-symulowany mObywatel/ZUS.
-
-```bash
-# backend
-cd backend
-python3 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest -q
-.venv/bin/uvicorn app.main:app --reload      # http://localhost:8000/docs
-
-# frontend (drugi terminal)
-cd frontend
-npm ci
-npm run dev                                   # http://localhost:5173
-npm test -- --run && npm run lint && npm run build
-```
+demonstracyjne dane mObywatela/ZUS.
 
 Wymagania: Python 3.12+, Node 22+.
+Jeśli PowerShell nie rozpoznaje `node`, a Node jest zainstalowany w standardowym katalogu, dodaj go do `PATH`:
+`$env:Path = 'C:\Program Files\nodejs;' + $env:Path`.
+
+Backend — pierwszy terminal PowerShell:
+
+```powershell
+Set-Location backend
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+Frontend — drugi terminal:
+
+```powershell
+Set-Location frontend
+npm ci
+npm run dev -- --port 5173 --strictPort
+```
+
+Landing — trzeci terminal:
+
+```powershell
+Set-Location landing
+npm ci
+npm run dev -- --port 5174 --strictPort
+```
+
+Adresy: API `http://localhost:8000/docs`, aplikacja `http://localhost:5173`,
+landing `http://localhost:5174`.
+
+Testy frontendu uruchom w katalogu `frontend/`: `npm test -- --run`, `npm run lint`,
+`npm run build`. W `landing/` uruchom `npm run lint` i `npm run build`.
+
+### Linux/macOS
+
+Wymień `py -3 -m venv .venv` na `python3 -m venv .venv`, a polecenia
+`.\.venv\Scripts\python.exe` na `.venv/bin/python`. Polecenia npm pozostają takie same.
 
 ## Persony i konta
 
-- **Rodzice (symulowany mObywatel)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży, e-ZLA kod B)
-  i `persona-nowak-piotr` (tata). Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
+- **Rodzice (mObywatel i Profil Zaufany w wersji demonstracyjnej)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży,
+  e-ZLA kod B) i `persona-nowak-piotr` (tata). Obie opcje korzystają z tych samych przykładowych profili; rzeczywiste
+  logowanie zewnętrzne wymaga osobnej integracji. Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
   uruchomienia. Nowe persony = nowy wpis w `backend/app/seed/personas.py`.
 - **Urzędnicy** (`POST /api/auth/official`): `urzednik.krakow@mrodzina.local` (gmina Kraków) i
   `urzednik.malopolska@mrodzina.local` (województwo). W trybie `dev` hasło to `demo1234`
@@ -65,7 +90,7 @@ Wymagania: Python 3.12+, Node 22+.
 | `OFFICIAL_DEFAULT_PASSWORD` | `demo1234` | Hasło początkowe kont urzędników. Seed tworzy tylko brakujące konta i **nigdy nie nadpisuje** istniejących haseł. Poza `dev` (lub z Cosmos) hasło musi mieć min. 12 znaków i różnić się od `demo1234`, inaczej seedowanie urzędników jest pomijane (ostrzeżenie w logu); dodatkowo istniejące konta z hasłem `demo1234` są przy starcie **wyłączane** (`disabled: true`, logowanie → 401). |
 | `SESSION_TTL_HOURS` | `12` | Ważność tokenu. |
 | `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` | puste | Puste = `MemoryStore`. Ustawione = `CosmosStore` i tryb produkcyjny. |
-| `CORS_ORIGINS` | `["http://localhost:5173"]` | Dozwolone originy (JSON). |
+| `CORS_ORIGINS` | `["http://localhost:5173","http://localhost:5174","http://127.0.0.1:5173","http://127.0.0.1:5174"]` | Dozwolone originy (JSON), w tym aplikacja i landing lokalny. |
 
 Losowy sekret: `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
 
@@ -168,10 +193,20 @@ dalej decyduje `services/matching.py`; silnik działa obok.
 `engine/schemas.py` → statusy, kwoty, ryzyka, wnioski, kalendarz) i `GET /api/silnik/formularz`. Wejście ma twarde
 limity: zakresy dat `od ≤ do` i najwyżej 3 lata, listy do 50 pozycji (inaczej 422) — silnik rozwija okresy dzień po dniu.
 
-**Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, logika w `calcEngine.ts`): kilka pytań → profil
-silnika → `POST ${VITE_API_URL}/api/silnik/ocena`. W ciąży liczy stan na termin porodu (`data_oceny`), więc pokazuje
-też to, co zaczyna się po porodzie. Landing sam niczego nie liczy i nic nie zapisuje; pokazuje tylko świadczenia
-pieniężne z listy `SHOWN` (bez zasiłku opiekuńczego i ścieżek straty). Origin landingu musi być w `CORS_ORIGINS` backendu.
+**Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, adapter `calcEngine.ts`) obsługuje ciążę
+(osobno bieżące uprawnienia i prognozę po porodzie), dziecko urodzone oraz adopcję/rodzinę zastępczą niezawodową.
+Zbiera m.in. dokładne daty ubezpieczenia i osobne podstawy składek obojga rodziców, skład rodziny i dochód, miejsce
+zamieszkania, e-ZLA, dane o wcześniactwie/„Za życiem” oraz plan łączenia urlopu z pracą (także przy adopcji).
+Miesięczne podstawy są przypisane do konkretnych miesięcy przed terminem porodu; miesiące przed objęciem
+ubezpieczeniem są pomijane, a puste miesiące objęte ubezpieczeniem pozostają nieznane i nie są zastępowane
+szacunkiem. Bieżący profil ciąży nie udaje już profilu po porodzie; prognoza po porodzie jest liczona osobno.
+Silnik zwraca statusy (także „brak danych” i niespełnione warunki), kwoty, ryzyka, wymagane wnioski i terminy;
+landing nie wylicza kwot samodzielnie ani nie zapisuje danych.
+
+Miasto i gmina wskazują właściwy urząd w podsumowaniu, ale aktualny katalog lokalnych programów nie jest podłączony.
+`benefits_local_sample.json` zawiera wyłącznie przykłady demonstracyjne — nie wyświetlaj ich jako prawdziwych ofert.
+Domyślna konfiguracja CORS dopuszcza lokalny landing; przy własnym `CORS_ORIGINS` trzeba dodać origin, z którego
+otwierasz stronę.
 
 ## Wnioski, agent i makiety portali (plan 08)
 
@@ -180,9 +215,9 @@ pieniężne z listy `SHOWN` (bez zasiłku opiekuńczego i ścieżek straty). Ori
 | Wniosek | Kanały |
 |---|---|
 | do pracodawcy (`URLOP-*`, `REZYGNACJA-MAC`) | `employer_email` (PDF generowany + e-mail) lub `pdf_download` |
-| ZUS/gmina z makietą portalu (`ZAM`, `KDR`, `ZA-ZYCIEM`) | `portal_agent`; `ZAM` także `pdf_download` (AcroForm) |
+| ZUS przez PUE (`ZAM`, `ZAS-53`, `ZAS-55`, `ZNp-7`, `Z-10`, `ZAS-26`, `ZAS-33`, `ZAS-39`) | `portal_agent` (domyślny, makieta PUE ZUS); `pdf_download` tam, gdzie jest wzór PDF (`Z-10` bez PDF → tylko PUE) |
+| gmina z makietą portalu (`KDR`, `ZA-ZYCIEM`) | `portal_agent` (Emp@tia) |
 | tylko elektroniczne (`800PLUS`, `AKTYWNY-RODZIC`) | wyłącznie `portal_agent` (PDF → 422) |
-| ZUS z samym PDF (`ZAS-53`, `ZAS-26`, …) | `pdf_download` |
 
 Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy, potem `ZAM`; zlecenie/JDG → od razu `ZAM`
 (`prefill.recommend_flow`, zwracane w `GET /api/applications/forms`).
@@ -190,7 +225,7 @@ Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy,
 **Przepływ:** `POST /api/applications {form_code, child_id?, channel?}` → szkic z prefillem (`services/prefill.py`:
 profil ZUS, odpowiedzi zapisane w profilu, dziecko) → `needs_input` + lista `missing`, gdy czegoś brakuje (nigdy puste pole
 w PDF) → `POST /{id}/answers` (odpowiedź zapisuje się w profilu; PESEL dziecka przy dziecku) → `GET /{id}/pdf` (podgląd) →
-`POST /{id}/sign` (**symulowany** Profil Zaufany) → `POST /{id}/submit`. Zasady:
+`POST /{id}/sign` (testowy podpis Profilem Zaufanym) → `POST /{id}/submit`. Zasady:
 
 - Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje (403).
   Cudzy wniosek lub dziecko cudzej rodziny → 404.
@@ -211,8 +246,8 @@ walidowane typem/wyborem, więc model nie może ich zmyślić ani podmienić. Po
 nie trafia do planu; brak wymaganej wartości → `blocked`, nigdy zgadywanie. Bez Foundry działa deterministyczny
 handler demo (`app/seed/demo_agent.py`).
 
-Frontend (`features/portal-sim`): makiety `/sim/ezus/:portalId` i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
-znacznik „SYMULACJA”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
+Frontend (`features/portal-sim`): makiety `/sim/pue/:portalId` (PUE ZUS: pasek portalu, „zalogowano przez Profil Zaufany”, podpis i **UPO** z numerem po wysyłce) i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
+znacznik „DANE TESTOWE”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
 `<iframe>`, wykonuje plan krok po kroku z widocznym kursorem, zatrzymuje się na brakach (pyta rodzica) i przed wysyłką;
 dopiero „Zatwierdzam i wysyłam” wysyła, a po `submitted` woła `portal-submitted`. Protokół `postMessage`
 (`agentBridge.ts`): aplikacja → makieta `fill`/`submit`, makieta → aplikacja `ready`/`ack`/`edited`/`invalid`/`submitted`.
@@ -227,8 +262,8 @@ z jawnym `targetOrigin`. Makieta odrzuca pola spoza schematu i wartości niezgod
    (`services/prefill.py`).
 3. Kod musi istnieć w `katalog_wnioskow_pdf.json`; kanały wynikają z powyższej tabeli.
 
-**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis, poczta
-i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
+**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis i poczta
+korzystają z trybu testowego, a portale są makietami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
 `/poczta`) działają dopiero po wdrożeniu planu 09.
 
 ## Umowy i ostrzeżenia o ryzyku (plan 04)
@@ -248,7 +283,7 @@ i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę�
 o pracę i umowę zlecenia. `GET /api/contracts/documents` — lista umów zalogowanego rodzica,
 `GET /api/contracts/documents/{id}/pdf` — PDF generowany na żądanie (`services/employment_docs.py`, nic nie
 przechowujemy), `POST /api/contracts/documents/{id}/import` — dodaje umowę jako zatwierdzoną (idempotentnie).
-W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (SYMULACJA — dane
+W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (DANE PRZYKŁADOWE — dane
 pochodzą z persony, model nie jest wołany). Asystent czatu widzi umowy w `profil_rodziny` (bez wynagrodzenia) i może
 cytować ich paragrafy narzędziem `tresc_umowy` — tylko umowy własne, bez paragrafu o wynagrodzeniu.
 
@@ -293,7 +328,7 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
 
 ## Poczta, statusy wniosków, kalendarz i powiadomienia (plan 09)
 
-- **Poczta symulowana, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
+- **Poczta testowa, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
   Skrzynka rodziny ma też 6 maili niezwiązanych (sklep, szkoła, przychodnia…), które filtr pomija.
 - **Filtr** (`services/mail_filter.py`): czytamy wątek wniosku, dokładny adres odbiorcy oraz domenę tylko dla
   instytucji (`zus.pl`, `gov.pl`, domeny z katalogu, `um.krakow.pl`) — nigdy całych domen publicznych
@@ -309,11 +344,14 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   tokeny z dziennego budżetu AI. Ręcznie: „Sprawdź pocztę” (`POST /api/mail/sync`, za `ai_guard`).
 - **Kalendarz** (`/kalendarz`, widżet „Najbliższe terminy”, narzędzie MCP `kalendarz`): terminy świadczeń względem
   porodu/urodzenia, złożone wnioski („kto złożył”, do kogo, status), termin porodu i ostrzeżenia z ryzyk (plan 04).
-  Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
-  oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
+  Przy wnioskach data oznacza utworzenie szkicu albo złożenie, nie termin końcowy; dopóki brak decyzji, koniec sprawy
+  nie ma znanej daty. Po złożeniu wykonana czynność trafia do „Zrobione”, a status sprawy pozostaje widoczny.
+  Terminy świadczeń na dziecko generują się tylko dla dzieci spełniających kryteria wieku. Wpisy mają stałe `id`
+  (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są oznaczone „po terminie”.
+  Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
   „Wkrótce”.
-- **Wysyłka wniosku uruchamia symulację odpowiedzi:** `ApplicationService.submit` (e-mail do pracodawcy) i
-  `portal_submitted` (eZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
+- **Wysyłka wniosku uruchamia przygotowanie odpowiedzi testowej:** `ApplicationService.submit` (e-mail do pracodawcy) i
+  `portal_submitted` (PUE ZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
   `mail.sim_inbox.schedule_reply`. Scenariusz: Anna składa wniosek w `/wnioski` → `/poczta` → „Symuluj odpowiedzi” →
   status „Zaakceptowany”, powiadomienia, wpis w kalendarzu. Wiadomości (wysłane i odebrane) to jeden model
   `models/mail.MailMessage`; `SimMailProvider` (plan 08) zapisuje folder `sent`, `SimInbox` (plan 09) dokłada `inbox`.

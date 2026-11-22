@@ -30,7 +30,7 @@ const toFieldValue = (v: unknown): FieldValue => (typeof v === 'boolean' ? v : S
 const errorText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.detail : fallback)
 
 /**
- * Agent „klikający” w makiecie portalu (SYMULACJA):
+ * Agent „klikający” w makiecie portalu:
  * pobiera plan (`/agent-plan`), wykonuje kroki po kolei z widocznym kursorem, zatrzymuje się na brakujących danych
  * (pyta rodzica) oraz przed wysyłką — wysyła dopiero po „Zatwierdzam i wysyłam”. Rodzic może sam edytować
  * dowolne pole w makiecie; zmiany zapisujemy we wniosku.
@@ -233,7 +233,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
               <i />
             </span>
             <span className="browser-url">
-              <Icon name="lock" size={13} /> {plan.kind === 'ezus' ? 'eZUS' : 'Emp@tia'} · {plan.title ?? 'formularz'}
+              <Icon name="lock" size={13} /> {plan.kind === 'pue' ? 'PUE ZUS' : 'Emp@tia'} · {plan.title ?? 'formularz'}
             </span>
           </div>
           <iframe
