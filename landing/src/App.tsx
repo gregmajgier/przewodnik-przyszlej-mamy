@@ -69,13 +69,15 @@ function App() {
         <ScrollRibbons />
 
         <section id="film" className="section video-section">
-          {/* Placeholder: replace with a YouTube <iframe> embed later. */}
-          <div className="video-placeholder" role="img" aria-label="Miejsce na film z YouTube">
-            <svg viewBox="0 0 24 24" width="72" height="72" fill="currentColor" aria-hidden="true">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <span>Tu pojawi się film z YouTube</span>
-          </div>
+          <iframe
+            className="youtube-video"
+            src="https://www.youtube-nocookie.com/embed/S3kinICctXM"
+            title="Film mRodzina"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
         </section>
 
         <section className="section help-section">
