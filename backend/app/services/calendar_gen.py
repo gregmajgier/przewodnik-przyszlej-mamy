@@ -19,6 +19,7 @@ from ..models.benefit import Benefit
 from ..models.calendar import CalendarEvent
 from ..models.contract import Risk
 from ..models.family import Child, FamilyView
+from .milestones import milestones_for
 from .situations import event_policy, family_mode
 
 class BenefitWithMatch(BaseModel):
@@ -68,7 +69,7 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
         return []
     out: list[CalendarEvent] = []
     src = f"benefit:{b.id}"
-    maybe = " Może Ci przysługiwać — sprawdź warunki." if bm.status == "maybe" else ""
+    maybe = " Może Ci przysługiwać. Sprawdź warunki." if bm.status == "maybe" else ""
     how = f" {b.how_to_apply}" if b.how_to_apply else ""
 
     if dl.anchor == "fixed":
@@ -89,6 +90,10 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
             base = ch.due_date
             when = "przed porodem" if (dl.offset_days or 0) + (dl.offset_months or 0) * 30 < 0 else "po terminie porodu"
             title = f"{b.name}: wniosek ({when}, {ch.name})"
+        elif dl.anchor == "birth" and ch.status == "expected" and ch.due_date:
+            # dziecko jeszcze w drodze: termin liczony od przewidywanego porodu, więc tylko orientacyjnie
+            base = ch.due_date
+            title = f"{b.name}: wniosek po porodzie ({ch.name})"
         else:  # birth / child_age — dopiero po urodzeniu
             if ch.status != "born" or not ch.birth_date:
                 continue
@@ -101,6 +106,8 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
         if ch.birth_date and b.criteria.child_age_max_months is not None:
             effect_until = add_months(ch.birth_date, b.criteria.child_age_max_months + 1) - timedelta(days=1)
         summary = (dl.note or f"Złóż wniosek do {_fmt(due)}.") + how + maybe
+        if ch.status == "expected" and dl.anchor == "birth":
+            summary += f" Termin orientacyjny: liczony od przewidywanego porodu ({_fmt(ch.due_date)}), zmieni się z datą urodzenia."
         if effect_until:
             summary += f" Świadczenie przysługuje do {_fmt(effect_until)}."
         out.append(
@@ -135,6 +142,15 @@ def generate_events(
                     due_date=ch.due_date, source_ref=src, child_id=ch.id,
                 )
             )
+
+    for m in milestones_for(children, today):
+        src = f"milestone:{m.key}"
+        events.append(
+            CalendarEvent(
+                id=event_id("deadline", src, m.child_id), family_id=fid, kind="deadline", title=m.title,
+                summary=m.summary, due_date=m.due, source_ref=src, child_id=m.child_id,
+            )
+        )
 
     active_children = [c for c in children if c.situation != "loss"]
     for bm in benefits_with_match:

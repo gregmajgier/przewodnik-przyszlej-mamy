@@ -281,7 +281,7 @@ def test_budget_exhausted_returns_429_with_gentle_message(app_and_client):
     r = c.post("/api/_t/ai", headers=login(c, "persona-nowak-anna"))
     assert r.status_code == 429
     assert r.json()["detail"] == (
-        "Asystent AI jest dziś przeciążony. Spróbuj jutro — reszta aplikacji działa normalnie."
+        "Asystent AI jest dziś przeciążony. Spróbuj jutro, reszta aplikacji działa normalnie."
     )
     assert int(r.headers["Retry-After"]) > 0
     # reszta aplikacji działa

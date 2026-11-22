@@ -39,7 +39,7 @@ export default function EmploymentDocs({ version, onAdded }: { version: number; 
   return (
     <section className="card stack" aria-labelledby="employer-docs-h">
       <h2 id="employer-docs-h">Umowy z e-teczki pracodawcy</h2>
-      <p className="muted">Te umowy czekają na dodanie. Wystarczy jedno kliknięcie — dane wypełnią się same.</p>
+      <p className="muted">Te umowy czekają na dodanie. Wystarczy jedno kliknięcie, a dane wypełnią się same.</p>
       {error && (
         <p role="alert" className="alert">
           {error}

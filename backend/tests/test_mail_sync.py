@@ -68,7 +68,7 @@ def test_low_confidence_notifies_without_status_change(store):
     assert app_status(store) == "sent"
     [n] = notifications(store)
     assert n["kind"] == "mail_review"
-    assert n["text"] == "Nowa wiadomość w sprawie wniosku URLOP-MAC-ROD — sprawdź."
+    assert n["text"] == "Nowa wiadomość w sprawie wniosku URLOP-MAC-ROD. Sprawdź."
     assert run(store.get("mail_messages", "r1"))["needs_review"] is True
 
 

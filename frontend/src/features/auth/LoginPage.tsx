@@ -129,7 +129,7 @@ export default function LoginPage() {
                     {done ? <Icon name="check" size={18} stroke={2.4} /> : <Icon name="refresh" size={18} className="spin" />}
                   </span>
                   {s}
-                  <span className="sr-only">{done ? ' — gotowe' : ' — w toku'}</span>
+                  <span className="sr-only">{done ? ': gotowe' : ': w toku'}</span>
                 </li>
               )
             })}
@@ -163,7 +163,7 @@ export default function LoginPage() {
               Zaloguj się bezpiecznie
             </h1>
             <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
-              Potwierdzimy Twoją tożsamość przez mObywatel. Nie zakładasz konta i nie pamiętasz żadnego hasła — dane z ZUS
+              Potwierdzimy Twoją tożsamość przez mObywatel. Nie zakładasz konta i nie pamiętasz żadnego hasła. Dane z ZUS
               pobierzemy za Ciebie.
             </p>
             <div className="flow-note rise" style={{ ['--i' as string]: 3 }}>

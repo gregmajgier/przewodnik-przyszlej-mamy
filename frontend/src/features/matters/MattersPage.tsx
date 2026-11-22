@@ -54,7 +54,7 @@ export default function MattersPage() {
   const questions = questionsFor(person)
   const urgentGuide = guides.find((g) => g.urgent)
   const urgentNow = urgentGuide?.urgent
-    ? `${urgentGuide.title.split(' — ')[0]}: ${urgentGuide.urgent.charAt(0).toLowerCase()}${urgentGuide.urgent.slice(1)}`
+    ? `${urgentGuide.title.split(/ — |: /)[0]}: ${urgentGuide.urgent.charAt(0).toLowerCase()}${urgentGuide.urgent.slice(1)}`
     : undefined
   const annual = now.reduce((s, m) => s + (m.benefit.annual_value_estimate ?? 0), 0)
   const open = (items ?? []).find((m) => m.benefit.id === openId) ?? null

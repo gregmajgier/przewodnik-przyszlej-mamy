@@ -11,7 +11,7 @@ export default function OnboardingContracts() {
       <h1>Twoje umowy</h1>
       <p className="muted">
         Ten krok jest opcjonalny. Dodaj umowę, a sprawdzimy, czy nic nie zagraża Twoim świadczeniom
-        — np. kończąca się umowa albo zlecenie bez ubezpieczenia chorobowego.
+        np. kończąca się umowa albo zlecenie bez ubezpieczenia chorobowego.
       </p>
       {added.length > 0 && (
         <ul className="card contract-list stack" aria-label="Dodane umowy">

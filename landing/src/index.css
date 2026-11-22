@@ -2,6 +2,8 @@
   --bg: #f8fbef;
   --text: #191919;
   --accent: #ef4363;
+  /* darker brand pink: white text on it passes WCAG AA */
+  --accent-strong: #c8234a;
   --font-decorative: 'Sniglet', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, sans-serif;
 }

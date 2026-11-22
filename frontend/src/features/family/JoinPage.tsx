@@ -1,26 +1,25 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
 import { isOnboarded } from '../../lib/onboarding'
 import { useSession } from '../../lib/session'
 import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
 import { Progress } from '../../ui/controls'
+import { CodeInput } from './CodeInput'
 import '../../ui/ui.css'
 import '../onboarding/flow.css'
-
-const CODE_LEN = 8
 
 export default function JoinPage() {
   const { refresh, family, user } = useSession()
   const navigate = useNavigate()
+  const location = useLocation()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [sent, setSent] = useState(false)
+  // onboarding wysyła prośbę z kodem sam i przechodzi tu od razu na ekran „Prośba wysłana”
+  const [sent, setSent] = useState(Boolean((location.state as { sent?: boolean } | null)?.sent))
   const [busy, setBusy] = useState(false)
-  const [focused, setFocused] = useState(false)
-  const input = useRef<HTMLInputElement>(null)
 
   // po dołączeniu do rodziny pokazujemy dalszą część onboardingu (dzieci, partner, umowy, poczta)
   if (family) return isOnboarded(user?.id) ? <Navigate to="/" replace /> : <Navigate to="/start" replace state={{ step: 'children' }} />
@@ -69,8 +68,6 @@ export default function JoinPage() {
     )
   }
 
-  const boxes = Array.from({ length: Math.max(CODE_LEN, code.length) }, (_, i) => code[i] ?? '')
-
   return (
     <div className="flow">
       <div className="flow-top">
@@ -89,28 +86,7 @@ export default function JoinPage() {
         <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
           Drugi rodzic znajdzie go w aplikacji, w zakładce Rodzina.
         </p>
-        <label className="code-input-wrap rise" style={{ ['--i' as string]: 3 }} onClick={() => input.current?.focus()}>
-          <span className="sr-only">Kod zaproszenia</span>
-          <input
-            ref={input}
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 16))}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            autoComplete="off"
-            autoCapitalize="characters"
-            spellCheck={false}
-            maxLength={16}
-            aria-label="Kod zaproszenia"
-          />
-          <span className="code-boxes" aria-hidden="true">
-            {boxes.map((ch, i) => (
-              <span key={i} className={`code-box ${focused && i === Math.min(code.length, boxes.length - 1) ? 'is-active' : ''}`}>
-                {ch}
-              </span>
-            ))}
-          </span>
-        </label>
+        <CodeInput value={code} onChange={setCode} className="rise" style={{ ['--i' as string]: 3 }} />
         {error && (
           <p role="alert" className="alert">
             <Icon name="alert" size={20} />

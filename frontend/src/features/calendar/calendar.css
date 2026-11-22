@@ -51,7 +51,7 @@
 }
 .month-wd span {
   text-align: center;
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -102,7 +102,7 @@ button.month-day:active {
   transform: scale(0.96);
 }
 .month-cell.is-today button.month-day {
-  background: var(--pink);
+  background: var(--primary);
   color: var(--white);
 }
 .month-dot {
@@ -137,7 +137,7 @@ button.month-day:active {
   background: var(--paper);
 }
 .month-stats dt {
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -176,7 +176,7 @@ button.month-day:active {
   grid-column: 2;
 }
 .month-next-label {
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 800;
   opacity: 0.7;
 }
@@ -197,7 +197,7 @@ button.month-day:active {
   align-items: center;
   gap: 0.45rem;
   margin: -0.25rem 0 0;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -215,7 +215,7 @@ button.month-day:active {
   font-weight: 900;
 }
 .agenda-month span {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-3);
 }
@@ -276,7 +276,7 @@ button.month-day:active {
   letter-spacing: -0.02em;
 }
 .agenda-wd {
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -295,7 +295,7 @@ button.month-day:active {
   gap: 0.35rem;
 }
 .agenda-when {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 800;
   color: var(--ink-2);
   margin-left: 0.15rem;
@@ -331,7 +331,7 @@ button.month-day:active {
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
   background: var(--paper);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-2);
   max-width: 100%;

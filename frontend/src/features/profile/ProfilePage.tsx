@@ -55,7 +55,7 @@ function Card({ title, label, children, note }: { title: string; label: string; 
 function IdentityCard({ m }: { m: MemberProfile }) {
   const a = m.address
   return (
-    <Card title="Dane z ZUS i mObywatela" label={`ZUS i mObywatel — ${m.user_name}`} note={<Pill tone="blue">pobrane automatycznie</Pill>}>
+    <Card title="Dane z ZUS i mObywatela" label={`ZUS i mObywatel: ${m.user_name}`} note={<Pill tone="blue">pobrane automatycznie</Pill>}>
       <dl className="profile-facts">
         <div>
           <dt>PESEL</dt>
@@ -80,7 +80,7 @@ function IdentityCard({ m }: { m: MemberProfile }) {
 function WorkCard({ m }: { m: MemberProfile }) {
   const empty = m.insurance.length === 0 && m.ezla.length === 0 && !m.contribution_debt
   return (
-    <Card title="Praca i ubezpieczenie" label={`Praca i ubezpieczenie — ${m.user_name}`}>
+    <Card title="Praca i ubezpieczenie" label={`Praca i ubezpieczenie: ${m.user_name}`}>
       {empty ? (
         <p className="muted profile-empty">ZUS nie pokazuje teraz żadnego ubezpieczenia.</p>
       ) : (
@@ -126,7 +126,7 @@ function WorkCard({ m }: { m: MemberProfile }) {
 function ChildrenCard({ m }: { m: MemberProfile }) {
   if (m.known_children.length === 0) return null
   return (
-    <Card title="Dzieci w ZUS" label={`Dzieci w ZUS — ${m.user_name}`}>
+    <Card title="Dzieci w ZUS" label={`Dzieci w ZUS: ${m.user_name}`}>
       <ul className="profile-rows">
         {m.known_children.map((k, i) => {
           const expected = Boolean(k.due_date && !k.birth_date)
@@ -155,7 +155,7 @@ function AnswersCard({ m, questions }: { m: MemberProfile; questions: QuestionTe
   const forms = applicationFacts(m.answers)
   const benefits = entries.filter(([k, v]) => !isApplicationAnswer(k, v))
   return (
-    <Card title="Twoje odpowiedzi" label={`Odpowiedzi — ${m.user_name}`}>
+    <Card title="Twoje odpowiedzi" label={`Odpowiedzi: ${m.user_name}`}>
       {entries.length === 0 ? (
         <p className="muted profile-empty">
           Zapytamy Cię tylko o to, czego nie wiemy, a co zmienia wynik dopasowania świadczeń.
@@ -256,12 +256,12 @@ export default function ProfilePage() {
             <WorkCard m={m} />
             <ChildrenCard m={m} />
             {profileSections.length === 0 ? (
-              <Card title="Umowy o pracę" label={`Umowy — ${m.user_name}`}>
+              <Card title="Umowy o pracę" label={`Umowy: ${m.user_name}`}>
                 <p className="muted profile-empty">Tutaj pojawią się dane z zatwierdzonych skanów umów.</p>
               </Card>
             ) : (
               profileSections.map((s) => (
-                <Card key={s.title} title={s.title} label={`${s.title} — ${m.user_name}`}>
+                <Card key={s.title} title={s.title} label={`${s.title}: ${m.user_name}`}>
                   <div className="profile-slot">
                     <s.Component userId={m.user_id} userName={m.user_name} />
                   </div>

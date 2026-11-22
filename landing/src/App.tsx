@@ -1,6 +1,6 @@
 import { Logo } from './components/Logo'
 import { ScrollRibbons } from './components/ScrollRibbons'
-import { HeroIcons } from './components/HeroIcons'
+import { HeroIcons, LineIcon } from './components/HeroIcons'
 import { Timeline } from './components/Timeline'
 import { HowItWorks } from './components/HowItWorks'
 import { Extras } from './components/Extras'
@@ -11,15 +11,16 @@ const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
 
 // Topics from the benefit catalog (backend/app/data/benefits_national.json).
 const HELP_TOPICS = [
-  { badge: 'ZUS', title: 'Urlopy i zasiłki', text: 'Macierzyński, ojcowski, rodzicielski i L4 w ciąży.' },
-  { badge: '800+', title: 'Świadczenie 800+', text: '800 zł co miesiąc na każde dziecko.' },
-  { badge: '🍼', title: 'Becikowe', text: 'Jednorazowe wsparcie po narodzinach dziecka.' },
-  { badge: '🧸', title: 'Aktywny rodzic', text: 'Na żłobek, nianię albo opiekę w domu.' },
-  { badge: '🎒', title: 'Dobry Start', text: 'Co roku na wyprawkę do szkoły.' },
-  { badge: '🏫', title: 'Żłobek, przedszkole, szkoła', text: 'Terminy rekrutacji i dokumenty.' },
-  { badge: 'KDR', title: 'Karta Dużej Rodziny', text: 'Zniżki dla rodzin z trojgiem dzieci.' },
-  { badge: 'PIT', title: 'Ulga prorodzinna', text: 'Zwrot podatku za każde dziecko.' },
-  { badge: '📍', title: 'Wsparcie z twojej gminy', text: 'Lokalne programy, o których mało kto wie.' },
+  { icon: 'document', title: 'Urlopy i zasiłki z ZUS' },
+  { icon: 'coins', title: 'Świadczenie 800+' },
+  { icon: 'bottle', title: 'Becikowe' },
+  { icon: 'blocks', title: 'Aktywny rodzic i żłobek' },
+  { icon: 'cap', title: 'Rekrutacja do przedszkola i szkoły' },
+  { icon: 'backpack', title: 'Dobry Start na wyprawkę' },
+  { icon: 'card', title: 'Karta Dużej Rodziny' },
+  { icon: 'percent', title: 'Ulga prorodzinna w PIT' },
+  { icon: 'thermometer', title: 'Zdrowie w ciąży i leki dla dzieci' },
+  { icon: 'pin', title: 'Wsparcie z twojej gminy' },
 ]
 
 function App() {
@@ -79,21 +80,16 @@ function App() {
 
         <section className="section help-section">
           <h2>Pomożemy ci z:</h2>
-          <div className="carousel">
-            <div className="carousel-track">
-              {[...HELP_TOPICS, ...HELP_TOPICS].map((t, i) => (
-                <article
-                  className="help-card"
-                  key={i}
-                  aria-hidden={i >= HELP_TOPICS.length ? true : undefined}
-                >
-                  <span className="help-badge">{t.badge}</span>
-                  <h3>{t.title}</h3>
-                  <p>{t.text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
+          <ul className="topics">
+            {HELP_TOPICS.map((t) => (
+              <li className="topic" key={t.title}>
+                <span className="topic-icon">
+                  <LineIcon name={t.icon} size={34} />
+                </span>
+                {t.title}
+              </li>
+            ))}
+          </ul>
         </section>
 
         <HowItWorks />

@@ -34,7 +34,7 @@ WARSAW = ZoneInfo("Europe/Warsaw")
 Scope = Literal["user", "ip", "budget", "busy"]
 
 MSG_RATE = "Zbyt wiele zapytań do asystenta. Spróbuj za chwilę."
-MSG_BUDGET = "Asystent AI jest dziś przeciążony. Spróbuj jutro — reszta aplikacji działa normalnie."
+MSG_BUDGET = "Asystent AI jest dziś przeciążony. Spróbuj jutro, reszta aplikacji działa normalnie."
 MSG_BUSY = "Asystent AI jest teraz mocno obciążony. Spróbuj za chwilę."
 MSG_UNAVAILABLE = "Asystent AI jest chwilowo niedostępny. Spróbuj ponownie za chwilę."
 

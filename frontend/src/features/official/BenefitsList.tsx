@@ -161,7 +161,7 @@ export default function BenefitsList() {
                 <Icon name="gift" size={26} />
               </span>
               <h3>Nie dodano jeszcze żadnego świadczenia</h3>
-              <p className="muted">Zacznij od uchwały — wkleisz tekst, a formularz wypełni się sam.</p>
+              <p className="muted">Zacznij od uchwały: wkleisz tekst, a formularz wypełni się sam.</p>
               <Button to="/urzednik/swiadczenia/nowe?z=uchwala" leading="sparkle">
                 Wklej uchwałę
               </Button>

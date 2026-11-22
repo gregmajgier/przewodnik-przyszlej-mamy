@@ -196,7 +196,7 @@
   padding: 0.05rem 0.7rem;
   border-radius: 999px;
   border: 1px solid var(--fg);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 .jk-item-body {
@@ -260,15 +260,39 @@
 .jk-help {
   position: sticky;
   bottom: 0;
-  padding: 0.75rem clamp(1.25rem, 4vw, 3rem);
+  padding: 0.35rem clamp(1rem, 4vw, 3rem);
   background: var(--surface);
   border-top: 1px solid var(--border);
   font-size: 0.95rem;
   color: var(--muted);
 }
 .jk-help p {
+  margin: 0;
+}
+.jk-help-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 0 auto;
   max-width: 46rem;
+}
+.jk-help-toggle {
+  flex: none;
+  font: inherit;
+  font-weight: 700;
+  min-height: 2.75rem;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  border: 2px solid var(--fg);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+.jk-help-more {
+  margin: 0 auto;
+  max-width: 46rem;
+  padding: 0.25rem 0 0.5rem;
 }
 
 .jk-sr {

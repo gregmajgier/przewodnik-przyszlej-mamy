@@ -52,6 +52,14 @@ export default function NewApplicationPage() {
   const effectiveChild = childId || (needsChild && children.length === 1 ? children[0].id : '')
   const effectiveChannel = channel || form?.default_channel || ''
   const canStart = form !== undefined && !picking && (!needsChild || effectiveChild !== '') && !busy
+  // dlaczego przycisk jest nieaktywny: mówimy wprost, zamiast zostawiać wyszarzony przycisk bez wyjaśnienia
+  const hint = busy
+    ? null
+    : form === undefined || picking
+      ? 'Wybierz rodzaj wniosku powyżej.'
+      : needsChild && effectiveChild === ''
+        ? 'Wybierz dziecko, którego dotyczy wniosek.'
+        : null
   const ordered = [...forms].sort((a, b) => Number(recommended.has(b.code)) - Number(recommended.has(a.code)))
   const collapsed = form !== undefined && !picking
   const top = ordered.slice(0, 6)
@@ -84,7 +92,7 @@ export default function NewApplicationPage() {
   return (
     <div className="page page-narrow">
       <PageHeader title="Nowy wniosek" eyebrow="Wypełnimy go za Ciebie" back="/wnioski">
-        <p className="muted">Wybierz, co chcesz złożyć — dane uzupełnimy z ZUS, mObywatela i Waszego profilu.</p>
+        <p className="muted">Wybierz, co chcesz złożyć, a dane uzupełnimy z ZUS, mObywatela i Waszego profilu.</p>
       </PageHeader>
 
       {error && (
@@ -191,13 +199,24 @@ export default function NewApplicationPage() {
           {collapsed && form.only_electronic && (
             <p className="notice">
               <Icon name="sparkle" size={18} style={{ display: 'inline', verticalAlign: '-3px' }} /> Ten wniosek składa się
-              tylko elektronicznie — formularz online wypełni za Ciebie agent.
+              tylko elektronicznie. Formularz online wypełni za Ciebie agent.
             </p>
           )}
 
-          <Button block icon="arrowRight" disabled={!canStart} onClick={() => void start()}>
+          <Button
+            block
+            icon="arrowRight"
+            disabled={!canStart}
+            aria-describedby={hint ? 'start-hint' : undefined}
+            onClick={() => void start()}
+          >
             {busy ? 'Przygotowuję…' : 'Zacznij wypełnianie'}
           </Button>
+          {hint && (
+            <p id="start-hint" className="muted" style={{ margin: 0, textAlign: 'center' }}>
+              {hint}
+            </p>
+          )}
         </div>
       )}
     </div>

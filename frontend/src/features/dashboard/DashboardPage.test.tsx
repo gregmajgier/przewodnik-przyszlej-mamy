@@ -104,7 +104,12 @@ describe('DashboardPage', () => {
     expect(apps).toHaveAttribute('href', '/wnioski')
     expect(await within(apps).findByText('Urlop macierzyński i rodzicielski')).toBeInTheDocument()
     expect(within(apps).getByText('Brakuje danych')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /baza świadczeń/i })).toHaveAttribute('href', '/swiadczenia')
+    const base = screen.getByRole('link', { name: /baza świadczeń/i })
+    expect(base).toHaveAttribute('href', '/swiadczenia')
+    const top = await within(base).findByRole('list', { name: /najwięcej dla was/i })
+    expect(within(top).getAllByRole('listitem')).toHaveLength(3) // kafelek pokazuje konkretne świadczenia, nie same liczby
+    expect(flat(base)).toContain('5 pasuje')
+    expect(flat(base)).toContain('1 do sprawdzenia')
     const cal = screen.getByRole('link', { name: /kalendarz/i })
     expect(await within(cal).findByText('Urlop macierzyński i rodzicielski')).toBeInTheDocument() // kod wniosku → nazwa
     expect(screen.getAllByRole('link', { name: /^rodzina/i }).every((a) => a.getAttribute('href') === '/rodzina')).toBe(true)

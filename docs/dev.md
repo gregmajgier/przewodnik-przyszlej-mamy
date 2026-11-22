@@ -382,3 +382,26 @@ Zgłoszenie straty dziecka przełącza **całą rodzinę** w spokojny, monochrom
   potwierdzeń; na karcie dziecka w `FamilyPage`), `JaskolkaHome` (lista „Dla Was”; `AppShell` podstawia ją pod `/` w
   trybie i ustawia `data-theme="mono"`), trasa `/dla-was`.
 - **Scenariusz całości:** `backend/tests/test_e2e_nowak.py` (czytaj jak dokumentację).
+
+## Wygląd i dostępność (konwencje po przeglądzie UX)
+
+- **Kolory.** Czysty róż marki `#EF4363` (`--pink`, `--brand`) ma na bieli kontrast tylko 3,7:1 (WCAG AA wymaga 4,5:1). Tło
+  pod białym tekstem (przyciski `.btn`, plakietki z liczbą, „Zapytaj”, wysyłka w czacie) bierze `--primary: #C8234A`,
+  drobny tekst w kolorze marki na jasnym tle `--pink-700`. Czysty róż zostaje dla logo, wordmarku, ekranów przejściowych
+  i dekoracji. Nie wpisuj kolorów w komponentach, używaj tokenów z `theme.css`.
+- **Nawigacja.** Panel główny z kafelkami i przycisk „wstecz” na podstronach (bez dolnego paska zakładek).
+- **Cele dotyku ≥ 44 px**: przyciski, samodzielne linki, pola formularzy i `summary`. Tekst plakietek i etykiet nie jest
+  mniejszy niż 0,875rem (ok. 15 px).
+- **Szerokość.** Żadna podstrona nie może się przewijać w bok: siatki używają `minmax(0, …)`, a długie wartości
+  `overflow-wrap`.
+- **Fonty** (Nunito, Sniglet) są hostowane lokalnie przez pakiety `@fontsource/*` (importy w `main.tsx`), bez Google Fonts:
+  działają offline i nie ujawniają adresu IP użytkownika Google. Polskie znaki wymagają importu podzbioru `latin-ext`.
+- **Teksty.** Bez długich myślników (—) w tekstach widocznych dla użytkownika: zdanie rozdziel kropką, przecinkiem albo
+  dwukropkiem.
+- **Wdrożenie (Azure Static Web Apps).** `frontend/public/staticwebapp.config.json` przekierowuje trasy aplikacji na
+  `index.html` (inaczej odświeżenie `/kalendarz` albo ramka agenta `/sim/...` dają 404).
+- **Terminy w podsumowaniu i kalendarzu.** „Najbliższy termin” bierze pod uwagę także kamienie milowe ciąży i porodu
+  (`services/milestones.py`: zaświadczenie lekarskie dla pracodawcy, zgłoszenie urodzenia w USC), a kalendarz pokazuje też
+  terminy „po porodzie” (urlop rodzicielski, 800+) liczone orientacyjnie od przewidywanego porodu.
+- **Czat w trybie demo** odpowiada konkretnie (kwota, sytuacja rodziny, jak złożyć wniosek, oficjalne źródło) z katalogu
+  świadczeń; narzędzie MCP `swiadczenia` przyjmuje `query` i zwraca wtedy tylko najtrafniejsze pozycje z opisem.

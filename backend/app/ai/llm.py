@@ -26,7 +26,7 @@ T = TypeVar("T", bound=BaseModel)
 LLM_UNAVAILABLE = "Asystent AI jest chwilowo niedostępny. Spróbuj ponownie za chwilę."
 LLM_BAD_OUTPUT = "Asystent AI zwrócił niepoprawną odpowiedź. Spróbuj ponownie."
 DEMO_FALLBACK = (
-    "To jest tryb demo — asystent AI nie jest tu podłączony do modelu, "
+    "To jest tryb demo: asystent AI nie jest tu podłączony do modelu, "
     "więc nie mogę odpowiedzieć na to pytanie."
 )
 

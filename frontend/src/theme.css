@@ -38,7 +38,10 @@
   /* zgodność wstecz (starsze moduły) */
   --bg: var(--paper);
   --fg: var(--ink);
-  --primary: var(--pink);
+  /* Czysty róż marki ma na bieli 3,7:1 (WCAG AA wymaga 4,5:1): tło pod białym tekstem (przyciski, plakietki)
+     bierze --primary, a --brand zostaje dla logo, wordmarku i dekoracji. */
+  --brand: var(--pink);
+  --primary: #c8234a;
   --primary-fg: #ffffff;
   --primary-soft: var(--pink-100);
   --surface: var(--white);
@@ -265,7 +268,7 @@ svg {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -309,7 +312,7 @@ svg {
 }
 
 .btn {
-  --btn-bg: var(--pink);
+  --btn-bg: var(--primary);
   --btn-fg: #fff;
   position: relative;
   display: inline-flex;
@@ -513,7 +516,7 @@ svg {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   color: var(--violet);

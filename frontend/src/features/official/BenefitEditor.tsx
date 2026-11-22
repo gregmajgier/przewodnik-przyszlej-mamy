@@ -79,7 +79,7 @@ function Check({ ok, children }: { ok: boolean; children: ReactNode }) {
       </span>
       <span>
         {children}
-        <span className="sr-only">{ok ? ' — gotowe' : ' — do zrobienia'}</span>
+        <span className="sr-only">{ok ? ': gotowe' : ': do zrobienia'}</span>
       </span>
     </li>
   )
@@ -171,7 +171,7 @@ export default function BenefitEditor() {
     setBusy('save')
     setToast(null)
     if (await save()) {
-      setToast({ tone: 'ok', text: wasPublished ? 'Zapisano. Świadczenie wróciło do szkicu — opublikuj je ponownie.' : 'Zapisano zmiany.' })
+      setToast({ tone: 'ok', text: wasPublished ? 'Zapisano. Świadczenie wróciło do szkicu. Opublikuj je ponownie.' : 'Zapisano zmiany.' })
     }
     setBusy(null)
   }
@@ -184,7 +184,7 @@ export default function BenefitEditor() {
       try {
         load(await api<OfficialBenefit>(`/api/official/benefits/${saved.id}/extract-conditions`, { method: 'POST' }))
       } catch (e) {
-        setAiError(errText(e, 'Nie udało się wyodrębnić warunków — dodaj je ręcznie.'))
+        setAiError(errText(e, 'Nie udało się wyodrębnić warunków. Dodaj je ręcznie.'))
       }
     }
     setBusy(null)
@@ -214,7 +214,7 @@ export default function BenefitEditor() {
     setToast(null)
     try {
       load(await api<OfficialBenefit>(`/api/official/benefits/${benefit.id}/${publish ? 'publish' : 'unpublish'}`, { method: 'POST' }))
-      setToast({ tone: 'ok', text: publish ? 'Opublikowano — rodzice z Twojego obszaru już widzą to świadczenie.' : 'Wycofano publikację.' })
+      setToast({ tone: 'ok', text: publish ? 'Opublikowano. Rodzice z Twojego obszaru już widzą to świadczenie.' : 'Wycofano publikację.' })
     } catch (e) {
       setToast({ tone: 'error', text: errText(e, 'Nie udało się zmienić publikacji.') })
     }
@@ -251,7 +251,7 @@ export default function BenefitEditor() {
       setAiOpen(false)
       setToast({ tone: 'ok', text: 'Wypełniono z uchwały. Sprawdź pola i zapisz.' })
     } catch (e) {
-      setPrefillError(errText(e, 'Nie udało się wypełnić formularza z uchwały — uzupełnij pola ręcznie.'))
+      setPrefillError(errText(e, 'Nie udało się wypełnić formularza z uchwały. Uzupełnij pola ręcznie.'))
     }
     setBusy(null)
   }
@@ -387,7 +387,7 @@ export default function BenefitEditor() {
               id="sec-crit"
               icon="family"
               title="Kto może skorzystać"
-              lead="Sprawdzamy to automatycznie u każdej rodziny. Zamieszkanie na obszarze jednostki — zawsze."
+              lead="Sprawdzamy to automatycznie u każdej rodziny. Zamieszkanie na obszarze jednostki sprawdzamy zawsze."
             >
               <div className="off-grid">
                 <div className="field field-wide">
@@ -622,7 +622,7 @@ export default function BenefitEditor() {
         }
       >
         <p>
-          Świadczenie zniknie z panelu{published ? ' i z bazy świadczeń rodziców' : ''}. Tej operacji nie da się cofnąć — jeśli chcesz je tylko
+          Świadczenie zniknie z panelu{published ? ' i z bazy świadczeń rodziców' : ''}. Tej operacji nie da się cofnąć. Jeśli chcesz je tylko
           ukryć, wycofaj publikację.
         </p>
       </Sheet>

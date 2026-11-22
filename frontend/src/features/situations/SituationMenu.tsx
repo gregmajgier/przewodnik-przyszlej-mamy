@@ -33,7 +33,7 @@ export function SituationMenu({ child, onChanged }: { child: Child; onChanged: (
 
   return (
     <details className="sit-menu">
-      <summary aria-label={`Zmiana sytuacji — ${child.name}`}>Zmiana sytuacji</summary>
+      <summary aria-label={`Zmiana sytuacji: ${child.name}`}>Zmiana sytuacji</summary>
       <ul className="sit-menu-list">
         {SITUATION_OPTIONS.map((o) => (
           <li key={o.kind}>

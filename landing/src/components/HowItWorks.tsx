@@ -19,7 +19,7 @@ const STEPS = [
   {
     title: 'Pilnujemy terminów',
     text: 'Wszystkie terminy całej rodziny w jednym kalendarzu, od ciąży aż do 18. urodzin dziecka. Drugi rodzic widzi to samo.',
-    shot: { src: 'step-4-kalendarz.webp', alt: 'Kalendarz rodziny z terminami wniosków' },
+    shot: { src: 'step-4-kalendarz.webp', alt: 'Kalendarz rodziny: siatka miesiąca i nadchodzące terminy wniosków', width: 1060 },
   },
 ]
 
@@ -35,7 +35,7 @@ export function HowItWorks() {
               <h3>{s.title}</h3>
               <p>{s.text}</p>
             </div>
-            <BrowserFrame {...s.shot} width={760} height={700} />
+            <BrowserFrame width={760} height={700} {...s.shot} />
           </li>
         ))}
       </ol>

@@ -88,7 +88,7 @@ a.member-card:hover {
   font-size: 1.05rem;
 }
 .member-sub {
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   font-weight: 700;
 }
@@ -172,7 +172,7 @@ a.member-card:hover {
 }
 .kid-age {
   margin: 0.15rem 0 0.5rem;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-2);
 }
@@ -188,7 +188,7 @@ a.member-card:hover {
   align-items: center;
   gap: 0.3rem;
   font-weight: 800;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   text-decoration: none;
   color: var(--pink-700);
   padding-top: 0.25rem;

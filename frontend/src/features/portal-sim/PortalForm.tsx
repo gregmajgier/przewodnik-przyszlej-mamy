@@ -140,7 +140,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
       {submitted ? (
         <section className="sim-done" role="status" aria-live="polite">
           <h2>Wniosek złożony</h2>
-          <p>Potwierdzenie i decyzja trafią na Twoją skrzynkę — mRodzina pokaże je przy wniosku.</p>
+          <p>Potwierdzenie i decyzja trafią na Twoją skrzynkę, a mRodzina pokaże je przy wniosku.</p>
         </section>
       ) : (
         <form
@@ -176,7 +176,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
                     </label>
                     {f.type === 'choice' ? (
                       <select {...common} value={String(values[f.id] ?? '')} onChange={(e) => edit(f, e.target.value)}>
-                        <option value="">— wybierz —</option>
+                        <option value="">Wybierz</option>
                         {(f.choices ?? []).map((c) => (
                           <option key={c} value={c}>
                             {c}

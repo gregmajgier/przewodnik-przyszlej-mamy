@@ -43,9 +43,17 @@ def fits(*bs):
 
 def test_due_date_generates_prebirth_deadlines():
     evs = generate_events(view(expected()), fits(ZASILEK, B800), [], [], TODAY)
-    deadlines = [e for e in evs if e.kind == "deadline"]
-    assert [(e.source_ref, e.due_date) for e in deadlines] == [("benefit:zas", date(2026, 12, 30))]
-    assert "przed porodem" in deadlines[0].title
+    deadlines = [e for e in evs if e.kind == "deadline" and e.source_ref.startswith("benefit:")]
+    assert [(e.source_ref, e.due_date) for e in deadlines] == [
+        ("benefit:zas", date(2026, 12, 30)),
+        ("benefit:800", date(2027, 4, 20)),  # termin „po porodzie” liczony orientacyjnie od przewidywanego porodu
+    ]
+    assert "przed porodem" in deadlines[0].title and "po porodzie" in deadlines[1].title
+    assert "orientacyjny" in deadlines[1].summary
+    # kamienie milowe ciąży: zaświadczenie dla pracodawcy (8 tyg. przed porodem) i rejestracja w USC (21 dni po)
+    milestones = {e.source_ref: e.due_date for e in evs if e.source_ref.startswith("milestone:")}
+    assert milestones == {"milestone:pregnancy-certificate": date(2027, 1, 20) - timedelta(days=56),
+                          "milestone:usc-registration": date(2027, 1, 20) + timedelta(days=21)}
     assert any(e.kind == "child" and e.due_date == date(2027, 1, 20) for e in evs)
 
 
@@ -59,7 +67,7 @@ def test_birth_unlocks_800plus_deadline_3_months():
 
 def test_no_benefit_events_for_status_no():
     evs = generate_events(view(born()), [BenefitWithMatch(benefit=B800, status="no")], [], [], TODAY)
-    assert not [e for e in evs if e.kind == "deadline"]
+    assert not [e for e in evs if e.kind == "deadline" and e.source_ref.startswith("benefit:")]
 
 
 def test_done_preserved_on_regeneration():
