@@ -80,6 +80,8 @@ export default function OnboardingPage() {
   const [joinCode, setJoinCode] = useState('')
   const [known, setKnown] = useState<KnownChild[] | null>(null)
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  // dzieci już w rodzinie odznaczone przez rodzica — usuwamy je dopiero po „Dalej”
+  const [removed, setRemoved] = useState<Set<string>>(new Set())
   const [addOpen, setAddOpen] = useState(false)
   const [solo, setSolo] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -165,6 +167,7 @@ export default function OnboardingPage() {
       }, 'Nie udało się założyć rodziny.')
     } else if (step === 'children') {
       await run(async () => {
+        for (const id of removed) await api(`/api/families/me/children/${id}`, { method: 'DELETE' })
         for (const [i, k] of (known ?? []).entries()) {
           if (!selected.has(i)) continue
           await api('/api/families/me/children', {
@@ -173,6 +176,7 @@ export default function OnboardingPage() {
           })
         }
         setKnown([])
+        setRemoved(new Set())
         await refresh()
         setStep('partner')
       }, 'Nie udało się zapisać dzieci.')
@@ -213,9 +217,11 @@ export default function OnboardingPage() {
   const existingKids = family?.children ?? []
   const nextLabel =
     step === 'children'
-      ? selected.size > 0
-        ? `Dodaj dzieci (${selected.size})`
-        : 'Dalej'
+      ? removed.size > 0
+        ? 'Zapisz zmiany'
+        : selected.size > 0
+          ? `Dodaj dzieci (${selected.size})`
+          : 'Dalej'
       : step === 'contracts'
         ? attaching
           ? 'Czytam umowy…'
@@ -281,22 +287,41 @@ export default function OnboardingPage() {
             <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
               {known && known.length > 0
                 ? 'Znaleźliśmy je w rejestrach. Zaznacz, kto należy do Waszej rodziny.'
-                : 'Dodaj dzieci, także to, które jest w drodze.'}
+                : existingKids.length > 0
+                  ? 'Odznacz dziecko, które chcesz usunąć z rodziny, albo dodaj kolejne.'
+                  : 'Dodaj dzieci, także to, które jest w drodze.'}
             </p>
             {!known && <div className="skeleton" style={{ height: '5rem' }} role="status" aria-label="Szukam dzieci w rejestrach" />}
             <div className="choices rise" style={{ ['--i' as string]: 2 }}>
-              {existingKids.map((c, i) => (
-                <div key={c.id} className="choice" aria-checked="true" role="checkbox" aria-disabled="true">
-                  <Avatar name={c.name} tone={childTone(i)} icon={c.status === 'expected' ? 'baby' : undefined} size={46} />
-                  <span className="choice-main">
-                    <span className="choice-title">{c.name}</span>
-                    <span className="choice-sub">{describeAge(c)}</span>
-                  </span>
-                  <span className="choice-check" aria-hidden="true">
-                    <Icon name="check" size={16} stroke={2.6} />
-                  </span>
-                </div>
-              ))}
+              {existingKids.map((c, i) => {
+                const on = !removed.has(c.id)
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    role="checkbox"
+                    aria-checked={on}
+                    className="choice"
+                    onClick={() =>
+                      setRemoved((prev) => {
+                        const n = new Set(prev)
+                        if (n.has(c.id)) n.delete(c.id)
+                        else n.add(c.id)
+                        return n
+                      })
+                    }
+                  >
+                    <Avatar name={c.name} tone={childTone(i)} icon={c.status === 'expected' ? 'baby' : undefined} size={46} />
+                    <span className="choice-main">
+                      <span className="choice-title">{c.name}</span>
+                      <span className="choice-sub">{on ? describeAge(c) : 'Zostanie usunięte z rodziny'}</span>
+                    </span>
+                    <span className="choice-check" aria-hidden="true">
+                      <Icon name="check" size={16} stroke={2.6} />
+                    </span>
+                  </button>
+                )
+              })}
               {known?.map((k, i) => {
                 const c = asChild(k)
                 const on = selected.has(i)

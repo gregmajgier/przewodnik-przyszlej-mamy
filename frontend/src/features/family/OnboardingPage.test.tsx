@@ -148,6 +148,27 @@ describe('OnboardingPage', () => {
     expect(await screen.findByRole('heading', { name: /zaproś drugiego rodzica/i })).toBeInTheDocument()
   })
 
+  it('krok 2: dziecko już w rodzinie można odznaczyć — Zapisz zmiany usuwa je z rodziny', async () => {
+    const mocked = routeApi({
+      'GET /api/profile/me': { ...PROFILE, known_children: [] },
+      'DELETE /api/families/me/children/c-maja': undefined,
+    })
+    const withKid = {
+      ...FAMILY_VIEW,
+      children: [{ id: 'c-maja', family_id: 'f1', name: 'Maja', status: 'born', birth_date: '2019-05-01', due_date: null }],
+    } as unknown as FamilyView
+    renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: withKid }) })
+    await userEvent.click(screen.getByRole('button', { name: /^dalej/i })) // krok „rodzina”
+    const maja = await screen.findByRole('checkbox', { name: /Maja/ })
+    expect(maja).toHaveAttribute('aria-checked', 'true')
+    expect(maja).not.toHaveAttribute('aria-disabled')
+    await userEvent.click(maja)
+    expect(maja).toHaveAttribute('aria-checked', 'false')
+    await userEvent.click(screen.getByRole('button', { name: /zapisz zmiany/i }))
+    await waitFor(() => expect(mocked).toHaveBeenCalledWith('/api/families/me/children/c-maja', { method: 'DELETE' }))
+    expect(await screen.findByRole('heading', { name: /zaproś drugiego rodzica/i })).toBeInTheDocument()
+  })
+
   it('krok 3 i 4: kod zaproszenia, potem połączenie Gmaila i przejście do analizy', async () => {
     routeApi({
       'GET /api/profile/me': { ...PROFILE, known_children: [] },
