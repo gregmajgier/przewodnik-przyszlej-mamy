@@ -86,7 +86,7 @@ describe('formularz online (PUE ZUS / Emp@tia)', () => {
     renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     expect(bridge.posted).toEqual([])
     await screen.findByLabelText(/ulica/i)
-    expect(bridge.posted).toEqual([{ type: 'ready' }])
+    await waitFor(() => expect(bridge.posted).toEqual([{ type: 'ready' }]))
   })
 
   it('wypełnia pole poleceniem agenta, podświetla je i odsyła potwierdzenie z położeniem', async () => {
