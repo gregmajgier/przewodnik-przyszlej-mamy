@@ -16,6 +16,7 @@ from ..models.family import (
     JoinRequest,
     JoinRequestView,
 )
+from ..models.notification import Notification
 from ..models.user import User
 from ..storage import Store
 
@@ -106,12 +107,43 @@ class FamilyService:
             raise DomainError(409, "Należysz już do innej rodziny.")
         if len(family.member_ids) >= MAX_PARENTS:
             raise DomainError(409, "Ta rodzina ma już dwoje rodziców.")
-        for existing in await self.store.find("join_requests", family_id=family.id, user_id=user_id):
-            if existing["status"] == "pending":
-                raise DomainError(409, "Prośba o dołączenie została już wysłana. Poczekaj na akceptację.")
-        req = JoinRequest(id=f"jr-{uuid.uuid4().hex[:12]}", family_id=family.id, user_id=user_id)
+        # Kod zaproszenia to zgoda założyciela: kto go zna, dołącza od razu (bez czekania na akceptację).
+        # Wcześniejszą, wiszącą prośbę tej osoby po prostu zamykamy jako przyjętą.
+        req = next(
+            (
+                JoinRequest.model_validate(d)
+                for d in await self.store.find("join_requests", family_id=family.id, user_id=user_id)
+                if d["status"] == "pending"
+            ),
+            None,
+        ) or JoinRequest(id=f"jr-{uuid.uuid4().hex[:12]}", family_id=family.id, user_id=user_id)
+        await self._add_member(family, user)
+        req.status = "accepted"
         await self.store.put("join_requests", req.model_dump(mode="json"))
+        await self._notify_joined(family, user)
         return req
+
+    async def _add_member(self, family: Family, user: dict) -> None:
+        family.member_ids.append(user["id"])
+        await self._save_family(family)
+        await self.store.put("users", {**user, "family_id": family.id})
+
+    async def _notify_joined(self, family: Family, user: dict) -> None:
+        others = [m for m in family.member_ids if m != user["id"]]
+        if not others:
+            return
+        await self.store.put(
+            "notifications",
+            Notification(
+                id=f"notif-join-{family.id}-{user['id']}",
+                family_id=family.id,
+                user_ids=others,
+                kind="family",
+                text=f"{user.get('name') or 'Drugi rodzic'} dołączył(a) do Waszej rodziny.",
+                link="/rodzina",
+                created_at=_now(),
+            ).model_dump(mode="json"),
+        )
 
     async def decide(self, owner_id: str, request_id: str, accept: bool) -> Family:
         doc = await self.store.get("join_requests", request_id)
@@ -130,9 +162,7 @@ class FamilyService:
                 raise DomainError(409, "Ta rodzina ma już dwoje rodziców.")
             if joiner.get("family_id"):
                 raise DomainError(409, "Ta osoba należy już do innej rodziny.")
-            family.member_ids.append(req.user_id)
-            await self._save_family(family)
-            await self.store.put("users", {**joiner, "family_id": family.id})
+            await self._add_member(family, joiner)
         req.status = "accepted" if accept else "rejected"
         await self.store.put("join_requests", req.model_dump(mode="json"))
         return family

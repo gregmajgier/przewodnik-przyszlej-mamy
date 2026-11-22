@@ -201,8 +201,6 @@ def test_partner_sees_answer_after_joining_family(client):
     hp = login(client, "persona-nowak-piotr")
     code = client.get("/api/families/me", headers=ha).json()["family"]["invite_code"]
     assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 201
-    req = client.get("/api/families/me/join-requests", headers=ha).json()[0]
-    assert client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=ha).status_code == 200
     assert _by_id(client, hp)["nat-zasilek-rodzinny"]["match"]["status"] == "fits"
 
 

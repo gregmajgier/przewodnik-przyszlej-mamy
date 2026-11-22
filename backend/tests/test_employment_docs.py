@@ -80,8 +80,7 @@ def test_partner_sees_contract_but_not_document(client):
     anna = login(client, ANNA)
     code = client.post("/api/families", headers=anna).json()["family"]["invite_code"]
     piotr = login(client, PIOTR)
-    req = client.post("/api/families/join", json={"code": code}, headers=piotr).json()
-    client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=anna)
+    assert client.post("/api/families/join", json={"code": code}, headers=piotr).status_code == 201
     doc = client.get("/api/contracts/documents", headers=anna).json()[0]
     client.post(f"/api/contracts/documents/{doc['id']}/import", headers=anna)
 
@@ -156,8 +155,7 @@ def test_ai_agent_does_not_read_partners_contract_text(client, store):
     anna = login(client, ANNA)
     code = client.post("/api/families", headers=anna).json()["family"]["invite_code"]
     piotr = login(client, PIOTR)
-    req = client.post("/api/families/join", json={"code": code}, headers=piotr).json()
-    client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=anna)
+    assert client.post("/api/families/join", json={"code": code}, headers=piotr).status_code == 201
     for d in client.get("/api/contracts/documents", headers=anna).json():
         client.post(f"/api/contracts/documents/{d['id']}/import", headers=anna)
 

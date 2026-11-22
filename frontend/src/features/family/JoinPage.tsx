@@ -15,10 +15,11 @@ export default function JoinPage() {
   const { refresh, family, user } = useSession()
   const navigate = useNavigate()
   const location = useLocation()
-  const [code, setCode] = useState('')
+  const passed = location.state as { sent?: boolean; code?: string } | null
+  const [code, setCode] = useState(passed?.code ?? '')
   const [error, setError] = useState<string | null>(null)
-  // onboarding wysyła prośbę z kodem sam i przechodzi tu od razu na ekran „Prośba wysłana”
-  const [sent, setSent] = useState(Boolean((location.state as { sent?: boolean } | null)?.sent))
+  // ekran „Prawie gotowe” to zabezpieczenie: zwykle kod od razu dołącza do rodziny i tu nie trafiamy
+  const [sent, setSent] = useState(Boolean(passed?.sent))
   const [busy, setBusy] = useState(false)
 
   // po dołączeniu do rodziny pokazujemy dalszą część onboardingu (dzieci, partner, umowy, poczta)
@@ -30,8 +31,10 @@ export default function JoinPage() {
     setBusy(true)
     setError(null)
     try {
-      await api('/api/families/join', { method: 'POST', body: { code: code.trim() } })
-      setSent(true)
+      // kod to zgoda założyciela: backend od razu dopisuje do rodziny, więc tylko odświeżamy sesję
+      const req = await api<{ status: string }>('/api/families/join', { method: 'POST', body: { code: code.trim() } })
+      if (req.status === 'accepted') await refresh()
+      else setSent(true)
     } catch (err) {
       setError(err instanceof ApiError ? err.detail : 'Nie udało się wysłać prośby.')
     } finally {
@@ -39,11 +42,20 @@ export default function JoinPage() {
     }
   }
 
+  // „Sprawdź status”: wysyłamy kod jeszcze raz, co dołącza automatycznie (także przy starej, wiszącej prośbie)
   async function checkStatus() {
     setBusy(true)
+    setError(null)
+    try {
+      if (code.trim()) await api('/api/families/join', { method: 'POST', body: { code: code.trim() } })
+    } catch (err) {
+      // 409 „już twoja rodzina” znaczy, że dołączenie już się udało; inne błędy pokazujemy niżej
+      if (!(err instanceof ApiError && err.status === 409)) {
+        setError(err instanceof ApiError ? err.detail : 'Nie udało się dołączyć. Spróbuj ponownie.')
+      }
+    }
     await refresh()
     setBusy(false)
-    setError('Prośba jeszcze czeka na akceptację. Spróbuj za chwilę.')
   }
 
   if (sent) {
@@ -53,9 +65,9 @@ export default function JoinPage() {
           <div className="flow-art" style={{ color: 'var(--pink)' }}>
             <Icon name="checkCircle" size={44} />
           </div>
-          <h1 className="flow-title">Prośba wysłana</h1>
+          <h1 className="flow-title">Prawie gotowe</h1>
           <p className="flow-lead" role="status">
-            Drugi rodzic zobaczy ją po zalogowaniu i może ją zaakceptować. Wtedy od razu zobaczysz Waszą rodzinę.
+            Kliknij „Sprawdź status”, a dołączymy Cię do rodziny z kodu.
           </p>
           {error && <p className="flow-lead">{error}</p>}
         </div>
@@ -96,7 +108,7 @@ export default function JoinPage() {
       </form>
       <div className="flow-foot">
         <Button block icon="arrowRight" disabled={busy || !code.trim()} onClick={() => void submit()}>
-          {busy ? 'Wysyłam…' : 'Wyślij prośbę'}
+          {busy ? 'Dołączam…' : 'Dołącz do rodziny'}
         </Button>
       </div>
     </div>

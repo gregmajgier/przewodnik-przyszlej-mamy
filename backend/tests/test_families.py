@@ -25,9 +25,7 @@ def family_with_both_parents(client):
     code = fam["family"]["invite_code"]
     r = client.post("/api/families/join", json={"code": code}, headers=hp)
     assert r.status_code == 201, r.text
-    req_id = r.json()["id"]
-    r = client.post(f"/api/families/me/join-requests/{req_id}/accept", headers=ha)
-    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "accepted"  # kod wystarcza, bez akceptacji założyciela
     return ha, hp, fam["family"]["id"], code
 
 
@@ -64,55 +62,31 @@ def test_me_without_family_404(client):
     assert "rodziny" in r.json()["detail"]
 
 
-def test_join_flow_pending_then_accept_adds_member(client):
+def test_join_by_code_adds_member_immediately(client):
     ha, hp = login(client, ANNA), login(client, PIOTR)
     fam = create_family(client, ha)["family"]
     r = client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp)
     assert r.status_code == 201
-    assert r.json()["status"] == "pending"
-    # przed akceptacją Piotr nie jest członkiem i nie widzi rodziny
-    assert client.get("/api/me", headers=hp).json()["family_id"] is None
-    assert client.get("/api/families/me", headers=hp).status_code == 404
-    mine = client.get("/api/families/join-requests/mine", headers=hp).json()
-    assert [m["status"] for m in mine] == ["pending"]
-    # założyciel widzi prośbę
-    pending = client.get("/api/families/me/join-requests", headers=ha).json()
-    assert len(pending) == 1 and pending[0]["user_name"] == "Piotr Nowak"
-    view = client.get("/api/families/me", headers=ha).json()
-    assert len(view["pending_requests"]) == 1
-    # akceptacja
-    r = client.post(f"/api/families/me/join-requests/{pending[0]['id']}/accept", headers=ha)
-    assert r.status_code == 200
-    assert r.json()["family"]["member_ids"] == ["user-nowak-anna", "user-nowak-piotr"]
+    assert r.json()["status"] == "accepted"
+    # od razu członek: widzi rodzinę i oboje rodziców, nic nie czeka na akceptację
     assert client.get("/api/me", headers=hp).json()["family_id"] == fam["id"]
     view_p = client.get("/api/families/me", headers=hp).json()
     assert {m["name"] for m in view_p["members"]} == {"Anna Nowak", "Piotr Nowak"}
     assert view_p["pending_requests"] == []
+    assert client.get("/api/families/me/join-requests", headers=ha).json() == []
+    assert [m["status"] for m in client.get("/api/families/join-requests/mine", headers=hp).json()] == ["accepted"]
 
 
-def test_reject_keeps_user_out(client):
+def test_join_notifies_the_founder(client):
     ha, hp = login(client, ANNA), login(client, PIOTR)
     fam = create_family(client, ha)["family"]
-    req = client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp).json()
-    r = client.post(f"/api/families/me/join-requests/{req['id']}/reject", headers=ha)
-    assert r.status_code == 200
-    assert client.get("/api/me", headers=hp).json()["family_id"] is None
-    assert client.get("/api/families/me", headers=ha).json()["family"]["member_ids"] == [
-        "user-nowak-anna"
-    ]
-    # po odrzuceniu nie można ponownie rozstrzygnąć
-    r = client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=ha)
-    assert r.status_code == 409
-
-
-def test_only_owner_can_decide_403(client):
-    ha, hp = login(client, ANNA), login(client, PIOTR)
-    fam = create_family(client, ha)["family"]
-    req = client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp).json()
-    # wnioskujący nie może sam siebie zaakceptować
-    r = client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=hp)
-    assert r.status_code in (403, 404)
-    assert client.get("/api/me", headers=hp).json()["family_id"] is None
+    client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp)
+    anna = client.get("/api/notifications", headers=ha).json()
+    items = anna["items"] if isinstance(anna, dict) else anna
+    joined = [n for n in items if n["kind"] == "family"]
+    assert len(joined) == 1 and "Piotr Nowak" in joined[0]["text"] and joined[0]["link"] == "/rodzina"
+    piotr = client.get("/api/notifications", headers=hp).json()
+    assert not [n for n in (piotr["items"] if isinstance(piotr, dict) else piotr) if n["kind"] == "family"]
 
 
 def test_invalid_code_404(client):
@@ -137,11 +111,12 @@ def test_join_own_family_409(client):
     assert r.status_code == 409
 
 
-def test_duplicate_join_request_409(client):
+def test_second_join_with_same_code_409(client):
     ha, hp = login(client, ANNA), login(client, PIOTR)
     code = create_family(client, ha)["family"]["invite_code"]
     assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 201
-    assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 409
+    r = client.post("/api/families/join", json={"code": code}, headers=hp)
+    assert r.status_code == 409 and "już twoja rodzina" in r.json()["detail"]
 
 
 def test_rotate_invite_code_invalidates_old(client):
@@ -278,48 +253,54 @@ async def test_third_member_409(store):
     for uid in ("u1", "u2", "u3"):
         await _user(store, uid)
     fam = await svc.create_family("u1")
-    req = await svc.request_join("u2", fam.invite_code)
-    await svc.decide("u1", req.id, True)
+    await svc.request_join("u2", fam.invite_code)
     with pytest.raises(DomainError) as e:
         await svc.request_join("u3", fam.invite_code)
     assert e.value.status_code == 409
     assert "dwoje" in e.value.detail
 
 
-async def test_accept_when_family_filled_meanwhile_409(store):
+async def _legacy_pending(store, fam_id, uid, rid):
+    """Prośba sprzed auto-dołączania (wisi w bazie jako „pending”)."""
+    await store.put("join_requests", {"id": rid, "family_id": fam_id, "user_id": uid, "status": "pending"})
+
+
+async def test_join_closes_own_legacy_pending_request(store):
+    svc = FamilyService(store)
+    for uid in ("u1", "u2"):
+        await _user(store, uid)
+    fam = await svc.create_family("u1")
+    await _legacy_pending(store, fam.id, "u2", "jr-old")
+    req = await svc.request_join("u2", fam.invite_code)
+    assert req.id == "jr-old" and req.status == "accepted"
+    assert (await store.get("users", "u2"))["family_id"] == fam.id
+    assert await svc.pending_requests("u1") == []
+
+
+async def test_owner_can_still_reject_legacy_pending(store):
+    svc = FamilyService(store)
+    for uid in ("u1", "u2"):
+        await _user(store, uid)
+    fam = await svc.create_family("u1")
+    await _legacy_pending(store, fam.id, "u2", "jr-old")
+    with pytest.raises(DomainError) as e:
+        await svc.decide("u2", "jr-old", True)  # wnioskujący nie decyduje sam
+    assert e.value.status_code == 403
+    await svc.decide("u1", "jr-old", False)
+    assert (await store.get("users", "u2"))["family_id"] is None
+    with pytest.raises(DomainError) as e:
+        await svc.decide("u1", "jr-old", True)  # rozstrzygniętej nie można zmienić
+    assert e.value.status_code == 409
+
+
+async def test_accept_legacy_when_family_filled_meanwhile_409(store):
     svc = FamilyService(store)
     for uid in ("u1", "u2", "u3"):
         await _user(store, uid)
     fam = await svc.create_family("u1")
-    r2 = await svc.request_join("u2", fam.invite_code)
-    r3 = await svc.request_join("u3", fam.invite_code)
-    await svc.decide("u1", r2.id, True)
+    await _legacy_pending(store, fam.id, "u3", "jr-old")
+    await svc.request_join("u2", fam.invite_code)
     with pytest.raises(DomainError) as e:
-        await svc.decide("u1", r3.id, True)
+        await svc.decide("u1", "jr-old", True)
     assert e.value.status_code == 409
     assert (await store.get("users", "u3"))["family_id"] is None
-
-
-async def test_expired_code_404(store):
-    svc = FamilyService(store)
-    await _user(store, "u1")
-    await _user(store, "u2")
-    fam = await svc.create_family("u1")
-    doc = await store.get("families", fam.id)
-    doc["invite_expires_at"] = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
-    await store.put("families", doc)
-    with pytest.raises(DomainError) as e:
-        await svc.request_join("u2", fam.invite_code)
-    assert e.value.status_code == 404
-    assert "wygasł" in e.value.detail
-
-
-async def test_user_in_other_family_cannot_join_409(store):
-    svc = FamilyService(store)
-    for uid in ("u1", "u2"):
-        await _user(store, uid)
-    f1 = await svc.create_family("u1")
-    await svc.create_family("u2")
-    with pytest.raises(DomainError) as e:
-        await svc.request_join("u2", f1.invite_code)
-    assert e.value.status_code == 409

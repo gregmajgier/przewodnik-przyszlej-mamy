@@ -8,8 +8,7 @@ PIOTR = "persona-nowak-piotr"
 
 def _join(client, ha, hp):
     code = client.post("/api/families", json={}, headers=ha).json()["family"]["invite_code"]
-    req = client.post("/api/families/join", json={"code": code}, headers=hp).json()
-    client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=ha)
+    assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 201
 
 
 def test_login_creates_profile_from_zus(client, store):

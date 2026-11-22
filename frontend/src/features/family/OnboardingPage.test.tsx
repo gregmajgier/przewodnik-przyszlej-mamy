@@ -104,18 +104,23 @@ describe('OnboardingPage', () => {
     expect(await screen.findByRole('heading', { name: /wasze dzieci/i })).toBeInTheDocument()
   })
 
-  it('krok 1: „Dołączam do rodziny” pokazuje pole kodu i wysyła prośbę od razu', async () => {
-    const mocked = routeApi({ 'POST /api/families/join': { status: 'pending' } })
-    renderWithSession(<Tree />, { route: '/start', session: makeSession() })
+  it('krok 1: „Dołączam do rodziny” z kodem od razu dołącza i przechodzi do dzieci', async () => {
+    const mocked = routeApi({
+      'POST /api/families/join': { status: 'accepted' },
+      'GET /api/profile/me': PROFILE,
+    })
+    const session = makeSession()
+    renderWithSession(<Tree />, { route: '/start', session })
     await userEvent.click(screen.getByRole('button', { name: /dołączam do rodziny/i }))
-    const send = screen.getByRole('button', { name: /wyślij prośbę/i })
-    expect(send).toBeDisabled() // bez kodu nie ma czego wysłać
+    const join = screen.getByRole('button', { name: /dołącz do rodziny/i })
+    expect(join).toBeDisabled() // bez kodu nie ma czego wysłać
     await userEvent.type(screen.getByLabelText('Kod zaproszenia'), 'ab12cd34')
-    await userEvent.click(send)
+    await userEvent.click(join)
     await waitFor(() =>
       expect(mocked).toHaveBeenCalledWith('/api/families/join', { method: 'POST', body: { code: 'AB12CD34' } }),
     )
-    expect(await screen.findByText('Strona dołączania')).toBeInTheDocument()
+    expect(session.refresh).toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: /wasze dzieci/i })).toBeInTheDocument()
   })
 
   it('krok 2: dzieci z rejestrów są zaznaczone, zapisujemy tylko wybrane', async () => {

@@ -45,12 +45,12 @@ def test_nowak_family_journey(client, store):
         children[kid["name"]] = r.json()
     assert children["Dziecko w drodze"]["status"] == "expected" and children["Maja"]["status"] == "born"
 
-    # 3. Piotr dołącza kodem; Anna akceptuje prośbę
+    # 3. Piotr dołącza kodem i od razu jest w rodzinie (kod to zgoda Anny)
     piotr = login(client, PIOTR)
     join = client.post("/api/families/join", json={"code": family["invite_code"]}, headers=piotr)
     assert join.status_code == 201
-    accepted = client.post(f"/api/families/me/join-requests/{join.json()['id']}/accept", headers=anna)
-    assert [m["name"] for m in accepted.json()["members"]] == ["Anna Nowak", "Piotr Nowak"]
+    members = client.get("/api/families/me", headers=piotr).json()["members"]
+    assert [m["name"] for m in members] == ["Anna Nowak", "Piotr Nowak"]
     assert len(client.get("/api/families/me/children", headers=piotr).json()) == 3  # oboje widzą dzieci
 
     # 3a. Analiza: dopasowania z pytaniem „może”; odpowiedź zmienia status na „przysługuje”

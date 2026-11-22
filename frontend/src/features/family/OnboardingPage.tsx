@@ -145,8 +145,14 @@ export default function OnboardingPage() {
           return
         }
         await run(async () => {
-          await api('/api/families/join', { method: 'POST', body: { code: joinCode.trim() } })
-          navigate('/dolacz', { state: { sent: true } })
+          // kod to zgoda założyciela: od razu jesteś w rodzinie i idziemy dalej (dzieci, partner, umowy, poczta)
+          const req = await api<{ status: string }>('/api/families/join', { method: 'POST', body: { code: joinCode.trim() } })
+          if (req.status === 'accepted') {
+            await refresh()
+            setStep('children')
+          } else {
+            navigate('/dolacz', { state: { sent: true, code: joinCode.trim() } })
+          }
         }, 'Nie udało się wysłać prośby.')
         return
       }
@@ -222,8 +228,8 @@ export default function OnboardingPage() {
           : 'Pomiń na razie'
         : step === 'family' && mode === 'join' && !family
           ? busy
-            ? 'Wysyłam…'
-            : 'Wyślij prośbę'
+            ? 'Dołączam…'
+            : 'Dołącz do rodziny'
           : 'Dalej'
 
   return (
