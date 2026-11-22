@@ -391,6 +391,8 @@ def _check_condition(
     if value is None:  # `ask` albo `auto`, którego nie da się sprawdzić po profilu
         stored = ctx.answers.get(_answer_key(benefit, cond.id))
         value = stored if isinstance(stored, bool) else None
+        if value is not None and cond.negate:
+            value = not value
     if value is True:
         reasons.append(cond.text[:1].lower() + cond.text[1:])
     elif value is False:

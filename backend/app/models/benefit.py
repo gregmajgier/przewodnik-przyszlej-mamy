@@ -33,6 +33,9 @@ class Condition(BaseModel):
     kind: Literal["auto", "ask"]
     question: str | None = None
     profile_key: str | None = None
+    # Pytanie `ask` zadane „odwrotnie” do warunku (np. „Czy przysługuje ci…?” przy warunku „Nie przysługuje…”):
+    # odpowiedź „tak” oznacza wtedy warunek niespełniony.
+    negate: bool = False
 
 
 class Deadline(BaseModel):

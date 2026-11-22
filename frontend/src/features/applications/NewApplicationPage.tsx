@@ -19,6 +19,7 @@ export default function NewApplicationPage() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const requested = params.get('form') ?? ''
+  const requestedChild = params.get('child') ?? ''
   const [data, setData] = useState<FormsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [code, setCode] = useState(requested)
@@ -46,10 +47,15 @@ export default function NewApplicationPage() {
 
   const form: FormEntry | undefined = forms.find((f) => f.code === code)
   // wnioski nie dotyczą dzieci w sytuacji straty — poza wsparciem po stracie (`loss_ok`)
-  const children = family.children.filter((c) => c.situation !== 'loss' || form?.loss_ok === true)
+  const eligible = family.children.filter((c) => c.situation !== 'loss' || form?.loss_ok === true)
+  // wniosek przypisany do konkretnego dziecka (?child=) — nie podsuwamy innych osób do wyboru
+  const assigned = eligible.find((c) => c.id === requestedChild)
+  const children = assigned ? [assigned] : eligible
   const unsupported = data !== null && requested !== '' && !forms.some((f) => f.code === requested)
   const needsChild = form?.requires_child === true
-  const effectiveChild = childId || (needsChild && children.length === 1 ? children[0].id : '')
+  // gdy do wyboru jest tylko jedno dziecko, nie ma czego wybierać — wybieramy je za Ciebie
+  const onlyChild = children.length === 1
+  const effectiveChild = childId || (needsChild && onlyChild ? children[0].id : '')
   const effectiveChannel = channel || form?.default_channel || ''
   const canStart = form !== undefined && !picking && (!needsChild || effectiveChild !== '') && !busy
   // dlaczego przycisk jest nieaktywny: mówimy wprost, zamiast zostawiać wyszarzony przycisk bez wyjaśnienia
@@ -149,11 +155,24 @@ export default function NewApplicationPage() {
 
           {collapsed && needsChild && (
             <section aria-labelledby="child-h">
-              <h2 id="child-h">Którego dziecka dotyczy?</h2>
+              <h2 id="child-h">{onlyChild ? 'Wniosek dotyczy' : 'Którego dziecka dotyczy?'}</h2>
               {children.length === 0 ? (
                 <p className="muted">
                   Najpierw dodaj dziecko w zakładce <Link to="/rodzina">Rodzina</Link>.
                 </p>
+              ) : onlyChild ? (
+                <div className="form-option" role="group" aria-labelledby="child-h">
+                  <Avatar
+                    name={childLabel(children[0])}
+                    tone={childTone(family.children.indexOf(children[0]))}
+                    icon={children[0].status === 'expected' ? 'baby' : undefined}
+                    size={40}
+                  />
+                  <span className="form-option-main">
+                    <strong>{childLabel(children[0])}</strong>
+                    <span>{describeAge(children[0])}</span>
+                  </span>
+                </div>
               ) : (
                 <div className="form-picker" role="radiogroup" aria-labelledby="child-h">
                   {children.map((c, i) => (

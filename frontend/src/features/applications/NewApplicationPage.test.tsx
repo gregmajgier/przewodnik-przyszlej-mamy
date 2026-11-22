@@ -105,6 +105,26 @@ describe('NewApplicationPage', () => {
     )
   })
 
+  it('wniosek przypisany do dziecka (?child=) nie pokazuje innych dzieci do wyboru i zakłada się od razu', async () => {
+    const mocked = routeApi({ 'GET /api/applications/forms': FORMS, 'POST /api/applications': makeApp({ id: 'app-4' }) })
+    renderPage('/wnioski/nowy?form=ZAM&child=c-drodze')
+    await screen.findByRole('radio', { name: /zasiłek macierzyński/i })
+    expect(screen.queryByRole('radiogroup', { name: /którego dziecka dotyczy/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /Maja/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('group', { name: /wniosek dotyczy/i })).toHaveTextContent(/Maleństwo/)
+    await userEvent.click(screen.getByRole('button', { name: /zacznij wypełnianie/i }))
+    await waitFor(() =>
+      expect(mocked).toHaveBeenCalledWith('/api/applications', expect.objectContaining({ method: 'POST', body: expect.objectContaining({ child_id: 'c-drodze' }) })),
+    )
+  })
+
+  it('nieznane ?child= nie blokuje użytkownika — wraca zwykły wybór dziecka', async () => {
+    routeApi({ 'GET /api/applications/forms': FORMS })
+    renderPage('/wnioski/nowy?form=ZAM&child=nie-ma-takiego')
+    const kids = within(await screen.findByRole('radiogroup', { name: /którego dziecka dotyczy/i }))
+    expect(kids.getAllByRole('radio').length).toBeGreaterThan(1)
+  })
+
   it('wniosek bez dziecka (np. zasiłek chorobowy) nie pyta o dziecko', async () => {
     const mocked = routeApi({ 'GET /api/applications/forms': FORMS, 'POST /api/applications': makeApp({ id: 'app-3' }) })
     renderPage('/wnioski/nowy?form=ZAS-53')
