@@ -348,6 +348,45 @@
   font-size: 0.92rem;
   color: var(--ink-2);
 }
+.bsheet-payouts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.bsheet-payout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  border-left: 4px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.bsheet-payout.is-payer,
+.bsheet-payout.is-zus {
+  border-left-color: var(--green);
+}
+.bsheet-payout.is-unknown {
+  border-left-color: var(--amber);
+}
+.bsheet-payout-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 900;
+}
+.bsheet-payout-head svg {
+  flex: none;
+}
+.bsheet-payout-meta {
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+
 .bsheet-source {
   display: inline-flex;
   align-items: center;

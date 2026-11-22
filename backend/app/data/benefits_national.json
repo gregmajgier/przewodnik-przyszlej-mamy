@@ -19,9 +19,9 @@
       "deadline": {
         "anchor": "due",
         "offset_days": -49,
-        "note": "Pracownica: wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu (urlop możesz zacząć do 6 tygodni przed porodem). Zleceniobiorczyni i przedsiębiorczyni: wniosek ZAM do ZUS."
+        "note": "Pracownica: wniosek o urlop złóż pracodawcy najpóźniej 7 dni przed początkiem urlopu (urlop możesz zacząć do 6 tygodni przed porodem). Zleceniobiorczyni: wniosek ZAM u zleceniodawcy albo w ZUS. Przedsiębiorczyni: wniosek ZAM w ZUS."
       },
-      "how_to_apply": "Pracownik: wniosek o urlop do pracodawcy (w mRodzinie wygenerujemy go i wyślemy z Twojej skrzynki); zasiłek wypłaca pracodawca na podstawie ZUS Z-3. Zleceniobiorca i przedsiębiorca z dobrowolnym ubezpieczeniem chorobowym: wniosek ZAM do ZUS.",
+      "how_to_apply": "Pracownik: wniosek o urlop składasz u pracodawcy (w mRodzinie wygenerujemy go i wyślemy z Twojej skrzynki). Zleceniobiorca: wniosek ZAM u zleceniodawcy albo w ZUS. Przedsiębiorca: wniosek ZAM bezpośrednio w ZUS. Zasiłek wypłaca pracodawca lub zleceniodawca, jeśli zgłasza do ubezpieczenia chorobowego więcej niż 20 osób. W mniejszej firmie wypłaca ZUS, a płatnik przesyła do ZUS zaświadczenie Z-3 (przy zleceniu Z-3a).",
       "form_codes": [
         "URLOP-MAC-ROD",
         "ZAM"
@@ -44,7 +44,8 @@
         "poród",
         "pracodawca",
         "urlop",
-        "zus"
+        "zus",
+        "wyplata-platnik-zus"
       ]
     },
     {
@@ -76,7 +77,8 @@
       "verify": true,
       "tags": [
         "urlop",
-        "pracodawca"
+        "pracodawca",
+        "wyplata-platnik-zus"
       ]
     },
     {
@@ -84,25 +86,30 @@
       "name": "Urlop ojcowski",
       "scope": "national",
       "category": "perk",
-      "description": "14 dni płatnego urlopu dla ojca (w jednej lub dwóch częściach po 7 dni), do ukończenia przez dziecko 24 miesięcy.",
+      "description": "14 dni płatnego urlopu dla ojca, jednorazowo albo w dwóch częściach po co najmniej 7 dni, do ukończenia przez dziecko 12 miesięcy. Przy adopcji: w ciągu 12 miesięcy od uprawomocnienia się przysposobienia, nie dłużej niż do 14. urodzin dziecka. Bliźnięta nie wydłużają urlopu, a niewykorzystany w terminie przepada.",
       "amount_text": "Zasiłek 100% podstawy",
-      "how_to_apply": "Wniosek do pracodawcy najpóźniej 7 dni przed rozpoczęciem urlopu.",
+      "how_to_apply": "Pracownik: wniosek o urlop do pracodawcy najpóźniej 7 dni przed jego rozpoczęciem (w mRodzinie go wygenerujemy). Ojciec na umowie zlecenia albo z własną działalnością nie dostaje urlopu, ale ma prawo do zasiłku macierzyńskiego za 14 dni odpowiadające urlopowi ojcowskiemu: wniosek ZAM.",
       "form_codes": [
-        "URLOP-OJC"
+        "URLOP-OJC",
+        "ZAM"
       ],
       "source_url": "https://www.gov.pl/web/rodzina/urlop-ojcowski",
       "criteria": {
-        "pregnant_or_child_max_months": 23,
+        "pregnant_or_child_max_months": 11,
         "employment_kinds": [
-          "employment"
+          "employment",
+          "mandate",
+          "jdg"
         ]
       },
       "extra_conditions": [],
+      "extra_text": "Ojcowie na umowie zlecenia i z własną działalnością muszą mieć dobrowolne ubezpieczenie chorobowe.",
       "status": "published",
       "verify": true,
       "tags": [
         "urlop",
-        "tata"
+        "tata",
+        "wyplata-platnik-zus"
       ]
     },
     {
@@ -113,7 +120,7 @@
       "description": "Zwolnienie lekarskie w ciąży (kod literowy B) płatne w 100% podstawy, bez okresu wyczekiwania.",
       "amount_text": "100% podstawy wymiaru",
       "annual_value_estimate": 8000,
-      "how_to_apply": "Lekarz wystawia e-ZLA. Pracownik: pracodawca wypłaca wynagrodzenie/zasiłek. Zleceniobiorca i przedsiębiorca: wniosek ZAS-53 do ZUS.",
+      "how_to_apply": "Lekarz wystawia e-ZLA z kodem B, a zwolnienie samo trafia do ZUS i do płatnika. Pracownik: za pierwsze 33 dni zwolnienia w roku płaci pracodawca (wynagrodzenie chorobowe), potem zasiłek. Zasiłek wypłaca pracodawca lub zleceniodawca, jeśli zgłasza do ubezpieczenia chorobowego więcej niż 20 osób. W mniejszej firmie wypłaca ZUS, a płatnik przesyła do ZUS zaświadczenie Z-3 (przy zleceniu Z-3a). Przedsiębiorca: wniosek ZAS-53 do ZUS.",
       "form_codes": [
         "ZAS-53"
       ],
@@ -139,7 +146,8 @@
       "tags": [
         "ciąża",
         "zus",
-        "ezla"
+        "ezla",
+        "wyplata-platnik-zus"
       ]
     },
     {

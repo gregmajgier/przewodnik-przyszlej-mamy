@@ -23,6 +23,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
   const cat = catMeta(categoryOf(benefit))
   const why = match.status === 'no' ? match.unmet : match.reasons
   const form = match.status !== 'no' ? benefit.form_codes[0] : undefined
+  const payouts = item.payouts ?? []
 
   return (
     <Sheet
@@ -100,6 +101,27 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
               </div>
             ))}
             <p className="small muted">Zapamiętamy odpowiedź i nie zapytamy drugi raz.</p>
+          </section>
+        )}
+
+        {match.status !== 'no' && payouts.length > 0 && (
+          <section aria-labelledby="bsheet-payout-h">
+            <h3 id="bsheet-payout-h">Kto wypłaci zasiłek i gdzie złożyć dokumenty</h3>
+            <ul className="bsheet-payouts">
+              {payouts.map((p) => (
+                <li key={`${p.parent_name}-${p.title}-${p.payer}`} className={`bsheet-payout is-${p.paid_by}`}>
+                  <p className="bsheet-payout-head">
+                    <Icon name={p.paid_by === 'none' ? 'info' : 'briefcase'} size={18} />
+                    {p.headline}
+                  </p>
+                  <p className="bsheet-payout-meta">
+                    {p.parent_name} · {p.title} · {p.payer}
+                  </p>
+                  <p>{p.why}</p>
+                  <p>{p.where}</p>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
