@@ -95,7 +95,8 @@
         "pregnant_or_child_max_months": 23,
         "employment_kinds": [
           "employment"
-        ]
+        ],
+        "parent_sex": "male"
       },
       "extra_conditions": [],
       "status": "published",
@@ -451,7 +452,9 @@
         "note": "Wnioski przyjmowane od 1 lipca do 30 listopada."
       },
       "how_to_apply": "Wniosek wyłącznie elektronicznie: PUE/eZUS, Emp@tia, bankowość elektroniczna.",
-      "form_codes": [],
+      "form_codes": [
+        "DOBRY-START"
+      ],
       "source_url": "https://www.gov.pl/web/rodzina/dobry-start",
       "criteria": {
         "child_age_min_months": 72,

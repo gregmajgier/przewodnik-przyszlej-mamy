@@ -280,3 +280,10 @@
     transition: none;
   }
 }
+
+.guide-action {
+  margin-top: 0.6rem;
+}
+.guide-action .btn {
+  min-height: 44px;
+}

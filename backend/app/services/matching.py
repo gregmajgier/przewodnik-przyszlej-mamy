@@ -35,6 +35,7 @@ class FamilyContext(BaseModel):
     address: Address
     answers: dict = Field(default_factory=dict)
     unit_ids: list[str] = Field(default_factory=list)  # jednostki obejmujące adres rodziny
+    viewer_id: str | None = None  # rodzic, dla którego liczymy dopasowanie (świadczenia osobiste)
 
 
 class Question(BaseModel):
@@ -116,6 +117,13 @@ def _fact(ctx: FamilyContext, key: str) -> bool | None:
     return value if isinstance(value, bool) else None
 
 
+def parent_sex(pesel: str) -> Literal["male", "female"] | None:
+    """Płeć z PESEL: przedostatnia cyfra parzysta = kobieta, nieparzysta = mężczyzna."""
+    if len(pesel) != 11 or not pesel.isdigit():
+        return None
+    return "female" if int(pesel[9]) % 2 == 0 else "male"
+
+
 INCOME_PREFIX = "income_le:"
 
 
@@ -182,6 +190,7 @@ def build_context(
         address=address,
         answers=answers,
         unit_ids=units_for(address, units or []) if primary else [],
+        viewer_id=primary.user_id if primary else None,
     )
 
 
@@ -288,6 +297,15 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
         else:
             wanted = ", ".join(INSURANCE_LABELS[k] for k in cr.employment_kinds)
             unmet.append(f"W danych z ZUS nie widać wymaganego tytułu ubezpieczenia ({wanted}).")
+
+    # --- płeć rodzica (świadczenia osobiste, np. urlop ojcowski) ---
+    if cr.parent_sex is not None:
+        me = next((p for p in ctx.parents if p.user_id == ctx.viewer_id), None)
+        if me is not None and parent_sex(me.pesel) == cr.parent_sex:
+            reasons.append("to świadczenie dla ojca dziecka" if cr.parent_sex == "male" else "to świadczenie dla matki dziecka")
+        else:
+            who = "ojcu" if cr.parent_sex == "male" else "matce"
+            unmet.append(f"To świadczenie przysługuje {who} dziecka, więc dotyczy drugiego rodzica.")
 
     # --- dochód ---
     if cr.max_income_per_person is not None:
