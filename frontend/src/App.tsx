@@ -52,9 +52,9 @@ function AppRoutes() {
 const SPLASH_MS = 1700
 
 /** Ekran ładowania przy wejściu do aplikacji: raz na kartę, żeby animacja logo miała czas się narysować. */
-function useBootSplash(): boolean {
+function useBootSplash(enabled: boolean): boolean {
   const [show, setShow] = useState(() => {
-    if (import.meta.env.MODE === 'test') return false
+    if (import.meta.env.MODE === 'test' || !enabled) return false
     try {
       return sessionStorage.getItem('mr-splash') !== '1'
     } catch {
@@ -76,10 +76,15 @@ function useBootSplash(): boolean {
   return show
 }
 
+/** /jaskolka to publiczna, spokojna strona: bez kolorowego ekranu ładowania i bez czekania na sesję. */
+const isQuietRoute = (path: string) => path === '/jaskolka' || path.startsWith('/jaskolka/')
+
 function Boot() {
-  const splash = useBootSplash()
+  const { pathname } = useLocation()
+  const quiet = isQuietRoute(pathname)
+  const splash = useBootSplash(!quiet)
   const { loading } = useSession()
-  if (splash || loading) return <Splash />
+  if (!quiet && (splash || loading)) return <Splash />
   return <AppRoutes />
 }
 

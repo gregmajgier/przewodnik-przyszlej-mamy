@@ -75,6 +75,8 @@
 /* Tryb monochromatyczny (/jaskolka i tryb jaskółki): bez kolorowych akcentów. */
 [data-theme='mono'] {
   --pink: #4a4a4a;
+  --primary: #333333;
+  --primary-soft: #e8e8e8;
   --pink-600: #333333;
   --pink-700: #333333;
   --pink-50: #f3f3f3;
