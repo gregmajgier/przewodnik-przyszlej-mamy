@@ -233,7 +233,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
               <i />
             </span>
             <span className="browser-url">
-              <Icon name="lock" size={13} /> {plan.kind === 'ezus' ? 'eZUS' : 'Emp@tia'} · {plan.title ?? 'formularz'}
+              <Icon name="lock" size={13} /> {plan.kind === 'pue' ? 'PUE ZUS' : 'Emp@tia'} · {plan.title ?? 'formularz'}
             </span>
           </div>
           <iframe

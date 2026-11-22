@@ -1,16 +1,16 @@
 {
   "meta": {
-    "nazwa": "Schematy pól makiet portali (eZUS/PUE, Emp@tia) sterowanych przez agenta",
+    "nazwa": "Schematy pól makiet portali (PUE ZUS, Emp@tia) sterowanych przez agenta",
     "uwagi": [
-      "Te same `id` pól są używane przez makiety we frontendzie (/sim/ezus/:portalId, /sim/empatia/:portalId) i przez plan agenta.",
+      "Te same `id` pól są używane przez makiety we frontendzie (/sim/pue/:portalId, /sim/empatia/:portalId) i przez plan agenta.",
       "`extends_form` oznacza, że schemat pól jest taki sam jak mapa formularza PDF o tym kodzie.",
       "To makiety — nie łączą się z prawdziwymi portalami; układ pól jest uproszczony."
     ]
   },
   "portals": {
-    "ezus_800plus": {
-      "title": "eZUS — Wniosek o świadczenie wychowawcze 800+",
-      "kind": "ezus",
+    "pue_800plus": {
+      "title": "PUE ZUS — Wniosek o świadczenie wychowawcze 800+",
+      "kind": "pue",
       "form_code": "800PLUS",
       "fields": [
         {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
@@ -28,9 +28,9 @@
         {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"}
       ]
     },
-    "ezus_dobry_start": {
-      "title": "eZUS — Wniosek „Dobry Start” (300+)",
-      "kind": "ezus",
+    "pue_dobry_start": {
+      "title": "PUE ZUS — Wniosek „Dobry Start” (300+)",
+      "kind": "pue",
       "form_code": "DOBRY-START",
       "fields": [
         {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
@@ -49,9 +49,9 @@
         {"id": "school_name", "label": "Nazwa szkoły", "type": "text", "required": true, "source_key": "answers.school_name"}
       ]
     },
-    "ezus_aktywny_rodzic": {
-      "title": "eZUS — Wniosek „Aktywny rodzic”",
-      "kind": "ezus",
+    "pue_aktywny_rodzic": {
+      "title": "PUE ZUS — Wniosek „Aktywny rodzic”",
+      "kind": "pue",
       "form_code": "AKTYWNY-RODZIC",
       "fields": [
         {"id": "variant", "label": "Wariant świadczenia", "type": "choice", "required": true, "source_key": null, "choices": ["w_pracy", "w_zlobku", "w_domu"]},
@@ -69,11 +69,53 @@
         {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"}
       ]
     },
-    "ezus_zam": {
-      "title": "eZUS — Wniosek o zasiłek macierzyński (ZAM)",
-      "kind": "ezus",
+    "pue_zam": {
+      "title": "PUE ZUS — Wniosek o zasiłek macierzyński (ZAM)",
+      "kind": "pue",
       "form_code": "ZAM",
       "extends_form": "ZAM"
+    },
+    "pue_zas_53": {
+      "title": "PUE ZUS — Wniosek o zasiłek chorobowy (ZAS-53)",
+      "kind": "pue",
+      "form_code": "ZAS-53",
+      "extends_form": "ZAS-53"
+    },
+    "pue_zas_55": {
+      "title": "PUE ZUS — Wniosek o zasiłek w wysokości zasiłku macierzyńskiego i zasiłek wyrównawczy (ZAS-55)",
+      "kind": "pue",
+      "form_code": "ZAS-55",
+      "extends_form": "ZAS-55"
+    },
+    "pue_znp_7": {
+      "title": "PUE ZUS — Wniosek o świadczenie rehabilitacyjne (ZNp-7)",
+      "kind": "pue",
+      "form_code": "ZNp-7",
+      "extends_form": "ZNp-7"
+    },
+    "pue_z_10": {
+      "title": "PUE ZUS — Oświadczenie w związku z roszczeniem o zasiłek chorobowy lub świadczenie rehabilitacyjne (Z-10)",
+      "kind": "pue",
+      "form_code": "Z-10",
+      "extends_form": "Z-10"
+    },
+    "pue_zas_26": {
+      "title": "PUE ZUS — Oświadczenie o przyjęciu na wychowanie dziecka (ZAS-26)",
+      "kind": "pue",
+      "form_code": "ZAS-26",
+      "extends_form": "ZAS-26"
+    },
+    "pue_zas_33": {
+      "title": "PUE ZUS — Oświadczenie o porzuceniu dziecka przez matkę lub o śmierci matki dziecka (ZAS-33)",
+      "kind": "pue",
+      "form_code": "ZAS-33",
+      "extends_form": "ZAS-33"
+    },
+    "pue_zas_39": {
+      "title": "PUE ZUS — Oświadczenie, że matka dziecka pobiera zasiłek macierzyński w okresie 8 tygodni po porodzie (ZAS-39)",
+      "kind": "pue",
+      "form_code": "ZAS-39",
+      "extends_form": "ZAS-39"
     },
     "emp_kdr": {
       "title": "Emp@tia — Wniosek o Kartę Dużej Rodziny",

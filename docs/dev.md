@@ -215,9 +215,9 @@ otwierasz stronę.
 | Wniosek | Kanały |
 |---|---|
 | do pracodawcy (`URLOP-*`, `REZYGNACJA-MAC`) | `employer_email` (PDF generowany + e-mail) lub `pdf_download` |
-| ZUS/gmina z makietą portalu (`ZAM`, `KDR`, `ZA-ZYCIEM`) | `portal_agent`; `ZAM` także `pdf_download` (AcroForm) |
+| ZUS przez PUE (`ZAM`, `ZAS-53`, `ZAS-55`, `ZNp-7`, `Z-10`, `ZAS-26`, `ZAS-33`, `ZAS-39`) | `portal_agent` (domyślny, makieta PUE ZUS); `pdf_download` tam, gdzie jest wzór PDF (`Z-10` bez PDF → tylko PUE) |
+| gmina z makietą portalu (`KDR`, `ZA-ZYCIEM`) | `portal_agent` (Emp@tia) |
 | tylko elektroniczne (`800PLUS`, `AKTYWNY-RODZIC`) | wyłącznie `portal_agent` (PDF → 422) |
-| ZUS z samym PDF (`ZAS-53`, `ZAS-26`, …) | `pdf_download` |
 
 Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy, potem `ZAM`; zlecenie/JDG → od razu `ZAM`
 (`prefill.recommend_flow`, zwracane w `GET /api/applications/forms`).
@@ -246,7 +246,7 @@ walidowane typem/wyborem, więc model nie może ich zmyślić ani podmienić. Po
 nie trafia do planu; brak wymaganej wartości → `blocked`, nigdy zgadywanie. Bez Foundry działa deterministyczny
 handler demo (`app/seed/demo_agent.py`).
 
-Frontend (`features/portal-sim`): makiety `/sim/ezus/:portalId` i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
+Frontend (`features/portal-sim`): makiety `/sim/pue/:portalId` (PUE ZUS: pasek portalu, „zalogowano przez Profil Zaufany”, podpis i **UPO** z numerem po wysyłce) i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
 znacznik „DANE TESTOWE”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
 `<iframe>`, wykonuje plan krok po kroku z widocznym kursorem, zatrzymuje się na brakach (pyta rodzica) i przed wysyłką;
 dopiero „Zatwierdzam i wysyłam” wysyła, a po `submitted` woła `portal-submitted`. Protokół `postMessage`
@@ -351,7 +351,7 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
   „Wkrótce”.
 - **Wysyłka wniosku uruchamia przygotowanie odpowiedzi testowej:** `ApplicationService.submit` (e-mail do pracodawcy) i
-  `portal_submitted` (eZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
+  `portal_submitted` (PUE ZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
   `mail.sim_inbox.schedule_reply`. Scenariusz: Anna składa wniosek w `/wnioski` → `/poczta` → „Symuluj odpowiedzi” →
   status „Zaakceptowany”, powiadomienia, wpis w kalendarzu. Wiadomości (wysłane i odebrane) to jeden model
   `models/mail.MailMessage`; `SimMailProvider` (plan 08) zapisuje folder `sent`, `SimInbox` (plan 09) dokłada `inbox`.

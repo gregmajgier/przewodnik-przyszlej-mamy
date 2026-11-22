@@ -59,7 +59,7 @@ async def patch_answers(
 async def zus_preview(
     p: Principal = Depends(require_parent), store: Store = Depends(get_store)
 ) -> dict:
-    """Symulowany podgląd konta PUE/eZUS."""
+    """Symulowany podgląd konta PUE ZUS."""
     profile = await _profile(store, p.user_id)
     today = date.today()
     insurance = profile.insurance[0] if profile.insurance else None

@@ -9,7 +9,7 @@ import type { FromFrame, ToFrame } from './agentBridge'
 import { coerceFill } from './portalSchema'
 import type { PortalSchema } from './portalSchema'
 import EmpatiaForm from './EmpatiaForm'
-import EzusForm from './EzusForm'
+import PueForm from './PueForm'
 
 vi.mock('../../lib/api', async (orig) => ({
   ...(await orig<typeof import('../../lib/api')>()),
@@ -31,9 +31,9 @@ vi.mock('./agentBridge', () => ({
 }))
 
 const SCHEMA: PortalSchema = {
-  portal_id: 'ezus_800plus',
-  title: 'eZUS — Wniosek o świadczenie wychowawcze 800+',
-  kind: 'ezus',
+  portal_id: 'pue_800plus',
+  title: 'PUE ZUS — Wniosek o świadczenie wychowawcze 800+',
+  kind: 'pue',
   form_code: '800PLUS',
   fields: [
     { id: 'street', label: 'Ulica', type: 'text', required: true, choices: null },
@@ -52,7 +52,7 @@ const acks = () => bridge.posted.filter((m) => m.type === 'ack')
 beforeEach(() => {
   bridge.posted.length = 0
   bridge.toFrame = undefined
-  routeApi({ 'GET /api/applications/portals/ezus_800plus': SCHEMA })
+  routeApi({ 'GET /api/applications/portals/pue_800plus': SCHEMA })
 })
 
 // useParams wymaga trasy — prosty wrapper z <Routes>
@@ -66,10 +66,10 @@ function renderAt(path: string, element: ReactElement, route: string) {
   )
 }
 
-describe('formularz online (eZUS / Emp@tia)', () => {
+describe('formularz online (PUE ZUS / Emp@tia)', () => {
   it('pokazuje nazwę portalu i pola ze schematu', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
-    expect(await screen.findByText('eZUS')).toBeInTheDocument()
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
+    expect(await screen.findByText('PUE ZUS')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /800\+/ })).toBeInTheDocument()
     expect(screen.getByLabelText(/ulica/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/obywatelstwo/i)).toHaveValue('polskie') // wartość domyślna ze schematu
@@ -83,14 +83,14 @@ describe('formularz online (eZUS / Emp@tia)', () => {
   })
 
   it('zgłasza gotowość dopiero po załadowaniu schematu', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     expect(bridge.posted).toEqual([])
     await screen.findByLabelText(/ulica/i)
     expect(bridge.posted).toEqual([{ type: 'ready' }])
   })
 
   it('wypełnia pole poleceniem agenta, podświetla je i odsyła potwierdzenie z położeniem', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     await screen.findByLabelText(/ulica/i)
     fromAgent({ type: 'fill', fieldId: 'street', value: 'Floriańska' })
     expect(screen.getByLabelText(/ulica/i)).toHaveValue('Floriańska')
@@ -100,7 +100,7 @@ describe('formularz online (eZUS / Emp@tia)', () => {
   })
 
   it('odrzuca pole spoza schematu i wartość niezgodną z typem (nie wstrzykuje do formularza)', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     await screen.findByLabelText(/ulica/i)
     fromAgent({ type: 'fill', fieldId: 'nie-ma-takiego', value: 'x' })
     fromAgent({ type: 'fill', fieldId: 'citizenship', value: 'marsjańskie' }) // spoza listy wyboru
@@ -122,7 +122,7 @@ describe('formularz online (eZUS / Emp@tia)', () => {
   })
 
   it('zgłasza zmiany wprowadzone przez rodzica', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     await userEvent.type(await screen.findByLabelText(/ulica/i), 'A')
     expect(bridge.posted).toContainEqual({ type: 'edited', fieldId: 'street', value: 'A' })
     await userEvent.click(screen.getByLabelText(/oświadczam/i))
@@ -130,30 +130,41 @@ describe('formularz online (eZUS / Emp@tia)', () => {
   })
 
   it('nie wysyła wniosku z pustymi wymaganymi polami — zgłasza `invalid`', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
-    await userEvent.click(await screen.findByRole('button', { name: /wyślij wniosek/i }))
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
+    await userEvent.click(await screen.findByRole('button', { name: /podpisz i wyślij/i }))
     expect(bridge.posted).toContainEqual({ type: 'invalid', fieldIds: ['street', 'consent'] })
     expect(bridge.posted.some((m) => m.type === 'submitted')).toBe(false)
     expect(screen.getAllByText('To pole jest wymagane.')).toHaveLength(2)
   })
 
   it('polecenie `submit` od rodzica składa kompletny formularz', async () => {
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     await screen.findByLabelText(/ulica/i)
     fromAgent({ type: 'fill', fieldId: 'street', value: 'Floriańska' })
     fromAgent({ type: 'fill', fieldId: 'consent', value: true })
     fromAgent({ type: 'submit' })
     expect(bridge.posted).toContainEqual({ type: 'submitted' })
     expect(await screen.findByRole('heading', { name: /wniosek złożony/i })).toBeInTheDocument()
+    // PUE kończy się potwierdzeniem UPO z numerem i statusem
+    expect(screen.getByText(/^UPO\/\d{4}\/\d{8}$/)).toBeInTheDocument()
+    expect(screen.getByText(/podpisany profilem zaufanym/i)).toBeInTheDocument()
+    expect(screen.getByText(/przyjęty, oczekuje na rozpatrzenie/i)).toBeInTheDocument()
+  })
+
+  it('PUE pokazuje pasek portalu z etykietą DANE TESTOWE i konto testowe', async () => {
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
+    expect(await screen.findByText('DANE TESTOWE')).toBeInTheDocument()
+    expect(screen.getByText(/platforma usług elektronicznych/i)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Wniosek o świadczenie wychowawcze 800+' })).toBeInTheDocument()
   })
 
   it('bez zalogowania prosi o logowanie, inne błędy pokazuje jako komunikat', async () => {
-    routeApi({ 'GET /api/applications/portals/ezus_800plus': new ApiError(401, 'Sesja wygasła.') })
-    const { unmount } = renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    routeApi({ 'GET /api/applications/portals/pue_800plus': new ApiError(401, 'Sesja wygasła.') })
+    const { unmount } = renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     expect(await screen.findByRole('alert')).toHaveTextContent(/zaloguj się/i)
     unmount()
-    routeApi({ 'GET /api/applications/portals/ezus_800plus': new ApiError(404, 'Nie ma takiej makiety portalu.') })
-    renderAt('/sim/ezus/ezus_800plus', <EzusForm />, '/sim/ezus/:portalId')
+    routeApi({ 'GET /api/applications/portals/pue_800plus': new ApiError(404, 'Nie ma takiej makiety portalu.') })
+    renderAt('/sim/pue/pue_800plus', <PueForm />, '/sim/pue/:portalId')
     expect(await screen.findByRole('alert')).toHaveTextContent('Nie ma takiej makiety portalu.')
   })
 })

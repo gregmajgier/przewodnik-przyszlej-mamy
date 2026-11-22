@@ -34,10 +34,17 @@ EMPLOYER_KINDS = ("URLOP-MAC-ROD", "URLOP-ROD", "URLOP-OJC", "URLOP-UZUP", "URLO
 
 # kody wniosków składanych przez makietę portalu (agent) -> identyfikator portalu
 CODE_TO_PORTAL = {
-    "800PLUS": "ezus_800plus",
-    "DOBRY-START": "ezus_dobry_start",
-    "AKTYWNY-RODZIC": "ezus_aktywny_rodzic",
-    "ZAM": "ezus_zam",
+    "800PLUS": "pue_800plus",
+    "DOBRY-START": "pue_dobry_start",
+    "AKTYWNY-RODZIC": "pue_aktywny_rodzic",
+    "ZAM": "pue_zam",
+    "ZAS-53": "pue_zas_53",
+    "ZAS-55": "pue_zas_55",
+    "ZNp-7": "pue_znp_7",
+    "Z-10": "pue_z_10",
+    "ZAS-26": "pue_zas_26",
+    "ZAS-33": "pue_zas_33",
+    "ZAS-39": "pue_zas_39",
     "KDR": "emp_kdr",
     "ZA-ZYCIEM": "emp_za_zyciem",
 }

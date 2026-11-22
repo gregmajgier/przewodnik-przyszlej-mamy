@@ -18,6 +18,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from ..engine.derived import wymiar_macierzynskiego_tyg
+from ..engine.kontrakt import load_kontrakt
 from ..models.benefit import Benefit, Condition
 from ..models.family import Child, FamilyView
 from ..models.profile import Address, ParentProfile
@@ -101,6 +103,51 @@ def _pregnant(ctx: FamilyContext) -> bool:
     return bool(_expected(ctx)) or _has_ezla_b(ctx)
 
 
+def _sickness_insured(ctx: FamilyContext) -> bool | None:
+    """Czy któryś rodzic podlega ubezpieczeniu chorobowemu (prawo do zasiłków), według tytułów z ZUS.
+
+    Umowa o pracę albo dobrowolne chorobowe przy zleceniu/działalności -> True. Zlecenie/działalność bez
+    informacji o dobrowolnym chorobowym -> None (zapytamy). Brak jakiegokolwiek tytułu ubezpieczenia -> False.
+    """
+    unknown = False
+    for p in ctx.parents:
+        for ins in p.insurance:
+            if ins.kind == "employment" or ins.voluntary_sickness is True:
+                return True
+            if ins.voluntary_sickness is None:
+                unknown = True
+    return None if unknown else False
+
+
+def _no_maternity_allowance(ctx: FamilyContext) -> bool | None:
+    """Czy rodzicom NIE przysługuje zasiłek macierzyński (odwrotność ubezpieczenia chorobowego)."""
+    insured = _sickness_insured(ctx)
+    return None if insured is None else not insured
+
+
+def _all_parents_working(ctx: FamilyContext) -> bool | None:
+    """Czy oboje rodzice pracują (mają tytuł ubezpieczenia). Gdy w aplikacji jest tylko jeden rodzic, nie wiemy,
+    czy drugi pracuje albo czy rodzic wychowuje dziecko samodzielnie -> None (zapytamy)."""
+    if len(ctx.parents) < 2:
+        return None if all(p.insurance for p in ctx.parents) else False
+    return all(p.insurance for p in ctx.parents)
+
+
+def _born_together(child: Child, ctx: FamilyContext) -> int:
+    return max(1, sum(1 for c in _born(ctx) if c.birth_date == child.birth_date))
+
+
+def _in_maternity_leave(child: Child, ctx: FamilyContext) -> bool:
+    """Czy od porodu nie minął jeszcze wymiar urlopu macierzyńskiego (Kodeks pracy art. 180, parametry silnika)."""
+    weeks = wymiar_macierzynskiego_tyg(_born_together(child, ctx), load_kontrakt().params)
+    return (ctx.today - child.birth_date).days < weeks * 7  # type: ignore[operator]
+
+
+def _parental_window_open(child: Child, age: int, today: date) -> bool:
+    """Do końca roku kalendarzowego, w którym dziecko kończy `age` lat (urlop rodzicielski: 6)."""
+    return today <= date(child.birth_date.year + age, 12, 31)  # type: ignore[union-attr]
+
+
 def _answer_key(benefit: Benefit, condition_id: str) -> str:
     return f"benefit:{benefit.id}:{condition_id}"
 
@@ -113,6 +160,12 @@ def _fact(ctx: FamilyContext, key: str) -> bool | None:
         return _has_ezla_b(ctx)
     if key == "family.child_serious_illness":
         return any(c.serious_illness for c in ctx.children if c.situation != "loss")
+    if key == "family.no_maternity_allowance":
+        return _no_maternity_allowance(ctx)
+    if key == "family.sickness_insured":
+        return _sickness_insured(ctx)
+    if key == "family.all_parents_working":
+        return _all_parents_working(ctx)
     value = ctx.answers.get(key)
     return value if isinstance(value, bool) else None
 
@@ -273,6 +326,40 @@ def match_benefit(ctx: FamilyContext, benefit: Benefit) -> MatchResult:
                 f"To świadczenie jest dla osób w ciąży lub z dzieckiem do {age_phrase(hi)}, a w rodzinie nie ma takiej sytuacji."
             )
 
+    # --- ciąża albo dziecko do końca roku, w którym kończy N lat (urlop rodzicielski) ---
+    if cr.pregnant_or_child_until_year_end_of_age is not None:
+        age = cr.pregnant_or_child_until_year_end_of_age
+        open_window = [c for c in _born(ctx) if _parental_window_open(c, age, ctx.today)]
+        if _pregnant(ctx):
+            reasons.append("w rodzinie jest dziecko w drodze (ciąża)")
+        if open_window:
+            reasons.extend(
+                f"{c.name} ma {age_phrase(age_in_months(c.birth_date, ctx.today))}, "  # type: ignore[arg-type]
+                f"a urlop można wykorzystać do końca {c.birth_date.year + age} roku"  # type: ignore[union-attr]
+                for c in open_window
+            )
+        if not _pregnant(ctx) and not open_window:
+            unmet.append(
+                f"Ten urlop można wykorzystać do końca roku, w którym dziecko kończy {age} lat, "
+                "a w rodzinie nie ma młodszego dziecka ani dziecka w drodze."
+            )
+
+    # --- ciąża albo trwa urlop macierzyński (wymiar zależy od liczby dzieci z porodu) ---
+    if cr.pregnant_or_in_maternity_leave:
+        on_leave = [c for c in _born(ctx) if _in_maternity_leave(c, ctx)]
+        if _pregnant(ctx):
+            reasons.append("w rodzinie jest dziecko w drodze (ciąża)")
+        elif on_leave:
+            reasons.extend(
+                f"{c.name} ma {age_phrase(age_in_months(c.birth_date, ctx.today))}, więc urlop macierzyński jeszcze trwa"  # type: ignore[arg-type]
+                for c in on_leave
+            )
+        else:
+            unmet.append(
+                "Urlop macierzyński trwa 20 tygodni od porodu (dłużej przy bliźniętach i kolejnych dzieciach z jednego "
+                "porodu), a w rodzinie nie ma dziecka w drodze ani dziecka w tym okresie."
+            )
+
     # --- niepełnosprawność / rodzina zastępcza ---
     live = [c for c in ctx.children if c.situation != "loss"]
     if cr.requires_disability:
@@ -356,6 +443,14 @@ def _concerned_children(ctx: FamilyContext, benefit: Benefit) -> list[Child]:
         pool = [c for c in born if age_in_months(c.birth_date, ctx.today) <= hi]  # type: ignore[arg-type]
         if _pregnant(ctx):
             pool += _expected(ctx)
+    elif cr.pregnant_or_child_until_year_end_of_age is not None:
+        pool = [c for c in born if _parental_window_open(c, cr.pregnant_or_child_until_year_end_of_age, ctx.today)]
+        if _pregnant(ctx):
+            pool += _expected(ctx)
+    elif cr.pregnant_or_in_maternity_leave:
+        pool = [c for c in born if _in_maternity_leave(c, ctx)]
+        if _pregnant(ctx):
+            pool += _expected(ctx)
     else:
         pool = born
     if cr.child_age_min_months is not None or cr.child_age_max_months is not None:
@@ -390,13 +485,14 @@ def _check_condition(
         value = _fact(ctx, cond.profile_key)
     if value is None:  # `ask` albo `auto`, którego nie da się sprawdzić po profilu
         stored = ctx.answers.get(_answer_key(benefit, cond.id))
-        value = stored if isinstance(stored, bool) else None
-        if value is not None and cond.negate:
-            value = not value
+        if isinstance(stored, bool):
+            value = (not stored) if cond.negated_question else stored
+        if isinstance(stored, bool):
+            value = (not stored) if (cond.negated_question or cond.negate) else stored
     if value is True:
         reasons.append(cond.text[:1].lower() + cond.text[1:])
     elif value is False:
-        unmet.append(f"Warunek niespełniony: {cond.text}.")
+        unmet.append(cond.unmet_text or f"Warunek niespełniony: {cond.text}.")
     else:
         questions.append(Question(condition_id=cond.id, text=cond.question or cond.text))
 

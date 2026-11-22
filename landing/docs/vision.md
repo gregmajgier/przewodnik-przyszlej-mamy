@@ -63,7 +63,7 @@ Brand tokens (from `brand/colors_and_fonts.md`):
   the decorative font (Sniglet) is reserved for the **mRodzina
   wordmark** only (the "Rodzina" part), since it is hard to read at length.
 - Copy, centered, top to bottom:
-  1. "Mamo! Tato! Masz wiele na głowie..."
+  1. "Mamo! Tato! Macie dużo na głowie..."
   2. "Pozwól, że" followed by the **mRodzina wordmark**, then "pomoże."
 - **mRodzina wordmark:** our logo (the ribbon, which acts as the "m")
   followed directly by the text "Rodzina", so together they read as the
