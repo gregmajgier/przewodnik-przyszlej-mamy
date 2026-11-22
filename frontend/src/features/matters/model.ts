@@ -159,7 +159,7 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
         id: 'fam-800',
         icon: 'coins',
         title: '800+ na każde dziecko',
-        text: 'Wniosek o nowe dziecko złóż w ciągu 3 miesięcy od urodzenia — świadczenie przyjdzie z wyrównaniem od dnia narodzin.',
+        text: 'Wniosek o nowe dziecko złóż w ciągu 3 miesięcy od urodzenia, a świadczenie przyjdzie z wyrównaniem od dnia narodzin.',
         source: { label: 'zus.pl', url: 'https://www.zus.pl/swiadczenia/swiadczenia-wychowawcze' },
       },
       {
@@ -177,8 +177,8 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
         title: 'Karta Dużej Rodziny',
         text:
           kids.length >= 3
-            ? 'Po narodzinach trzeciego dziecka przysługuje Wam Karta Dużej Rodziny — zniżki na kolej, paliwo, kulturę i zakupy. Karta jest bezterminowa dla rodziców.'
-            : 'Przy trzecim dziecku przysługuje Wam Karta Dużej Rodziny — zniżki na kolej, paliwo i kulturę.',
+            ? 'Po narodzinach trzeciego dziecka przysługuje Wam Karta Dużej Rodziny: zniżki na kolej, paliwo, kulturę i zakupy. Karta jest bezterminowa dla rodziców.'
+            : 'Przy trzecim dziecku przysługuje Wam Karta Dużej Rodziny: zniżki na kolej, paliwo i kulturę.',
         source: { label: 'gov.pl', url: 'https://www.gov.pl/web/rodzina/karta-duzej-rodziny' },
       })
     }
@@ -191,7 +191,7 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
         id: 'par-one',
         icon: 'doc',
         title: 'Jeden wniosek o oba urlopy',
-        text: 'Wniosek o urlop macierzyński i rodzicielski złożony do 21 dni po porodzie daje 81,5% podstawy przez cały okres — zamiast 100%, a potem 70%.',
+        text: 'Wniosek o urlop macierzyński i rodzicielski złożony do 21 dni po porodzie daje 81,5% podstawy przez cały okres, zamiast 100%, a potem 70%.',
         source: { label: 'zus.pl', url: 'https://www.zus.pl/swiadczenia/zasilki/zasilek-macierzynski' },
       },
       {
@@ -217,7 +217,7 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
         id: 'kid-usc',
         icon: 'doc',
         title: 'Zgłoszenie urodzenia',
-        text: 'Masz na to 21 dni od porodu. Zrobisz to w urzędzie stanu cywilnego albo online na gov.pl — przy okazji dziecko dostanie PESEL.',
+        text: 'Masz na to 21 dni od porodu. Zrobisz to w urzędzie stanu cywilnego albo online na gov.pl. Przy okazji dziecko dostanie PESEL.',
         source: { label: 'gov.pl', url: 'https://www.gov.pl/web/gov/zglos-urodzenie-dziecka' },
       },
       {
@@ -234,7 +234,7 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
       id: 'kid-zlobek',
       icon: 'stroller',
       title: 'Żłobek albo opiekunka',
-      text: 'Od 12. miesiąca możecie dostać „Aktywnego rodzica” — dopłatę do żłobka albo do opieki, gdy wracacie do pracy.',
+      text: 'Od 12. miesiąca możecie dostać „Aktywnego rodzica”: dopłatę do żłobka albo do opieki, gdy wracacie do pracy.',
     })
     out.push({
       id: 'kid-szczepienia',
@@ -267,7 +267,7 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
     out.push({
       id: 'kid-dobry-start',
       icon: 'backpack',
-      title: 'Dobry Start — 300 zł na wyprawkę',
+      title: 'Dobry Start: 300 zł na wyprawkę',
       text: 'Wniosek na dany rok szkolny przyjmuje ZUS od 1 lipca do 30 listopada, przez internet.',
       urgent: left >= 0 && left <= 45 ? `Zostało ${left} dni` : undefined,
       source: { label: 'zus.pl', url: 'https://www.zus.pl/swiadczenia/dobry-start' },
@@ -277,14 +277,14 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
         id: 'kid-liceum',
         icon: 'school',
         title: 'Rekrutacja do szkoły średniej',
-        text: 'W 8. klasie wybieracie szkołę ponadpodstawową — nabór trwa zwykle od maja do lipca.',
+        text: 'W 8. klasie wybieracie szkołę ponadpodstawową. Nabór trwa zwykle od maja do lipca.',
       })
     } else {
       out.push({
         id: 'kid-swietlica',
         icon: 'clock',
         title: 'Świetlica i zajęcia',
-        text: 'Zapisy do świetlicy i na zajęcia dodatkowe zwykle ruszają we wrześniu — zapytaj w sekretariacie szkoły.',
+        text: 'Zapisy do świetlicy i na zajęcia dodatkowe zwykle ruszają we wrześniu. Zapytaj w sekretariacie szkoły.',
       })
     }
   }
@@ -294,14 +294,14 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
         id: 'kid-stypendia-wyniki',
         icon: 'target',
         title: 'Stypendia za wyniki',
-        text: 'Oprócz stypendium socjalnego są stypendia za wyniki w nauce i osiągnięcia sportowe — przyznaje je szkoła, gmina albo województwo. Zapytaj wychowawcę, które działają w waszej szkole.',
+        text: 'Oprócz stypendium socjalnego są stypendia za wyniki w nauce i osiągnięcia sportowe. Przyznaje je szkoła, gmina albo województwo. Zapytaj wychowawcę, które działają w waszej szkole.',
       })
     }
     out.push({
       id: 'kid-mlegitymacja',
       icon: 'card',
       title: 'Legitymacja w telefonie',
-      text: 'Szkoła może wydać uczniowi mLegitymację w aplikacji mObywatel — przydaje się przy ulgach na przejazdy i bilety. Zapytaj w sekretariacie.',
+      text: 'Szkoła może wydać uczniowi mLegitymację w aplikacji mObywatel. Przydaje się przy ulgach na przejazdy i bilety. Zapytaj w sekretariacie.',
       source: { label: 'gov.pl', url: 'https://www.gov.pl/web/mobywatel/mlegitymacja-szkolna' },
     })
   }
@@ -310,7 +310,7 @@ export function guidesFor(person: Person, people: Person[], today = new Date()):
       id: 'kid-prm',
       icon: 'school',
       title: 'Stypendium Prezesa Rady Ministrów',
-      text: 'Uczeń szkoły średniej z najlepszymi wynikami w szkole może je dostać na cały rok szkolny. Kandydata zgłasza rada pedagogiczna — warto porozmawiać z wychowawcą.',
+      text: 'Uczeń szkoły średniej z najlepszymi wynikami w szkole może je dostać na cały rok szkolny. Kandydata zgłasza rada pedagogiczna, warto porozmawiać z wychowawcą.',
     })
     if (m < 18 * 12) {
       out.push({

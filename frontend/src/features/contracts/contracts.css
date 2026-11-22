@@ -13,7 +13,7 @@
   background: var(--primary-soft);
 }
 .field-missing-note {
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--fg);
 }
@@ -38,7 +38,7 @@
   margin: 0 0 0.3rem;
 }
 .risk-severity {
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;

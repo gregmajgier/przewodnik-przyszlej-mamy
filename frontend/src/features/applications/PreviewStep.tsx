@@ -151,7 +151,7 @@ export default function PreviewStep({ app, form, busy, error, onEdit, onChannel,
           <h2 id="preview-h">Sprawdź wniosek</h2>
           <p>
             Wypełniliśmy automatycznie <strong>{shown.length} {shown.length === 1 ? 'pole' : shown.length % 10 >= 2 && shown.length % 10 <= 4 && (shown.length % 100 < 12 || shown.length % 100 > 14) ? 'pola' : 'pól'}</strong> na
-            podstawie danych z ZUS, mObywatela i Waszych odpowiedzi. Popraw, co trzeba — nic nie poszło jeszcze do urzędu.
+            podstawie danych z ZUS, mObywatela i Waszych odpowiedzi. Popraw, co trzeba. Nic nie poszło jeszcze do urzędu.
           </p>
         </div>
       </div>

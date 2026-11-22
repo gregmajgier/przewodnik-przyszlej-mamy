@@ -275,7 +275,7 @@ export default function OnboardingPage() {
             <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
               {known && known.length > 0
                 ? 'Znaleźliśmy je w rejestrach. Zaznacz, kto należy do Waszej rodziny.'
-                : 'Dodaj dzieci — także to, które jest w drodze.'}
+                : 'Dodaj dzieci, także to, które jest w drodze.'}
             </p>
             {!known && <div className="skeleton" style={{ height: '5rem' }} role="status" aria-label="Szukam dzieci w rejestrach" />}
             <div className="choices rise" style={{ ['--i' as string]: 2 }}>

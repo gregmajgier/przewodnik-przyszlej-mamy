@@ -36,7 +36,7 @@
     var(--shadow-sm),
     inset 0 0 0 1px var(--line);
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
 }
 .benefits-summary-num {
@@ -124,7 +124,7 @@
   letter-spacing: -0.02em;
 }
 .featured-value small {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-2);
 }

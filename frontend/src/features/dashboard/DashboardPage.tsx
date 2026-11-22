@@ -100,7 +100,7 @@ export default function DashboardPage() {
                 Znaleźliśmy dla Was <strong>{plural(forYou.length || summary.data.totals.fits + summary.data.totals.maybe, 'świadczenie', 'świadczenia', 'świadczeń')}</strong>
                 {deadline && (
                   <>
-                    . Najbliższy termin: <strong>{deadline.benefit_name}</strong> — {formatDate(deadline.date)}
+                    . Najbliższy termin: <strong>{deadline.benefit_name}</strong>, {formatDate(deadline.date)}
                   </>
                 )}
                 .
@@ -148,7 +148,7 @@ export default function DashboardPage() {
                   .slice(0, 2)
                   .map((m) => m.benefit.name.replace(/\s*\(.*\)$/, ''))
                   .join(' · ') || guides[0]?.title || ''}
-                urgent={urgent ? `${urgent.title.split(' — ')[0]}: ${urgent.urgent}` : undefined}
+                urgent={urgent ? `${urgent.title.split(/ — |: /)[0]}: ${urgent.urgent}` : undefined}
               />
             )
           })}
@@ -193,7 +193,7 @@ export default function DashboardPage() {
             {gmail && (
               <span className="bento-sync">
                 <span className={`sync-dot ${apps.syncing ? 'is-busy' : ''}`} aria-hidden="true" />
-                {apps.syncing ? 'Sprawdzam Gmail…' : 'Gmail połączony — statusy aktualizują się same'}
+                {apps.syncing ? 'Sprawdzam Gmail…' : 'Gmail połączony, statusy aktualizują się same'}
               </span>
             )}
           </Link>

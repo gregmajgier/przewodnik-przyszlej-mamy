@@ -40,7 +40,7 @@ function facts(d: EmploymentDocument): [string, string][] {
   const mandate = d.kind === 'mandate'
   const period = d.indefinite
     ? `od ${formatDate(d.start_date)}, na czas nieokreślony`
-    : `od ${formatDate(d.start_date)} do ${d.end_date ? formatDate(d.end_date) : '—'}`
+    : `od ${formatDate(d.start_date)} do ${d.end_date ? formatDate(d.end_date) : 'brak daty'}`
   const rows: [string, string | null][] = [
     ['Rodzaj', KIND_LABEL[d.kind]],
     [mandate ? 'Zleceniodawca' : 'Pracodawca', d.employer_name],
@@ -48,7 +48,7 @@ function facts(d: EmploymentDocument): [string, string][] {
     ['Wymiar', mandate ? null : fteLabel(d.fte)],
     ['Wynagrodzenie', d.gross_monthly !== null ? `${money.format(d.gross_monthly)} brutto / mies.` : null],
     ['Okres', period],
-    ['Chorobowe', mandate ? (d.voluntary_sickness ? 'dobrowolne — tak' : 'brak') : null],
+    ['Chorobowe', mandate ? (d.voluntary_sickness ? 'dobrowolne, opłacane' : 'brak') : null],
   ]
   return rows.filter((r): r is [string, string] => r[1] !== null)
 }
@@ -127,7 +127,7 @@ export default function ContractsAttachStep({
             <Icon name="upload" size={28} />
           </span>
           <p className="attach-drop-text">
-            Umowa o pracę, zlecenie albo B2B — w PDF lub jako zdjęcie. AI odczyta z nich najważniejsze dane.
+            Umowa o pracę, zlecenie albo B2B, w PDF lub jako zdjęcie. AI odczyta z nich najważniejsze dane.
           </p>
           <Button leading="upload" onClick={() => void attach()}>
             Załącz umowy
@@ -225,7 +225,7 @@ export default function ContractsAttachStep({
           <div className="flow-note" style={{ marginTop: 0 }}>
             <Icon name="lock" size={18} />
             <span>
-              Plik widzisz tylko Ty. Drugi rodzic i asystent AI widzą pracodawcę, stanowisko i okres umowy — bez
+              Plik widzisz tylko Ty. Drugi rodzic i asystent AI widzą pracodawcę, stanowisko i okres umowy, bez
               wynagrodzenia. Dane poprawisz w zakładce Umowy.
             </span>
           </div>

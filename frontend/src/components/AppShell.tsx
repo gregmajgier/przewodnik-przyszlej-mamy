@@ -114,7 +114,7 @@ export function AppShell() {
     <div className="shell">
       <header className="shell-header">
         <div className="shell-header-inner">
-          <Link to="/" className="shell-brand" aria-label="mRodzina — panel główny">
+          <Link to="/" className="shell-brand" aria-label="mRodzina: panel główny">
             <Wordmark />
           </Link>
           <div className="shell-actions">

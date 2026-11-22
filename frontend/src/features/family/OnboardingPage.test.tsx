@@ -212,7 +212,7 @@ describe('OnboardingPage', () => {
     const uz = screen.getByRole('article', { name: 'Umowa zlecenia' })
     expect(uz).toHaveTextContent('Zleceniodawca')
     expect(uz).toHaveTextContent('Fundacja Rodzinny Kraków')
-    expect(uz).toHaveTextContent('dobrowolne — tak')
+    expect(uz).toHaveTextContent('dobrowolne, opłacane')
     expect(screen.getByText(/bez\s+wynagrodzenia/i)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))

@@ -33,7 +33,7 @@ interface CatalogEntry {
 export function questionTexts(all: CatalogEntry[]): QuestionTexts {
   const texts: QuestionTexts = {}
   for (const { benefit } of all) {
-    texts[`${BENEFIT_PREFIX}${benefit.id}:income`] = `Dochód mieści się w progu — ${benefit.name}`
+    texts[`${BENEFIT_PREFIX}${benefit.id}:income`] = `Dochód mieści się w progu: ${benefit.name}`
     for (const c of benefit.extra_conditions ?? []) texts[`${BENEFIT_PREFIX}${benefit.id}:${c.id}`] = c.question || c.text
   }
   return texts

@@ -160,7 +160,7 @@ export default function ApplicationsPage() {
                 ) : needsYou ? (
                   <div className="app-card-cta">
                     <Icon name="sparkle" size={17} />
-                    {a.channel === 'portal_agent' ? 'Agent wypełni formularz online — kontynuuj' : 'Dokończ i podpisz — reszta jest wypełniona'}
+                    {a.channel === 'portal_agent' ? 'Agent wypełni formularz online. Kontynuuj' : 'Dokończ i podpisz, reszta jest wypełniona'}
                     <Icon name="arrowRight" size={16} />
                   </div>
                 ) : null}

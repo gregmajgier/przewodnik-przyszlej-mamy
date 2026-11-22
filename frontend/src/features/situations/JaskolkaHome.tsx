@@ -87,7 +87,7 @@ export default function JaskolkaHome() {
       <header>
         <h1>Dla Was</h1>
         <p className="sit-lead">
-          Jesteśmy z Wami. Poniżej zebraliśmy to, co może się przydać. Nic nie jest pilne — możecie wracać tu w dowolnym
+          Jesteśmy z Wami. Poniżej zebraliśmy to, co może się przydać. Nic nie jest pilne. Możecie wracać tu w dowolnym
           momencie.
         </p>
         {kind && (
@@ -151,11 +151,11 @@ export default function JaskolkaHome() {
       {otherDeadlines.length > 0 && (
         <section aria-labelledby="sit-other-h" className="card stack sit-muted">
           <h2 id="sit-other-h">Terminy pozostałych dzieci</h2>
-          <p className="muted">Pokazujemy je spokojnie, bez przypominania — wrócicie do nich, kiedy będziecie gotowi.</p>
+          <p className="muted">Pokazujemy je spokojnie, bez przypominania. Wrócicie do nich, kiedy będziecie gotowi.</p>
           <ul className="sit-items">
             {otherDeadlines.map((e) => (
               <li key={e.id}>
-                {e.title} <span className="muted">— do {formatDate(e.due_date as string)}</span>
+                {e.title} <span className="muted">(do {formatDate(e.due_date as string)}</span>
               </li>
             ))}
           </ul>

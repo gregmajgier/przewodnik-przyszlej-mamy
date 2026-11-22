@@ -53,7 +53,7 @@ export default function BenefitsPage() {
     <div className="page benefits">
       <PageHeader title="Baza świadczeń" eyebrow="Pieniądze, urlopy i ulgi">
         <p className="muted benefits-lead">
-          Wszystko, co przysługuje rodzinom w Polsce i w Twojej gminie — z dopasowaniem do Waszej sytuacji.
+          Wszystko, co przysługuje rodzinom w Polsce i w Twojej gminie, z dopasowaniem do Waszej sytuacji.
         </p>
       </PageHeader>
 
@@ -75,7 +75,7 @@ export default function BenefitsPage() {
             {annual > 0 && (
               <div className="benefits-summary-wide">
                 <span className="benefits-summary-num">{formatPln(annual)}</span>
-                <span>rocznie, szacunkowo — z tego, co już pasuje</span>
+                <span>rocznie, szacunkowo, z tego, co już pasuje</span>
               </div>
             )}
             <div>

@@ -49,7 +49,7 @@ describe('childTimeline', () => {
   it('7-latka: zapisy i 1. klasa za nami; przed nami Dobry Start i kolejne etapy', () => {
     const t = childTimeline(kid({ birth_date: '2019-08-25' }), TODAY)
     expect(titles(t.past)).toEqual(['Zapisy do 1. klasy', '1. klasa'])
-    expect(t.next[0].title).toBe('Dobry Start — nabór wniosków')
+    expect(t.next[0].title).toBe('Dobry Start: nabór wniosków')
     expect(t.next[0].date).toEqual(new Date(2027, 6, 1))
     expect(titles(t.next)).toContain('Egzamin ósmoklasisty')
     expect(t.next).toHaveLength(4)
@@ -63,7 +63,7 @@ describe('childTimeline', () => {
     const t = childTimeline(kid({ birth_date: '2023-07-25' }), TODAY)
     expect(titles(t.past)).toEqual(['Rekrutacja do przedszkola', 'Przedszkole'])
     expect(titles(t.next).slice(0, 2)).toEqual(['Zapisy do zerówki', 'Zerówka'])
-    expect(titles(t.next)).not.toContain('Dobry Start — nabór wniosków')
+    expect(titles(t.next)).not.toContain('Dobry Start: nabór wniosków')
   })
 
   it('dziecko w drodze: najpierw narodziny, potem formalności liczone od terminu', () => {
