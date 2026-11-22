@@ -147,47 +147,50 @@ h2 {
   font-weight: 600;
 }
 
-/* Help carousel (auto-scrolling) */
-.help-section { max-width: none; padding-inline: 0; }
-.carousel { overflow: hidden; }
-.carousel-track {
+/* "Pomożemy ci z:" static topic tiles: line icon + short title */
+.help-section { max-width: 1080px; }
+.topics {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(0.6rem, 1.6vw, 1rem);
+}
+.topic {
   display: flex;
-  gap: 1.25rem;
-  width: max-content;
-  padding-inline: 0.625rem;
-  animation: carousel 35s linear infinite;
-}
-.carousel:hover .carousel-track,
-.carousel:focus-within .carousel-track { animation-play-state: paused; }
-@keyframes carousel {
-  to { transform: translateX(-50%); }
-}
-.help-card {
-  background: #fff;
-  border-radius: 1.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 6px 24px rgb(25 25 25 / 0.08);
-}
-.help-card { width: 16rem; flex: none; }
-.help-card h3, .timeline-item h3 { margin: 0.75rem 0 0.35rem; font-size: 1.25rem; }
-.help-card p, .timeline-item p { margin: 0; opacity: 0.75; }
-.help-badge {
-  display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-width: 3.5rem;
-  height: 3.5rem;
-  padding-inline: 0.75rem;
-  border-radius: 1rem;
-  background: var(--accent);
-  color: var(--bg);
+  justify-content: flex-start;
+  gap: 0.8rem;
+  padding: 1.4rem 0.9rem 1.25rem;
+  border-radius: 1.4rem;
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(25 25 25 / 0.06), 0 0 0 1px rgb(25 25 25 / 0.04);
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1.02rem;
+  line-height: 1.3;
+  text-align: center;
+  text-wrap: balance;
 }
-@media (prefers-reduced-motion: reduce) {
-  .carousel { overflow-x: auto; }
-  .carousel-track { animation: none; }
+.topic-icon {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 1.1rem;
+  background: #fde4e9;
+  color: var(--accent);
 }
+@media (max-width: 900px) {
+  .topics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .topics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .topic { font-size: 0.95rem; padding: 1.1rem 0.6rem 1rem; }
+}
+.timeline-item h3 { margin: 0.75rem 0 0.35rem; font-size: 1.25rem; }
+.timeline-item p { margin: 0; opacity: 0.75; }
 
 /* Screenshot frames */
 .browser, .phone { margin: 0; }

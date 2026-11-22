@@ -13,6 +13,7 @@ import {
   zl,
 } from './calcEngine'
 import type { Answers, Benefit, Evaluation, Summary, Work } from './calcEngine'
+import { LineIcon } from './HeroIcons'
 import '../calculator.css'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -118,10 +119,18 @@ function BenefitCard({ b }: { b: Benefit }) {
 }
 
 function Results({ s, pregnant, appUrl }: { s: Summary; pregnant: boolean; appUrl: string }) {
+  // Suma zasiłków za urlopy (kwoty łączne z silnika); świadczenia miesięczne bez końca okresu, jak 800+, pomijamy.
+  const leaveTotal = s.granted.reduce((sum, b) => sum + (b.wyliczenie?.kwota_laczna ?? 0), 0)
   return (
     <div className="calc-results">
       <h3>{s.granted.length ? 'Tyle mniej więcej ci się należy' : 'Na razie nie widzimy zasiłków z ZUS'}</h3>
       {pregnant && <p className="calc-lead">Liczymy tak, jakby dziecko urodziło się w terminie.</p>}
+      {leaveTotal > 0 && (
+        <p className="calc-sum">
+          <span>Zasiłki za urlopy łącznie</span>
+          <strong>ok. {zl(leaveTotal)}</strong>
+        </p>
+      )}
       {s.risks.length > 0 && (
         <ul className="calc-risks">
           {s.risks.map((r) => (
@@ -288,7 +297,12 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             </>
           )}
           <details className="calc-more">
-            <summary>Dochód rodziny (dla becikowego i zasiłku rodzinnego)</summary>
+            <summary>
+              <span>
+                Dochód rodziny <span className="calc-optional">opcjonalnie</span>
+                <small>Dla becikowego i zasiłku rodzinnego</small>
+              </span>
+            </summary>
             <Field label="Roczny dochód rodziny netto za zeszły rok (zł)">
               {(id) => (
                 <input
@@ -323,8 +337,31 @@ export function Calculator({ appUrl }: { appUrl: string }) {
         </form>
         <div className="calc-output" ref={resultRef} tabIndex={-1} aria-live="polite">
           {state.kind === 'idle' && (
-            <div className="calc-empty">
-              <p>Tu pojawi się wynik: zasiłki, kwoty i terminy wniosków.</p>
+            <div className="calc-preview">
+              <h3>Po kliknięciu „Policz” zobaczysz</h3>
+              <ul>
+                <li>
+                  <span className="calc-preview-icon"><LineIcon name="coins" size={28} /></span>
+                  <span>
+                    <strong>Kwoty zasiłków</strong>
+                    Macierzyński, rodzicielski, ojcowski i 800+, miesięcznie i łącznie.
+                  </span>
+                </li>
+                <li>
+                  <span className="calc-preview-icon"><LineIcon name="calendar" size={28} /></span>
+                  <span>
+                    <strong>Daty urlopów</strong>
+                    Od kiedy do kiedy i ile procent podstawy dostaniesz.
+                  </span>
+                </li>
+                <li>
+                  <span className="calc-preview-icon"><LineIcon name="clock" size={28} /></span>
+                  <span>
+                    <strong>Terminy wniosków</strong>
+                    Do kiedy złożyć, żeby nic nie przepadło.
+                  </span>
+                </li>
+              </ul>
             </div>
           )}
           {state.kind === 'loading' && (

@@ -61,7 +61,7 @@ async function save(page, name, clip) {
   await page.waitForTimeout(1200)
   const png = join(TMP, `${name}.png`)
   await page.screenshot({ path: png, clip })
-  execFileSync('cwebp', ['-quiet', '-q', '82', png, '-o', join(OUT, `${name}.webp`)])
+  execFileSync('cwebp', ['-quiet', '-q', '88', '-m', '6', png, '-o', join(OUT, `${name}.webp`)])
   console.log('✓', name)
 }
 
@@ -69,12 +69,12 @@ async function go(page, path) {
   await page.goto(APP + path, { waitUntil: 'networkidle' })
 }
 
-const desk = await newPage({ width: 1440, height: 900 })
+const desk = await newPage({ width: 1440, height: 900 }, 2) // 2× so text stays sharp on retina screens
 
 // 1. Onboarding analysis: "Sprawdzam, co Wam przysługuje"
 await go(desk, '/analiza')
 await desk.waitForTimeout(2500)
-await save(desk, 'step-1-analiza', { ...STEP, y: 100 })
+await save(desk, 'step-1-analiza', { ...STEP, y: 60 })
 
 // 2. Matched benefit with "Dlaczego Wam pasuje"
 await go(desk, '/swiadczenia')
@@ -89,7 +89,8 @@ if (draft) {
 
 // 4. Calendar
 await go(desk, '/kalendarz')
-await save(desk, 'step-4-kalendarz', { ...STEP, y: 80 })
+// month grid + agenda: needs the whole content width
+await save(desk, 'step-4-kalendarz', { x: 190, y: 140, width: 1060, height: 700 })
 
 
 // Extras (cropped to the content column)
@@ -108,8 +109,13 @@ if (!process.env.SKIP_CHAT) {
   // Wait for the answer to finish streaming (the sources list appears at the end).
   await desk.getByText('Źródła', { exact: false }).first().waitFor({ timeout: 90_000 })
   // Frame the question and the start of the answer.
-  await desk.locator('.msg-user').last().evaluate((el) => el.scrollIntoView({ block: 'start' }))
-  await save(desk, 'extra-czat', { ...COLUMN, y: 60, height: 640 })
+  const question = desk.locator('.msg-user').last()
+  await question.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+  await desk.mouse.move(720, 450)
+  await desk.mouse.wheel(0, ((await question.boundingBox())?.y ?? 100) - 100) // question just below the header
+  await desk.waitForTimeout(600)
+  const top = Math.max(70, ((await question.boundingBox())?.y ?? 100) - 24)
+  await save(desk, 'extra-czat', { ...COLUMN, y: top, height: Math.min(640, 900 - top) })
 }
 
 // Mobile
