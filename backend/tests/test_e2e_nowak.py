@@ -2,7 +2,7 @@
 
 Pokrywa cały produkt: logowanie personą, rodzina i dzieci z danych ZUS, dołączenie drugiego rodzica, analiza
 świadczeń (pytanie zmienia status), skan i zatwierdzenie umowy z ostrzeżeniami o ryzyku, wniosek urlopowy do
-pracodawcy z symulowanymi odpowiedziami (status, kalendarz, powiadomienia), świadczenie opublikowane przez
+pracodawcy z odpowiedziami testowymi (status, kalendarz, powiadomienia), świadczenie opublikowane przez
 urzędnika Krakowa, czat z cytatem artykułu oraz tryb jaskółki (zgłoszenie, drugi rodzic bez powiadomienia,
 anulowane szkice, wyciszony kalendarz, cofnięcie).
 """
@@ -75,7 +75,7 @@ def test_nowak_family_journey(client, store):
     assert confirmed.status_code == 200, confirmed.text
     assert client.get("/api/risks", headers=anna).json() == client.get("/api/risks", headers=piotr).json()
 
-    # 3c. Wniosek o urlop: kreator → podpis → wysyłka do pracodawcy; odpowiedzi symulowane zmieniają status
+    # 3c. Wniosek o urlop: kreator → podpis → wysyłka do pracodawcy; odpowiedzi testowe zmieniają status
     sent = send_application(client, anna)
     assert sent["status"] == "sent" and sent["thread_id"]
     replies = client.post("/api/mail/simulate-replies", headers=piotr).json()  # robi to któreś z rodziców

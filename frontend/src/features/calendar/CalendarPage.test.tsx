@@ -17,8 +17,10 @@ const base: CalendarEvent = {
   actor_user_id: null, actor_name: null, recipient: null, status: null, severity: null,
 }
 const APP: CalendarEvent = {
-  ...base, id: 'e2', kind: 'application', title: 'Wniosek URLOP-OJC', summary: 'Złożył: Piotr Nowak.',
-  due_date: '2026-11-20', actor_name: 'Piotr Nowak', recipient: 'kadry@firma.pl', status: 'sent', source_ref: 'application:a',
+  ...base, id: 'e2', kind: 'application', title: 'Wniosek URLOP-OJC',
+  summary: 'Złożono: 20.11.2026. Termin zakończenia nie jest znany. Do: kadry@firma.pl. Status: wysłany.',
+  due_date: '2026-11-20', date_label: 'Złożono', actor_name: 'Piotr Nowak', recipient: 'kadry@firma.pl', status: 'sent',
+  done: true, source_ref: 'application:a',
 }
 const RISK: CalendarEvent = {
   ...base, id: 'e3', kind: 'warning', title: 'Brak zasiłku przy zleceniu', summary: 'Zgłoś się do ZUS.',
@@ -46,9 +48,15 @@ describe('Kalendarz', () => {
   })
 
   it('wniosek: ludzka nazwa zamiast kodu, kto złożył i do kogo', async () => {
-    routeApi({ 'GET /api/calendar': [{ ...APP, done: false }] })
+    routeApi({ 'GET /api/calendar': [APP] })
     renderWithSession(<CalendarPage />)
+    await screen.findByText('Odhaczone wpisy widzi też drugi rodzic.')
+    expect(screen.queryByRole('article', { name: 'Urlop ojcowski' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('tab', { name: /zrobione/i }))
     const card = await screen.findByRole('article', { name: 'Urlop ojcowski' })
+    expect(within(card).getByText(/^złożono /i)).toBeInTheDocument()
+    expect(within(card).getByText(/termin zakończenia nie jest znany/i)).toBeInTheDocument()
+    expect(within(card).queryByRole('checkbox')).not.toBeInTheDocument()
     expect(within(card).getByText('Piotr Nowak')).toBeInTheDocument()
     expect(within(card).getByText('kadry@firma.pl')).toBeInTheDocument()
   })

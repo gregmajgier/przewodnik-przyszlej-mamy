@@ -46,7 +46,7 @@ def test_anna_flow_from_benefits_to_sent_application(client, store):
     sent = client.post(f"/api/applications/{draft['id']}/submit", headers=h).json()
     assert sent["status"] == "sent" and sent["thread_id"]
 
-    # 4. Mail trafił do folderu „wysłane” symulowanej skrzynki rodziny, z załącznikiem PDF
+    # 4. Mail trafił do folderu „wysłane” testowej skrzynki rodziny, z załącznikiem PDF
     (message,) = asyncio.run(store.find("mail_messages", family_id=sent["family_id"]))
     assert message["folder"] == "sent" and message["to_addr"] == "kadry@kcuw.example.pl"
     assert message["thread_id"] == sent["thread_id"] and message["attachments"][0]["filename"] == "URLOP-MAC-ROD.pdf"

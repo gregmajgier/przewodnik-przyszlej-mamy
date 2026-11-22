@@ -9,7 +9,7 @@ import type { EmploymentDocument } from './types'
 import './attach.css'
 
 /**
- * Krok onboardingu „Umowy” (poglądowo, SYMULACJA): „Załącz umowy” wrzuca przykładowe umowy z e-teczki
+ * Krok onboardingu „Umowy” (poglądowo): „Załącz umowy” wrzuca przykładowe umowy z e-teczki
  * pracodawcy (umowa o pracę + zlecenie), pokazuje wysyłanie i odczyt przez AI, a potem wyciągnięte dane.
  * Dane naprawdę zapisujemy (POST /api/contracts/documents/{id}/import), więc widzi je panel i asystent AI.
  */
@@ -133,7 +133,7 @@ export default function ContractsAttachStep({
             Załącz umowy
           </Button>
           <p className="attach-sim">
-            <span className="badge-sim">SYMULACJA</span>
+            <span className="badge-sim">DANE PRZYKŁADOWE</span>
             <span>W demo załączymy przykładowe umowy z Twojej e-teczki.</span>
           </p>
         </div>
@@ -162,7 +162,7 @@ export default function ContractsAttachStep({
           {phase === 'reading' && (
             <div className="attach-ai">
               <p className="attach-ai-head">
-                <Icon name="sparkle" size={18} /> AI czyta Twoje umowy <span className="badge-sim">SYMULACJA</span>
+                <Icon name="sparkle" size={18} /> AI czyta Twoje umowy <span className="badge-sim">ODCZYT TESTOWY</span>
               </p>
               <ol className="attach-steps">
                 {READ_STEPS.map((label, i) => {

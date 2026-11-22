@@ -1,4 +1,4 @@
-"""Poczta: interfejs `MailProvider` i symulowana skrzynka (`SimMailProvider`).
+"""Poczta: interfejs `MailProvider` i skrzynka testowa (`SimMailProvider`).
 
 Aplikacja nigdy nie wysyła prawdziwych e-maili — `SimMailProvider` zapisuje wiadomość w kolekcji
 `mail_messages` (folder `sent`). Prawdziwego dostawcę można podpiąć, implementując ten sam protokół.
@@ -58,7 +58,7 @@ class SimMailProvider:
         self.store = store
 
     async def address(self, family_id: str, user_id: str) -> str:
-        """Adres skrzynki rodzica (symulowany Gmail)."""
+        """Adres skrzynki rodzica (testowy Gmail)."""
         user = await self.store.get("users", user_id)
         name = (user or {}).get("name", "rodzic").lower().replace(" ", ".")
         return f"{name}@gmail.com"

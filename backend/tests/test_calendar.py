@@ -98,7 +98,28 @@ def test_application_event_shows_who_submitted():
     [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
     assert e.actor_name == "Piotr Nowak" and e.actor_user_id == "u-piotr"
     assert "Piotr Nowak" in e.summary and "kadry@firma.pl" in e.summary
-    assert e.due_date == date(2026, 11, 20) and e.status == "sent"
+    assert e.date_label == "Złożono" and "Złożono: 20.11.2026" in e.summary
+    assert "Termin zakończenia nie jest znany" in e.summary
+    assert e.due_date == date(2026, 11, 20) and e.status == "sent" and e.done is True
+
+
+def test_draft_application_date_is_labeled_as_start():
+    created = datetime(2026, 11, 20, 9, 0, tzinfo=timezone.utc)
+    app = Application(id="a2", family_id="fam", applicant_id="u-anna", form_code="ZAM", channel="portal_agent",
+                      status="draft", created_at=created)
+    [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
+    assert e.date_label == "Utworzono"
+    assert "Utworzono: 20.11.2026" in e.summary
+    assert "nie termin końcowy" in e.summary and e.done is False
+
+
+def test_accepted_application_shows_that_its_end_date_is_not_recorded():
+    sent = datetime(2026, 11, 20, 9, 0, tzinfo=timezone.utc)
+    app = Application(id="a3", family_id="fam", applicant_id="u-anna", form_code="ZAM", channel="portal_agent",
+                      status="accepted", sent_at=sent, created_at=sent)
+    [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
+    assert e.done is True
+    assert "Sprawa zakończona; data zakończenia nie jest zapisana" in e.summary
 
 
 def test_warning_from_risk():

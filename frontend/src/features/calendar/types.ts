@@ -6,6 +6,7 @@ export interface CalendarEvent {
   title: string
   summary: string
   due_date: string | null
+  date_label?: 'Utworzono' | 'Złożono' | null
   effect_until: string | null
   done: boolean
   overdue: boolean

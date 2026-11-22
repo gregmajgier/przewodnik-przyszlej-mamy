@@ -850,7 +850,7 @@
       "wsparcie_ai": true,
       "zrodlo": [
         "ocr_umowy",
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -912,7 +912,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_poswiadczenie"
       ],
       "wrazliwe": false,
@@ -958,7 +958,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_poswiadczenie"
       ],
       "wrazliwe": false,
@@ -994,7 +994,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "swiadczenia": [],
@@ -1061,7 +1061,7 @@
       "wsparcie_ai": false,
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "swiadczenia": [],
@@ -1248,7 +1248,7 @@
       "wsparcie_ai": true,
       "zrodlo": [
         "ocr_umowy",
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1431,7 +1431,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_z3",
         "uzytkownik"
       ],
@@ -1462,7 +1462,7 @@
       "wsparcie_ai": true,
       "zrodlo": [
         "ocr_z3",
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": true,
@@ -1535,7 +1535,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -1559,7 +1559,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "ocr_z3",
         "uzytkownik"
       ],
@@ -1588,7 +1588,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": true,
@@ -1661,7 +1661,7 @@
       "wsparcie_ai": false,
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "swiadczenia": [
@@ -1824,7 +1824,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": true,
       "swiadczenia": [
@@ -1922,7 +1922,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": true,
       "swiadczenia": [],
@@ -1982,7 +1982,7 @@
       },
       "wsparcie_ai": true,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -2067,7 +2067,7 @@
       },
       "wsparcie_ai": false,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -2096,7 +2096,7 @@
       },
       "wsparcie_ai": false,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -2579,7 +2579,7 @@
       "wsparcie_ai": false,
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "swiadczenia": [
@@ -2609,7 +2609,7 @@
       "wsparcie_ai": false,
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "swiadczenia": [
@@ -2665,7 +2665,7 @@
       },
       "wsparcie_ai": false,
       "zrodlo": [
-        "zus_symulacja",
+        "zus_dane_testowe",
         "uzytkownik"
       ],
       "wrazliwe": false,
@@ -3346,7 +3346,7 @@
       "wsparcie_ai": false,
       "zrodlo": [
         "uzytkownik",
-        "zus_symulacja"
+        "zus_dane_testowe"
       ],
       "wrazliwe": false,
       "swiadczenia": [],

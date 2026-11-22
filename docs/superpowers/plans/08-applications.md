@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Rodzic składa wniosek z wstępnie wypełnionymi danymi: PDF (AcroForm lub generowany do pracodawcy) albo agent „klika” w makiecie eZUS/Emp@tii; zatwierdza; wniosek jest wysyłany (e-mail do pracodawcy przez symulowaną skrzynkę, portal przez makietę).
+**Goal:** Rodzic składa wniosek z wstępnie wypełnionymi danymi: PDF (AcroForm lub generowany do pracodawcy) albo agent „klika” w makiecie eZUS/Emp@tii; zatwierdza; wniosek jest wysyłany (e-mail do pracodawcy przez testową skrzynkę, portal przez makietę).
 
 **Architecture:** `services/prefill.py` mapuje zmienne profilu (`zmienne_uzytkownika.json`) na pola formularzy; `services/pdf_fill.py` (pypdf AcroForm) i `services/employer_pdf.py` (`fpdf2`, wzór wg rozporządzenia MRPiPS Dz.U. 2025 poz. 322); `services/agent_plan.py` (LLM → plan pole→wartość walidowany względem schematu portalu); `mail/provider.py` (interfejs + `SimMailProvider` — strona wysyłki); makiety portali jako trasy frontendu `/sim/*` w iframe, sterowane `postMessage`.
 
@@ -13,7 +13,7 @@
 - Rozgałęzienie (diagram 3): pracownik → najpierw wniosek o urlop do pracodawcy; zlecenie/JDG → od razu ZAM. Funkcja `recommend_flow(insurance_kind) -> list[form_code]`.
 - **Zawsze** podgląd i zatwierdzenie przez rodzica przed wysyłką. Wnioskodawcą jest zalogowany rodzic; dane drugiego rodzica i dzieci z profilu rodziny.
 - AI dopytuje tylko o brakujące dane, odpowiedzi zapisują się w profilu (nie pytać drugi raz). Agent zatrzymuje się przy brakach i przed wysłaniem; rodzic może przejąć i edytować pole.
-- Podpis gov = **symulowany** krok (modal „Podpisz Profilem Zaufanym”) przed wysyłką PDF.
+- Podpis gov = **testowy** krok (modal „Podpisz Profilem Zaufanym”) przed wysyłką PDF.
 - Plan agenta za `ai_guard("agent_plan")`; PDF-y i dane wniosków nie trafiają do logów.
 
 ## Review Focus
@@ -39,7 +39,7 @@
 
 ### Task 3: Model wniosku, API, wysyłka, MailProvider
 **Files:** Create `backend/app/models/application.py`, `backend/app/mail/__init__.py`, `backend/app/mail/provider.py`, `backend/app/routers/applications.py`, `backend/tests/test_applications.py`.
-**Interfaces:** Produces `Application(id, family_id, applicant_id, form_code, child_id|None, channel: "employer_email"|"portal_agent"|"pdf_download", status: draft|needs_input|ready|sent|received|more_info|accepted|rejected, values, missing, recipient_email|None, recipient_domain|None, thread_id|None, sent_at|None, created_at)`; `MailProvider(Protocol): async def send(family_id, from_user_id, to, subject, body, attachments:[(filename,bytes)]) -> SentMessage(thread_id,message_id); async def list_messages(family_id) -> list[MailMessage]`; `SimMailProvider(store)` zapisuje do `mail_messages` (folder `sent`); `get_mail() -> MailProvider`; endpointy `GET /api/applications/forms` (katalog + kanał + rekomendowana kolejność), `GET|POST /api/applications` (`{form_code, child_id?}` → draft z prefill), `GET|PATCH /api/applications/{id}`, `POST /api/applications/{id}/answers`, `GET /api/applications/{id}/pdf` (podgląd), `POST /api/applications/{id}/sign` (symulowany podpis), `POST /api/applications/{id}/submit` (idempotentny), `POST /api/applications/{id}/agent-plan`, `POST /api/applications/{id}/portal-submitted` (callback z makiety); funkcja `cancel_drafts_for_child(store, child_id) -> int`.
+**Interfaces:** Produces `Application(id, family_id, applicant_id, form_code, child_id|None, channel: "employer_email"|"portal_agent"|"pdf_download", status: draft|needs_input|ready|sent|received|more_info|accepted|rejected, values, missing, recipient_email|None, recipient_domain|None, thread_id|None, sent_at|None, created_at)`; `MailProvider(Protocol): async def send(family_id, from_user_id, to, subject, body, attachments:[(filename,bytes)]) -> SentMessage(thread_id,message_id); async def list_messages(family_id) -> list[MailMessage]`; `SimMailProvider(store)` zapisuje do `mail_messages` (folder `sent`); `get_mail() -> MailProvider`; endpointy `GET /api/applications/forms` (katalog + kanał + rekomendowana kolejność), `GET|POST /api/applications` (`{form_code, child_id?}` → draft z prefill), `GET|PATCH /api/applications/{id}`, `POST /api/applications/{id}/answers`, `GET /api/applications/{id}/pdf` (podgląd), `POST /api/applications/{id}/sign` (podpis testowy), `POST /api/applications/{id}/submit` (idempotentny), `POST /api/applications/{id}/agent-plan`, `POST /api/applications/{id}/portal-submitted` (callback z makiety); funkcja `cancel_drafts_for_child(store, child_id) -> int`.
 - [ ] Testy: `test_create_draft_prefills`, `test_submit_employer_sends_mail_with_pdf_attachment_and_stores_thread`, `test_submit_twice_sends_once`, `test_submit_needs_input_409`, `test_submit_pdf_channel_requires_sign`, `test_cancel_drafts_for_child`, `test_tylko_elektronicznie_rejects_pdf_channel`, `test_applicant_is_logged_in_parent`, `test_partner_sees_application_in_family_list`. Commit.
 
 ### Task 4: Plan agenta
@@ -49,12 +49,12 @@
 
 ### Task 5: Frontend — kreator wniosku
 **Files:** Create `frontend/src/features/applications/{routes.tsx,nav.ts,ApplicationsPage.tsx,NewApplicationPage.tsx,ApplicationWizard.tsx,MissingFieldsStep.tsx,PreviewStep.tsx,SignModal.tsx}`, testy.
-**Interfaces:** Trasy `/wnioski` (lista z statusami i „kto złożył”), `/wnioski/nowy?form=KOD` (kreator): 1) brakujące dane (pytania po jednym, zapis w profilu), 2) podgląd (PDF w `<iframe>`/lista pól), 3) kanał: e-mail do pracodawcy (adres z umowy lub pole), podpis (modal symulacji), albo agent (Task 6); 4) wysłano + link do kalendarza i poczty.
+**Interfaces:** Trasy `/wnioski` (lista z statusami i „kto złożył”), `/wnioski/nowy?form=KOD` (kreator): 1) brakujące dane (pytania po jednym, zapis w profilu), 2) podgląd (PDF w `<iframe>`/lista pól), 3) kanał: e-mail do pracodawcy (adres z umowy lub pole), podpis (modal testowy), albo agent (Task 6); 4) wysłano + link do kalendarza i poczty.
 - [ ] Testy: kreator przechodzi kroki z mockiem API; brak danych blokuje przejście; „Wyślij” wyłącza przycisk po kliknięciu. Commit.
 
 ### Task 6: Makiety portali i agent w iframe
 **Files:** Create `frontend/src/features/portal-sim/{routes.tsx,EzusForm.tsx,EmpatiaForm.tsx,agentBridge.ts,AgentFrame.tsx,AgentCursor.tsx}`, testy.
-**Interfaces:** Trasy publiczne `/sim/ezus/:portalId`, `/sim/empatia/:portalId` renderują formularze wg `portal_schemas.json` (te same `field_id`; wyraźny znacznik „SYMULACJA — to nie jest prawdziwy portal”, osobny kolor „AI/symulacja” z legendy). `agentBridge.ts`: protokół `postMessage` `{type:'fill', fieldId, value}` → ack, `{type:'ready'}`, `{type:'submitted'}`; sprawdza `event.origin === location.origin`. `AgentFrame` osadza iframe, pobiera plan (`/agent-plan`), wykonuje kroki sekwencyjnie z widocznym kursorem i podświetleniem (`prefers-reduced-motion` → bez animacji ruchu), zatrzymuje się na `blocked` (pyta rodzica) i przed wysłaniem (przycisk „Zatwierdzam i wysyłam”); rodzic może edytować pole w iframe; po `submitted` woła `portal-submitted`.
+**Interfaces:** Trasy publiczne `/sim/ezus/:portalId`, `/sim/empatia/:portalId` renderują formularze wg `portal_schemas.json` (te same `field_id`; wyraźny znacznik „DANE TESTOWE — to nie jest prawdziwy portal”, osobny kolor `--ai`). `agentBridge.ts`: protokół `postMessage` `{type:'fill', fieldId, value}` → ack, `{type:'ready'}`, `{type:'submitted'}`; sprawdza `event.origin === location.origin`. `AgentFrame` osadza iframe, pobiera plan (`/agent-plan`), wykonuje kroki sekwencyjnie z widocznym kursorem i podświetleniem (`prefers-reduced-motion` → bez animacji ruchu), zatrzymuje się na `blocked` (pyta rodzica) i przed wysłaniem (przycisk „Zatwierdzam i wysyłam”); rodzic może edytować pole w iframe; po `submitted` woła `portal-submitted`.
 - [ ] Testy: `agentBridge` odrzuca wiadomości z obcego origin; `AgentFrame` wykonuje plan w kolejności (mock iframe); zatrzymuje się na `blocked`; nie wysyła bez zatwierdzenia. Commit.
 
 ### Task 7: Weryfikacja

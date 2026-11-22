@@ -63,7 +63,11 @@ export default function EventCard({
           {event.due_date && (
             <span className="agenda-when">
               <span className="sr-only">{formatDate(event.due_date)}, </span>
-              {event.done ? 'zrobione' : relativeDay(event.due_date)}
+              {event.date_label
+                ? `${event.date_label.toLowerCase()} ${relativeDay(event.due_date)}`
+                : event.done
+                  ? 'zrobione'
+                  : relativeDay(event.due_date)}
             </span>
           )}
         </div>
@@ -90,7 +94,9 @@ export default function EventCard({
         )}
       </div>
 
-      {onToggle && <CheckButton event={event} title={title} busy={busy} onToggle={onToggle} />}
+      {onToggle && event.date_label !== 'Złożono' && (
+        <CheckButton event={event} title={title} busy={busy} onToggle={onToggle} />
+      )}
     </article>
   )
 }

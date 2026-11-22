@@ -13,6 +13,8 @@ class CalendarEvent(BaseModel):
     title: str
     summary: str
     due_date: date | None = None
+    # For application events this labels the start/submission date, not a deadline.
+    date_label: Literal["Utworzono", "Złożono"] | None = None
     effect_until: date | None = None
     done: bool = False
     overdue: bool = False

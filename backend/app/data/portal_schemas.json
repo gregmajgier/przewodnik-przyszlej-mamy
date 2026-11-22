@@ -4,7 +4,7 @@
     "uwagi": [
       "Te same `id` pól są używane przez makiety we frontendzie (/sim/ezus/:portalId, /sim/empatia/:portalId) i przez plan agenta.",
       "`extends_form` oznacza, że schemat pól jest taki sam jak mapa formularza PDF o tym kodzie.",
-      "To symulacje — to nie są prawdziwe portale; układ pól jest uproszczony."
+      "To makiety — nie łączą się z prawdziwymi portalami; układ pól jest uproszczony."
     ]
   },
   "portals": {

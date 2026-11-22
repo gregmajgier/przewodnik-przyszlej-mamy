@@ -2,7 +2,7 @@
 
 Zasady (spec §8):
 - Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje.
-- Zawsze podgląd i zatwierdzenie przed wysyłką. Podpis (symulowany Profil Zaufany) obejmuje kanały PDF;
+- Zawsze podgląd i zatwierdzenie przed wysyłką. Podpis testowy Profilem Zaufanym obejmuje kanały PDF;
   zapisujemy odcisk danych z chwili podpisu — zmiana czegokolwiek unieważnia podpis.
 - Wysyłka jest idempotentna po `application.id` (podwójne kliknięcie = jedna wiadomość).
 - Dane wniosków (PESEL, PDF-y) nie trafiają do logów.
@@ -455,7 +455,7 @@ class ApplicationService:
         app.status, app.sent_at = "sent", _now()
         app = await self._save(app)
         if app.channel == "employer_email":
-            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy (plan 09)
+            await schedule_reply(self.store, app, app.sent_at)  # odpowiedź testowa pracodawcy (plan 09)
         return app
 
     async def portal_submitted(self, user_id: str, app_id: str) -> Application:
@@ -480,7 +480,7 @@ class ApplicationService:
                 app.recipient_email = "wnioski@zus.pl" if zus else "swiadczenia@um.krakow.pl"
                 app.recipient_domain = app.recipient_email.rsplit("@", 1)[1]
                 app = await self._save(app)
-                await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź urzędu (plan 09)
+                await schedule_reply(self.store, app, app.sent_at)  # odpowiedź testowa urzędu (plan 09)
                 return app
         finally:
             if not lock.locked():

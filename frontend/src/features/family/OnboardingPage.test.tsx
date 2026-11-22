@@ -202,7 +202,7 @@ describe('OnboardingPage', () => {
     })
     renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
     await goToContracts()
-    expect(screen.getByText('SYMULACJA')).toBeInTheDocument()
+    expect(screen.getByText('DANE PRZYKŁADOWE')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /pomiń na razie/i })).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /załącz umowy/i }))

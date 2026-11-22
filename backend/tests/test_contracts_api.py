@@ -166,7 +166,7 @@ def test_family_isolation_lists(env, store):
     _, c, fake = env
     anna, piotr = family_with_partner(c)
     scan_and_confirm(c, fake, anna, draft())
-    # Piotr opuszcza rodzinę (symulacja innej rodziny): przenosimy go do osobnej rodziny w bazie
+    # Piotr opuszcza rodzinę (przykład innej rodziny): przenosimy go do osobnej rodziny w bazie
     user = asyncio.run(store.get("users", "user-nowak-piotr"))
     asyncio.run(store.put("users", {**user, "family_id": "family-other"}))
     asyncio.run(store.put("families", {"id": "family-other", "name": "Inna", "owner_id": "user-nowak-piotr",

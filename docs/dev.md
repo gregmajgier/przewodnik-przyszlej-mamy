@@ -3,7 +3,7 @@
 ## Szybki start Windows (bez Azure)
 
 Wszystko działa lokalnie bez żadnej konfiguracji: dane w pamięci procesu (`MemoryStore`),
-symulowany mObywatel/ZUS.
+demonstracyjne dane mObywatela/ZUS.
 
 Wymagania: Python 3.12+, Node 22+.
 Jeśli PowerShell nie rozpoznaje `node`, a Node jest zainstalowany w standardowym katalogu, dodaj go do `PATH`:
@@ -48,7 +48,7 @@ Wymień `py -3 -m venv .venv` na `python3 -m venv .venv`, a polecenia
 
 ## Persony i konta
 
-- **Rodzice (symulowane mObywatel i Profil Zaufany)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży,
+- **Rodzice (mObywatel i Profil Zaufany w wersji demonstracyjnej)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży,
   e-ZLA kod B) i `persona-nowak-piotr` (tata). Obie opcje korzystają z tych samych przykładowych profili; rzeczywiste
   logowanie zewnętrzne wymaga osobnej integracji. Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
   uruchomienia. Nowe persony = nowy wpis w `backend/app/seed/personas.py`.
@@ -225,7 +225,7 @@ Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy,
 **Przepływ:** `POST /api/applications {form_code, child_id?, channel?}` → szkic z prefillem (`services/prefill.py`:
 profil ZUS, odpowiedzi zapisane w profilu, dziecko) → `needs_input` + lista `missing`, gdy czegoś brakuje (nigdy puste pole
 w PDF) → `POST /{id}/answers` (odpowiedź zapisuje się w profilu; PESEL dziecka przy dziecku) → `GET /{id}/pdf` (podgląd) →
-`POST /{id}/sign` (**symulowany** Profil Zaufany) → `POST /{id}/submit`. Zasady:
+`POST /{id}/sign` (testowy podpis Profilem Zaufanym) → `POST /{id}/submit`. Zasady:
 
 - Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje (403).
   Cudzy wniosek lub dziecko cudzej rodziny → 404.
@@ -247,7 +247,7 @@ nie trafia do planu; brak wymaganej wartości → `blocked`, nigdy zgadywanie. B
 handler demo (`app/seed/demo_agent.py`).
 
 Frontend (`features/portal-sim`): makiety `/sim/ezus/:portalId` i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
-znacznik „SYMULACJA”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
+znacznik „DANE TESTOWE”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
 `<iframe>`, wykonuje plan krok po kroku z widocznym kursorem, zatrzymuje się na brakach (pyta rodzica) i przed wysyłką;
 dopiero „Zatwierdzam i wysyłam” wysyła, a po `submitted` woła `portal-submitted`. Protokół `postMessage`
 (`agentBridge.ts`): aplikacja → makieta `fill`/`submit`, makieta → aplikacja `ready`/`ack`/`edited`/`invalid`/`submitted`.
@@ -262,8 +262,8 @@ z jawnym `targetOrigin`. Makieta odrzuca pola spoza schematu i wartości niezgod
    (`services/prefill.py`).
 3. Kod musi istnieć w `katalog_wnioskow_pdf.json`; kanały wynikają z powyższej tabeli.
 
-**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis, poczta
-i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
+**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis i poczta
+korzystają z trybu testowego, a portale są makietami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
 `/poczta`) działają dopiero po wdrożeniu planu 09.
 
 ## Umowy i ostrzeżenia o ryzyku (plan 04)
@@ -283,7 +283,7 @@ i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę�
 o pracę i umowę zlecenia. `GET /api/contracts/documents` — lista umów zalogowanego rodzica,
 `GET /api/contracts/documents/{id}/pdf` — PDF generowany na żądanie (`services/employment_docs.py`, nic nie
 przechowujemy), `POST /api/contracts/documents/{id}/import` — dodaje umowę jako zatwierdzoną (idempotentnie).
-W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (SYMULACJA — dane
+W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (DANE PRZYKŁADOWE — dane
 pochodzą z persony, model nie jest wołany). Asystent czatu widzi umowy w `profil_rodziny` (bez wynagrodzenia) i może
 cytować ich paragrafy narzędziem `tresc_umowy` — tylko umowy własne, bez paragrafu o wynagrodzeniu.
 
@@ -328,7 +328,7 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
 
 ## Poczta, statusy wniosków, kalendarz i powiadomienia (plan 09)
 
-- **Poczta symulowana, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
+- **Poczta testowa, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
   Skrzynka rodziny ma też 6 maili niezwiązanych (sklep, szkoła, przychodnia…), które filtr pomija.
 - **Filtr** (`services/mail_filter.py`): czytamy wątek wniosku, dokładny adres odbiorcy oraz domenę tylko dla
   instytucji (`zus.pl`, `gov.pl`, domeny z katalogu, `um.krakow.pl`) — nigdy całych domen publicznych
@@ -344,10 +344,12 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   tokeny z dziennego budżetu AI. Ręcznie: „Sprawdź pocztę” (`POST /api/mail/sync`, za `ai_guard`).
 - **Kalendarz** (`/kalendarz`, widżet „Najbliższe terminy”, narzędzie MCP `kalendarz`): terminy świadczeń względem
   porodu/urodzenia, złożone wnioski („kto złożył”, do kogo, status), termin porodu i ostrzeżenia z ryzyk (plan 04).
+  Przy wnioskach data oznacza utworzenie szkicu albo złożenie, nie termin końcowy; dopóki brak decyzji, koniec sprawy
+  nie ma znanej daty. Po złożeniu wykonana czynność trafia do „Zrobione”, a status sprawy pozostaje widoczny.
   Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
   oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
   „Wkrótce”.
-- **Wysyłka wniosku uruchamia symulację odpowiedzi:** `ApplicationService.submit` (e-mail do pracodawcy) i
+- **Wysyłka wniosku uruchamia przygotowanie odpowiedzi testowej:** `ApplicationService.submit` (e-mail do pracodawcy) i
   `portal_submitted` (eZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
   `mail.sim_inbox.schedule_reply`. Scenariusz: Anna składa wniosek w `/wnioski` → `/poczta` → „Symuluj odpowiedzi” →
   status „Zaakceptowany”, powiadomienia, wpis w kalendarzu. Wiadomości (wysłane i odebrane) to jeden model

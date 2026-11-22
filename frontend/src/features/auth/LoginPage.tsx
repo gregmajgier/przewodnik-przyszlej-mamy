@@ -183,7 +183,7 @@ export default function LoginPage() {
             <div className="flow-note rise" style={{ ['--i' as string]: 3 }}>
               <Icon name="info" size={18} />
               <span>
-                <strong>SYMULACJA.</strong> Obie opcje korzystają z przykładowych profili i nie łączą się z zewnętrzną usługą.
+                <strong>DANE TESTOWE.</strong> Obie opcje pokazują przykładowe profile; logowanie do usług zewnętrznych nie jest połączone.
               </span>
             </div>
             <div className="flow-note rise" style={{ ['--i' as string]: 4 }}>
@@ -225,7 +225,7 @@ export default function LoginPage() {
         <div className="flow-body">
           <h1 className="flow-title rise">Wybierz profil</h1>
           <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
-            Wybierz przykładowy profil do symulacji logowania przez {loginMethod === 'mobywatel' ? 'mObywatel' : 'Profil Zaufany'}.
+            Wybierz przykładowy profil, by kontynuować przez {loginMethod === 'mobywatel' ? 'mObywatel' : 'Profil Zaufany'}.
           </p>
           {error && (
             <p role="alert" className="alert" style={{ marginBottom: '1rem' }}>
@@ -236,7 +236,7 @@ export default function LoginPage() {
           <div className="card idp rise" style={{ ['--i' as string]: 2 }}>
             <div className="idp-head">
               <Icon name="shield" size={20} />
-              {loginMethod === 'mobywatel' ? 'mObywatel' : 'Profil Zaufany'} — SYMULACJA
+              {loginMethod === 'mobywatel' ? 'mObywatel' : 'Profil Zaufany'} — KONTA TESTOWE
             </div>
             {!personas && !error && (
               <div style={{ padding: '1.25rem' }}>

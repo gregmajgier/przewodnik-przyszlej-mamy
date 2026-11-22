@@ -165,17 +165,21 @@ def generate_events(
         when = (a.sent_at.date() if a.sent_at else a.created_at.date())
         status = APP_STATUS_LABEL.get(a.status, a.status)
         to = a.recipient_email or "portal / urząd"
-        summary = (
-            f"Złożył(a): {who}, {_fmt(when)}. Do: {to}. Status: {status}."
-            if a.sent_at
-            else f"Przygotowuje: {who}. Status: {status}."
-        )
+        date_label = "Złożono" if a.sent_at else "Utworzono"
+        if a.status in ("accepted", "rejected", "cancelled"):
+            end_note = " Sprawa zakończona; data zakończenia nie jest zapisana."
+        elif a.sent_at:
+            end_note = " Termin zakończenia nie jest znany."
+        else:
+            end_note = " To data rozpoczęcia wniosku, nie termin końcowy."
+        actor_note = f" Złożył(a): {who}." if a.sent_at else f" Przygotowuje: {who}."
+        summary = f"{date_label}: {_fmt(when)}.{end_note}{actor_note} Do: {to}. Status: {status}."
         events.append(
             CalendarEvent(
                 id=event_id("application", src, a.child_id), family_id=fid, kind="application",
-                title=f"Wniosek {a.form_code}", summary=summary, due_date=when, source_ref=src,
+                title=f"Wniosek {a.form_code}", summary=summary, due_date=when, date_label=date_label, source_ref=src,
                 child_id=a.child_id, actor_user_id=a.applicant_id, actor_name=who, recipient=a.recipient_email,
-                status=a.status, done=a.status in ("accepted", "rejected"),
+                status=a.status, done=bool(a.sent_at) or a.status in ("accepted", "rejected", "cancelled"),
             )
         )
 

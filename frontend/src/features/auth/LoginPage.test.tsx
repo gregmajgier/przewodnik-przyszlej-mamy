@@ -69,7 +69,7 @@ describe('LoginPage', () => {
     await userEvent.click(screen.getByRole('button', { name: /zaczynamy/i }))
     await userEvent.click(screen.getByRole('button', { name: /zaloguj profilem zaufanym/i }))
 
-    expect(await screen.findByText(/Profil Zaufany — SYMULACJA/)).toBeInTheDocument()
+    expect(await screen.findByText(/Profil Zaufany — KONTA TESTOWE/)).toBeInTheDocument()
     await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
     expect(session.login).toHaveBeenCalledWith('persona-nowak-anna')
     expect(await screen.findByText('Strona start')).toBeInTheDocument()
