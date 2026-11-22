@@ -48,8 +48,9 @@ Wymień `py -3 -m venv .venv` na `python3 -m venv .venv`, a polecenia
 
 ## Persony i konta
 
-- **Rodzice (symulowany mObywatel)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży, e-ZLA kod B)
-  i `persona-nowak-piotr` (tata). Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
+- **Rodzice (symulowane mObywatel i Profil Zaufany)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży,
+  e-ZLA kod B) i `persona-nowak-piotr` (tata). Obie opcje korzystają z tych samych przykładowych profili; rzeczywiste
+  logowanie zewnętrzne wymaga osobnej integracji. Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
   uruchomienia. Nowe persony = nowy wpis w `backend/app/seed/personas.py`.
 - **Urzędnicy** (`POST /api/auth/official`): `urzednik.krakow@mrodzina.local` (gmina Kraków) i
   `urzednik.malopolska@mrodzina.local` (województwo). W trybie `dev` hasło to `demo1234`
@@ -195,9 +196,11 @@ limity: zakresy dat `od ≤ do` i najwyżej 3 lata, listy do 50 pozycji (inaczej
 **Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, adapter `calcEngine.ts`) obsługuje ciążę
 (osobno bieżące uprawnienia i prognozę po porodzie), dziecko urodzone oraz adopcję/rodzinę zastępczą niezawodową.
 Zbiera m.in. dokładne daty ubezpieczenia i osobne podstawy składek obojga rodziców, skład rodziny i dochód, miejsce
-zamieszkania, e-ZLA, dane o wcześniactwie/„Za życiem” oraz plan łączenia urlopu z pracą. Miesięczne podstawy są
-przypisane do konkretnych miesięcy przed terminem porodu; puste wartości pozostają nieznane, nie są zastępowane
-szacunkiem. Silnik zwraca statusy (także „brak danych” i niespełnione warunki), kwoty, ryzyka, wymagane wnioski i terminy;
+zamieszkania, e-ZLA, dane o wcześniactwie/„Za życiem” oraz plan łączenia urlopu z pracą (także przy adopcji).
+Miesięczne podstawy są przypisane do konkretnych miesięcy przed terminem porodu; miesiące przed objęciem
+ubezpieczeniem są pomijane, a puste miesiące objęte ubezpieczeniem pozostają nieznane i nie są zastępowane
+szacunkiem. Bieżący profil ciąży nie udaje już profilu po porodzie; prognoza po porodzie jest liczona osobno.
+Silnik zwraca statusy (także „brak danych” i niespełnione warunki), kwoty, ryzyka, wymagane wnioski i terminy;
 landing nie wylicza kwot samodzielnie ani nie zapisuje danych.
 
 Miasto i gmina wskazują właściwy urząd w podsumowaniu, ale aktualny katalog lokalnych programów nie jest podłączony.

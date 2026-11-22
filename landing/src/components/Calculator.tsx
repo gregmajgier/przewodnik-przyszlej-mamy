@@ -769,7 +769,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
               />
               {a.incomeMode === 'average' ? (
                 <Field
-                  label={a.work === 'jdg' || a.work === 'wspolpraca_jdg' || a.work === 'ulga_na_start' ? 'Przeciętna zadeklarowana podstawa składek (zł/mies.)' : 'Przeciętna podstawa składek brutto (zł/mies.)'}
+                  label={a.work === 'jdg' || a.work === 'wspolpraca_jdg' ? 'Przeciętna zadeklarowana podstawa składek (zł/mies.)' : 'Przeciętna podstawa składek brutto (zł/mies.)'}
                   hint="Wpisz podstawę, od której odprowadzano składki, nie kwotę „na rękę”. To tylko przybliżenie, jeśli podstawa się zmieniała."
                 >
                   {(id) => (
@@ -945,7 +945,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                   </Field>
                 </>
               )}
-              {(a.work === 'jdg' || a.work === 'wspolpraca_jdg' || a.work === 'ulga_na_start') && (
+              {(a.work === 'jdg' || a.work === 'wspolpraca_jdg') && (
                 <>
                   <Field label="Zadłużenie składkowe na dzień powstania prawa (zł)">
                     {(id) => <input id={id} inputMode="decimal" value={a.jdgDebt} onChange={(e) => set('jdgDebt', e.target.value)} />}
@@ -962,7 +962,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
               {a.stage === 'urodzone' && (
                 <>
                   {a.babyCount > 1 && <Field label="W którym tygodniu ciąży nastąpił poród?">
-                    {(id) => <input id={id} type="number" min="20" max="45" inputMode="numeric" value={a.pregnancyWeek} onChange={(e) => set('pregnancyWeek', e.target.value)} />}
+                    {(id) => <input id={id} type="number" min="1" max="45" inputMode="numeric" value={a.pregnancyWeek} onChange={(e) => set('pregnancyWeek', e.target.value)} />}
                   </Field>}
                   {a.babies.map((baby, index) => (
                     <fieldset className="calc-field calc-baby" key={index}>
@@ -1066,7 +1066,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                 <p className="calc-hint">Podaj podstawę, od której faktycznie opłacono składki, a nie samo wynagrodzenie brutto. Puste miesiące nie zostaną oszacowane.</p>
               </>
             )}
-            {a.stage !== 'adopcja_zastepcza' && (
+            {a.stage !== 'adopcja_zastepcza' && a.role === 'matka' && (
               <label className="calc-check">
                 <input type="checkbox" checked={a.eightOneFive} onChange={(e) => set('eightOneFive', e.target.checked)} />
                 Zasymuluj wybór równej stawki 81,5% (wniosek do 21 dni po porodzie)
@@ -1078,14 +1078,18 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             </label>
             {a.workDuringLeave && (
               <>
-                <Field label="Który rodzic będzie na tej części urlopu?">
-                  {(id) => (
-                    <select id={id} value={a.leaveParent} onChange={(e) => set('leaveParent', e.target.value as Answers['leaveParent'])}>
-                      <option value="matka">Matka</option>
-                      <option value="ojciec">Ojciec</option>
-                    </select>
-                  )}
-                </Field>
+                {a.stage === 'adopcja_zastepcza' ? (
+                  <p className="calc-hint">Ta symulacja dotyczy urlopu wnioskodawcy, który przyjął dziecko na wychowanie.</p>
+                ) : (
+                  <Field label="Który rodzic będzie na tej części urlopu?">
+                    {(id) => (
+                      <select id={id} value={a.leaveParent} onChange={(e) => set('leaveParent', e.target.value as Answers['leaveParent'])}>
+                        <option value="matka">Matka</option>
+                        <option value="ojciec">Ojciec</option>
+                      </select>
+                    )}
+                  </Field>
+                )}
                 <Field label="Urlop rodzicielski — od">
                   {(id) => <input id={id} type="date" value={a.leaveFrom} onChange={(e) => set('leaveFrom', e.target.value)} />}
                 </Field>

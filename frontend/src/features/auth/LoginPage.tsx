@@ -15,6 +15,7 @@ import '../../ui/ui.css'
 import '../onboarding/flow.css'
 
 type Step = 'welcome' | 'method' | 'account' | 'connecting'
+type LoginMethod = 'mobywatel' | 'profil-zaufany'
 
 const CONNECT_STEPS = ['Potwierdzam tożsamość', 'Pobieram dane z ZUS', 'Szukam Waszej rodziny']
 const CONNECT_STEP_MS = 650
@@ -69,6 +70,7 @@ export default function LoginPage() {
   const [personas, setPersonas] = useState<Persona[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('mobywatel')
 
   useEffect(() => {
     if (step !== 'account' || personas) return
@@ -176,17 +178,41 @@ export default function LoginPage() {
               Zaloguj się bezpiecznie
             </h1>
             <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
-              Potwierdzimy Twoją tożsamość przez mObywatel. Nie zakładasz konta i nie pamiętasz żadnego hasła. Dane z ZUS
-              pobierzemy za Ciebie.
+              Wybierz sposób logowania. Nie zakładasz osobnego konta ani nie pamiętasz dodatkowego hasła.
             </p>
             <div className="flow-note rise" style={{ ['--i' as string]: 3 }}>
+              <Icon name="info" size={18} />
+              <span>
+                <strong>SYMULACJA.</strong> Obie opcje korzystają z przykładowych profili i nie łączą się z zewnętrzną usługą.
+              </span>
+            </div>
+            <div className="flow-note rise" style={{ ['--i' as string]: 4 }}>
               <Icon name="lock" size={18} />
               <span>Widzimy tylko to, co potrzebne do świadczeń i wniosków. Możesz to w każdej chwili wycofać.</span>
             </div>
           </div>
           <div className="flow-foot">
-            <Button variant="dark" block leading="shield" onClick={() => setStep('account')}>
+            <Button
+              variant="dark"
+              block
+              leading="shield"
+              onClick={() => {
+                setLoginMethod('mobywatel')
+                setStep('account')
+              }}
+            >
               Zaloguj przez mObywatel
+            </Button>
+            <Button
+              variant="secondary"
+              block
+              leading="shield"
+              onClick={() => {
+                setLoginMethod('profil-zaufany')
+                setStep('account')
+              }}
+            >
+              Zaloguj Profilem Zaufanym
             </Button>
             <Link className="flow-skip" to="/urzednik/logowanie">
               Jestem urzędnikiem gminy
@@ -199,7 +225,7 @@ export default function LoginPage() {
         <div className="flow-body">
           <h1 className="flow-title rise">Wybierz profil</h1>
           <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
-            mObywatel znalazł te profile na Twoim urządzeniu.
+            Wybierz przykładowy profil do symulacji logowania przez {loginMethod === 'mobywatel' ? 'mObywatel' : 'Profil Zaufany'}.
           </p>
           {error && (
             <p role="alert" className="alert" style={{ marginBottom: '1rem' }}>
@@ -210,7 +236,7 @@ export default function LoginPage() {
           <div className="card idp rise" style={{ ['--i' as string]: 2 }}>
             <div className="idp-head">
               <Icon name="shield" size={20} />
-              mObywatel
+              {loginMethod === 'mobywatel' ? 'mObywatel' : 'Profil Zaufany'} — SYMULACJA
             </div>
             {!personas && !error && (
               <div style={{ padding: '1.25rem' }}>

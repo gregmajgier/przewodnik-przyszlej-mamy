@@ -110,6 +110,9 @@ def profil_drugiego_rodzica(profile: UserProfile) -> UserProfile | None:
     dane = dr.dane
     adres = profile.wnioskodawca.adres_zamieszkania
     bez = tytul in TYTULY_BEZ_CHOROBOWEGO
+    plan = profile.plan.model_dump(mode="json", exclude_none=True)
+    if rola != "matka":
+        plan.pop("wniosek_81_5", None)
     data = {
         "wnioskodawca": {
             "etap": profile.wnioskodawca.etap, "rola": rola,
@@ -127,6 +130,7 @@ def profil_drugiego_rodzica(profile: UserProfile) -> UserProfile | None:
         "dzieci": [d.model_dump() for d in profile.dzieci] if profile.dzieci is not None else None,
         "rodzina": profile.rodzina.model_dump(),
         "matka": profile.matka.model_dump(),
+        "plan": plan,
         "drugi_rodzic": {"tytul_ubezpieczenia": profile.ubezpieczenie.tytul,
                          "aktywny_zawodowo": None if profile.ubezpieczenie.tytul is None
                          else profile.ubezpieczenie.tytul in ("umowa_o_prace", "umowa_zlecenia", "jdg", "wspolpraca_jdg")},
