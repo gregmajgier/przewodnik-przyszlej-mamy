@@ -77,6 +77,14 @@ def test_join_by_code_adds_member_immediately(client):
     assert [m["status"] for m in client.get("/api/families/join-requests/mine", headers=hp).json()] == ["accepted"]
 
 
+def test_invite_code_is_single_use(client):
+    ha, hp = login(client, ANNA), login(client, PIOTR)
+    old = create_family(client, ha)["family"]["invite_code"]
+    assert client.post("/api/families/join", json={"code": old}, headers=hp).status_code == 201
+    new = client.get("/api/families/me", headers=ha).json()["family"]["invite_code"]
+    assert new != old  # przesłany dalej kod po dołączeniu już nie działa
+
+
 def test_join_notifies_the_founder(client):
     ha, hp = login(client, ANNA), login(client, PIOTR)
     fam = create_family(client, ha)["family"]
@@ -111,11 +119,14 @@ def test_join_own_family_409(client):
     assert r.status_code == 409
 
 
-def test_second_join_with_same_code_409(client):
+def test_join_again_after_joining_409(client):
     ha, hp = login(client, ANNA), login(client, PIOTR)
     code = create_family(client, ha)["family"]["invite_code"]
     assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 201
-    r = client.post("/api/families/join", json={"code": code}, headers=hp)
+    # zużyty kod już nie działa; aktualny mówi wprost, że to już twoja rodzina
+    assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 404
+    current = client.get("/api/families/me", headers=ha).json()["family"]["invite_code"]
+    r = client.post("/api/families/join", json={"code": current}, headers=hp)
     assert r.status_code == 409 and "już twoja rodzina" in r.json()["detail"]
 
 
@@ -254,8 +265,9 @@ async def test_third_member_409(store):
         await _user(store, uid)
     fam = await svc.create_family("u1")
     await svc.request_join("u2", fam.invite_code)
+    current = (await store.get("families", fam.id))["invite_code"]  # kod wymieniony po dołączeniu
     with pytest.raises(DomainError) as e:
-        await svc.request_join("u3", fam.invite_code)
+        await svc.request_join("u3", current)
     assert e.value.status_code == 409
     assert "dwoje" in e.value.detail
 
@@ -304,3 +316,14 @@ async def test_accept_legacy_when_family_filled_meanwhile_409(store):
         await svc.decide("u1", "jr-old", True)
     assert e.value.status_code == 409
     assert (await store.get("users", "u3"))["family_id"] is None
+
+
+async def test_used_code_no_longer_finds_the_family(store):
+    svc = FamilyService(store)
+    for uid in ("u1", "u2", "u3"):
+        await _user(store, uid)
+    fam = await svc.create_family("u1")
+    await svc.request_join("u2", fam.invite_code)
+    with pytest.raises(DomainError) as e:
+        await svc.request_join("u3", fam.invite_code)  # stary kod: rodziny już nie znajdzie
+    assert e.value.status_code == 404

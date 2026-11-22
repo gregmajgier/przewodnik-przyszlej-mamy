@@ -125,6 +125,9 @@ class FamilyService:
 
     async def _add_member(self, family: Family, user: dict) -> None:
         family.member_ids.append(user["id"])
+        # kod jest jednorazowy: po dołączeniu wymieniamy go, żeby przesłany dalej nie dawał nikomu dostępu
+        family.invite_code = await self._unique_code()
+        family.invite_expires_at = _now() + CODE_TTL
         await self._save_family(family)
         await self.store.put("users", {**user, "family_id": family.id})
 
