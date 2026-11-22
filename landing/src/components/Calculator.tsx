@@ -460,6 +460,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
   >({ kind: 'idle' })
   const initialAnswers = useRef(a)
   const resultRef = useRef<HTMLDivElement>(null)
+  const calculationId = useRef(0)
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((prev) => ({ ...prev, [k]: v }))
   const insured = INSURED.includes(a.work)
   const asksSickness = insured && a.work !== 'umowa_o_prace'
@@ -467,7 +468,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
   const childLoss = a.stage === 'urodzone' && a.childStatus !== 'zywe'
   function applyDemo(specific: boolean) {
     const insuranceStart = isoDate(new Date(new Date().getFullYear() - 2, 0, 1))
-    setA({
+    const demoAnswers = {
       ...initialAnswers.current,
       role: 'matka',
       stage: 'ciaza',
@@ -481,11 +482,14 @@ export function Calculator({ appUrl }: { appUrl: string }) {
       babies: Array.from({ length: specific ? 2 : 1 }, defaultBaby),
       city: 'Kraków',
       municipality: 'Kraków',
-    })
-    setState({ kind: 'idle' })
+    } satisfies Answers
+    setA(demoAnswers)
+    void calculate(demoAnswers)
   }
 
   function changeStage(stage: Stage) {
+    calculationId.current += 1
+    setState({ kind: 'idle' })
     setA((prev) => ({
       ...prev,
       stage,
@@ -527,30 +531,32 @@ export function Calculator({ appUrl }: { appUrl: string }) {
     return (await res.json()) as Evaluation
   }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    const problem = validate(a)
+  async function calculate(answers: Answers) {
+    const requestId = ++calculationId.current
+    const problem = validate(answers)
     if (problem) {
       setState({ kind: 'error', message: problem })
       return
     }
     setState({ kind: 'loading' })
-    const request = buildRequest(a)
+    const request = buildRequest(answers)
     try {
       const evaluations = await Promise.all([
         fetchEvaluation(request.profile),
         ...(request.futureProfile ? [fetchEvaluation(request.futureProfile, request.futureDate)] : []),
       ])
+      if (requestId !== calculationId.current) return
       const summaries =
-        a.stage === 'ciaza'
+        answers.stage === 'ciaza'
           ? [
               { title: 'Twoja sytuacja teraz — ciąża', summary: summarize(evaluations[0]) },
               { title: 'Prognoza po porodzie', summary: summarize(evaluations[1]) },
             ]
-          : [{ title: a.stage === 'adopcja_zastepcza' ? 'Przyjęcie dziecka na wychowanie' : 'Twoja sytuacja', summary: summarize(evaluations[0]) }]
+          : [{ title: answers.stage === 'adopcja_zastepcza' ? 'Przyjęcie dziecka na wychowanie' : 'Twoja sytuacja', summary: summarize(evaluations[0]) }]
       setState({ kind: 'done', summaries })
       requestAnimationFrame(() => resultRef.current?.focus())
     } catch (error) {
+      if (requestId !== calculationId.current) return
       console.error('Nie udało się obliczyć uprawnień:', error)
       if (error instanceof TypeError) {
         setState({
@@ -562,6 +568,11 @@ export function Calculator({ appUrl }: { appUrl: string }) {
         setState({ kind: 'error', message: `Nie udało się policzyć uprawnień. ${detail}` })
       }
     }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    await calculate(a)
   }
 
   const referenceDate = a.stage === 'adopcja_zastepcza' ? a.date : a.date
@@ -1113,8 +1124,8 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             <strong>Wypróbuj kalkulator</strong>
             <p>Wstaw przykładowe dane — możesz je potem zmienić.</p>
             <div>
-              <button className="calc-small-button" type="button" onClick={() => applyDemo(false)}>Typowa sytuacja</button>
-              <button className="calc-small-button" type="button" onClick={() => applyDemo(true)}>Bliźnięta + własna firma</button>
+              <button className="calc-small-button" type="button" disabled={state.kind === 'loading'} onClick={() => applyDemo(false)}>Typowa sytuacja</button>
+              <button className="calc-small-button" type="button" disabled={state.kind === 'loading'} onClick={() => applyDemo(true)}>Bliźnięta + własna firma</button>
             </div>
             <span className="calc-demo-label">Oba zestawy są wyłącznie demonstracyjne (DEMO), nie opisują prawdziwej osoby.</span>
           </div>
@@ -1123,9 +1134,8 @@ export function Calculator({ appUrl }: { appUrl: string }) {
           {state.kind === 'idle' && (
             <div className="calc-empty">
               <div>
-                <h3>Wypełnij wymagane pola, aby zobaczyć dostępne świadczenia</h3>
-                <p>Nie musisz znać wszystkich szczegółów — uzupełnij to, co wiesz. Przy brakujących informacjach pokażemy, co warto jeszcze sprawdzić.</p>
-                <div className="calc-illustration-slot" aria-label="Miejsce na ilustrację kalkulatora">Miejsce na ilustrację</div>
+                <h3>Opowiedz nam o sobie</h3>
+                <p>Po wypełnieniu pól pomożemy Ci znaleźć świadczenia, które mogą przysługiwać Twojej rodzinie. Nie musisz znać wszystkich szczegółów — brakujące informacje pokażemy w wynikach.</p>
               </div>
             </div>
           )}
