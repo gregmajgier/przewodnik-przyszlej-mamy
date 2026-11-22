@@ -864,6 +864,30 @@
       "swiadczenia": [
         "ZASILEK_ADOPCJA_ZASTEPCZA"
       ]
+    },
+    {
+      "kod": "DOBRY-START",
+      "nazwa": "Dobry Start (300 zł na wyprawkę szkolną)",
+      "instytucja": "ZUS",
+      "instytucja_typ": "zus",
+      "adresat_opis": null,
+      "rola": "usluga_elektroniczna",
+      "tryb_aplikacji": "ściąga danych + deep link + symulacja",
+      "tylko_elektronicznie": true,
+      "wysylka": [
+        "eZUS/mZUS",
+        "Emp@tia",
+        "bankowość elektroniczna"
+      ],
+      "terminy": [
+        {
+          "rodzaj": "zlozenie_wniosku",
+          "opis": "od 1 lipca do 30 listopada"
+        }
+      ],
+      "swiadczenia": [],
+      "pdf": false,
+      "termin": "od 1 lipca do 30 listopada"
     }
   ]
 }

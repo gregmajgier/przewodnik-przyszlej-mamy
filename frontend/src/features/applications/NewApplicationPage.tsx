@@ -22,7 +22,7 @@ export default function NewApplicationPage() {
   const [data, setData] = useState<FormsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [code, setCode] = useState(requested)
-  const [childId, setChildId] = useState('')
+  const [childId, setChildId] = useState(params.get('child') ?? '')
   const [channel, setChannel] = useState<Channel | ''>('')
   const [busy, setBusy] = useState(false)
   const [showAll, setShowAll] = useState(false)

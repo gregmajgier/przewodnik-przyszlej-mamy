@@ -28,6 +28,27 @@
         {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"}
       ]
     },
+    "ezus_dobry_start": {
+      "title": "eZUS — Wniosek „Dobry Start” (300+)",
+      "kind": "ezus",
+      "form_code": "DOBRY-START",
+      "fields": [
+        {"id": "applicant_first_name", "label": "Imię wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.first_name"},
+        {"id": "applicant_last_name", "label": "Nazwisko wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.last_name"},
+        {"id": "applicant_pesel", "label": "PESEL wnioskodawcy", "type": "text", "required": true, "source_key": "applicant.pesel", "format": "pesel"},
+        {"id": "street", "label": "Ulica", "type": "text", "required": true, "source_key": "answers.street"},
+        {"id": "house_no", "label": "Numer domu", "type": "text", "required": true, "source_key": "answers.house_no"},
+        {"id": "postal_code", "label": "Kod pocztowy", "type": "text", "required": true, "source_key": "applicant.postal_code"},
+        {"id": "city", "label": "Miejscowość", "type": "text", "required": true, "source_key": "applicant.city"},
+        {"id": "citizenship", "label": "Obywatelstwo", "type": "choice", "required": true, "source_key": null, "choices": ["polskie", "inne"], "default": "polskie"},
+        {"id": "account_number", "label": "Numer rachunku bankowego", "type": "text", "required": true, "source_key": "answers.account_number", "format": "digits"},
+        {"id": "child_first_name", "label": "Imię dziecka", "type": "text", "required": true, "source_key": "child.first_name"},
+        {"id": "child_last_name", "label": "Nazwisko dziecka", "type": "text", "required": true, "source_key": "child.last_name"},
+        {"id": "child_birth_date", "label": "Data urodzenia dziecka", "type": "date", "required": true, "source_key": "child.birth_date"},
+        {"id": "child_pesel", "label": "PESEL dziecka", "type": "text", "required": true, "source_key": "child.pesel", "format": "pesel"},
+        {"id": "school_name", "label": "Nazwa szkoły", "type": "text", "required": true, "source_key": "answers.school_name"}
+      ]
+    },
     "ezus_aktywny_rodzic": {
       "title": "eZUS — Wniosek „Aktywny rodzic”",
       "kind": "ezus",
