@@ -1,12 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '../../components/Logo'
 import { api } from '../../lib/api'
 import { timeAgo } from '../../lib/format'
+import { SessionContext } from '../../lib/session'
 import { Icon } from '../../ui/Icon'
 import type { IconName } from '../../ui/Icon'
 import { Sheet } from '../../ui/Sheet'
+import { clearLastChat, setLastChat } from './lastChat'
 import { Message } from './Message'
 import { MAX_MESSAGE_CHARS, useChatStream } from './useChatStream'
 import '../../ui/ui.css'
@@ -24,6 +26,8 @@ interface RouteState {
   context?: unknown
   autoSend?: unknown
   from?: unknown
+  /** id rozmowy do wczytania (karta „Ostatnia rozmowa” nad przyciskiem „Zapytaj”) */
+  resume?: unknown
 }
 
 interface SessionItem {
@@ -33,10 +37,15 @@ interface SessionItem {
 }
 
 export default function ChatPage() {
-  const { messages, sending, banner, error, send, reset, stop, open } = useChatStream()
+  // bez wyjątku poza providerem (np. w testach): bez użytkownika po prostu nic nie zapamiętujemy
+  const userId = useContext(SessionContext)?.user?.id
+  const { messages, sending, banner, error, send, reset, stop, open } = useChatStream({
+    onSession: (id) => setLastChat(userId, id),
+  })
   const location = useLocation()
   const navigate = useNavigate()
   const state = (location.state ?? {}) as RouteState
+  const resume = typeof state.resume === 'string' ? state.resume : ''
   const initialQ = typeof state.q === 'string' ? state.q.slice(0, MAX_MESSAGE_CHARS) : ''
   const context = typeof state.context === 'string' ? state.context : ''
   // Pytanie z kafelka trafia do pola (router state); wysyłamy je od razu tylko po kliknięciu w aplikacji
@@ -59,6 +68,15 @@ export default function ChatPage() {
     return () => window.clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // powrót do ostatniej rozmowy; usuniętej (np. wygasła w bazie) już nie proponujemy
+  useEffect(() => {
+    if (!resume) return
+    void open(resume).then((ok) => {
+      if (!ok) clearLastChat(userId)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resume])
 
   useEffect(() => {
     const el = scroller.current

@@ -56,6 +56,8 @@ class Application(BaseModel):
     child_loss_note: str | None = None
     cancelled_reason: str | None = None
     cancelled_at: datetime | None = None
+    # przykładowy wniosek rodziny demo (seed/demo_applications.py): widoczny na liście, ale tylko do podglądu
+    demo: bool = False
 
 
 class ApplicationCreate(BaseModel):

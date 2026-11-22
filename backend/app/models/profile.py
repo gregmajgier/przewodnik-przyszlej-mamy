@@ -18,6 +18,9 @@ class Insurance(BaseModel):
     contribution_base: float
     voluntary_sickness: bool | None = None
     since: date
+    # Ilu ubezpieczonych płatnik zgłasza do ubezpieczenia chorobowego (dane ZUS, stan na 30 listopada poprzedniego roku).
+    # Powyżej progu `platnik.prog_ubezpieczonych` (20) zasiłki wypłaca płatnik, inaczej ZUS; None = nie wiemy.
+    payer_insured_count: int | None = Field(default=None, ge=0)
 
 
 class Ezla(BaseModel):

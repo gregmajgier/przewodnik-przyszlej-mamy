@@ -53,9 +53,12 @@ export default function NewApplicationPage() {
   const children = assigned ? [assigned] : eligible
   const unsupported = data !== null && requested !== '' && !forms.some((f) => f.code === requested)
   const needsChild = form?.requires_child === true
-  // gdy do wyboru jest tylko jedno dziecko, nie ma czego wybierać — wybieramy je za Ciebie
-  const onlyChild = children.length === 1
-  const effectiveChild = childId || (needsChild && onlyChild ? children[0].id : '')
+  // dzieci, o które tego wniosku nie da się złożyć (wiek, ciąża): pokazujemy je wyszarzone z powodem
+  const blocks = form?.child_blocks ?? {}
+  const formEligible = children.filter((c) => !blocks[c.id])
+  const onlyChild = children.length === 1 ? children[0] : undefined
+  const picked = childId && !blocks[childId] ? childId : ''
+  const effectiveChild = picked || (needsChild && formEligible.length === 1 ? formEligible[0].id : '')
   const effectiveChannel = channel || form?.default_channel || ''
   const canStart = form !== undefined && !picking && (!needsChild || effectiveChild !== '') && !busy
   // dlaczego przycisk jest nieaktywny: mówimy wprost, zamiast zostawiać wyszarzony przycisk bez wyjaśnienia
@@ -63,9 +66,11 @@ export default function NewApplicationPage() {
     ? null
     : form === undefined || picking
       ? 'Wybierz rodzaj wniosku powyżej.'
-      : needsChild && effectiveChild === ''
-        ? 'Wybierz dziecko, którego dotyczy wniosek.'
-        : null
+      : needsChild && children.length > 0 && formEligible.length === 0
+        ? 'Ten wniosek nie dotyczy żadnego dziecka w Waszej rodzinie. Wybierz inny wniosek.'
+        : needsChild && effectiveChild === ''
+          ? 'Wybierz dziecko, którego dotyczy wniosek.'
+          : null
   const ordered = [...forms].sort((a, b) => Number(recommended.has(b.code)) - Number(recommended.has(a.code)))
   const collapsed = form !== undefined && !picking
   const top = ordered.slice(0, 6)
@@ -175,22 +180,32 @@ export default function NewApplicationPage() {
                 </div>
               ) : (
                 <div className="form-picker" role="radiogroup" aria-labelledby="child-h">
-                  {children.map((c, i) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={effectiveChild === c.id}
-                      className="form-option"
-                      onClick={() => setChildId(c.id)}
-                    >
-                      <Avatar name={childLabel(c)} tone={childTone(i)} icon={c.status === 'expected' ? 'baby' : undefined} size={40} />
-                      <span className="form-option-main">
-                        <strong>{childLabel(c)}</strong>
-                        <span>{describeAge(c)}</span>
-                      </span>
-                    </button>
-                  ))}
+                  {children.map((c, i) => {
+                    const blocked = blocks[c.id]
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={effectiveChild === c.id}
+                        aria-disabled={blocked ? true : undefined}
+                        aria-describedby={blocked ? `child-block-${c.id}` : undefined}
+                        className="form-option"
+                        onClick={() => !blocked && setChildId(c.id)}
+                      >
+                        <Avatar name={childLabel(c)} tone={childTone(i)} icon={c.status === 'expected' ? 'baby' : undefined} size={40} />
+                        <span className="form-option-main">
+                          <strong>{childLabel(c)}</strong>
+                          <span>{describeAge(c)}</span>
+                          {blocked && (
+                            <span id={`child-block-${c.id}`} className="form-option-reason">
+                              {blocked}
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </section>

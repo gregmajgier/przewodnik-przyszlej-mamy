@@ -34,9 +34,23 @@ export interface MatchResult {
   child_ids?: string[]
 }
 
+/** Kto wypłaci zasiłek i gdzie złożyć dokumenty (backend/app/services/payout.py), jeden wpis na tytuł ubezpieczenia. */
+export interface Payout {
+  parent_name: string
+  title: string
+  payer: string
+  paid_by: 'payer' | 'zus' | 'unknown' | 'none'
+  headline: string
+  why: string
+  where: string
+  /** wniosek, który ta osoba składa sama; null = nic nie składa (np. pracownik na zwolnieniu e-ZLA) */
+  form_code?: string | null
+}
+
 export interface BenefitMatch {
   benefit: Benefit
   match: MatchResult
+  payouts?: Payout[]
 }
 
 export interface Totals {

@@ -51,6 +51,18 @@ function renderList(user = ANNA) {
 beforeEach(() => vi.clearAllMocks())
 
 describe('ApplicationsPage', () => {
+  it('przykładowy wniosek (demo) jest widoczny z etykietą „Przykład”, ale nie da się go otworzyć', async () => {
+    routes({ 'GET /api/applications': [makeApp({ id: 'app-demo', status: 'needs_input', demo: true }), APPS[1]] })
+    renderList()
+    const demo = await screen.findByRole('article', { name: /przykładowy wniosek/i })
+    expect(within(demo).getByText('Przykład')).toBeInTheDocument()
+    expect(within(demo).getByText(/tylko do podglądu/i)).toBeInTheDocument()
+    expect(within(demo).queryByText(/dokończ i podpisz/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /przykład/i })).not.toBeInTheDocument()
+    expect(document.querySelector('a[href="/wnioski/app-demo"]')).toBeNull()
+    expect(document.querySelector('a[href="/wnioski/app-2"]')).not.toBeNull() // zwykłe wnioski dalej są linkami
+  })
+
   it('„W toku”: krótki tytuł, status, kto składa, którego dziecka dotyczy; zakończone w osobnej zakładce', async () => {
     routes()
     renderList()
