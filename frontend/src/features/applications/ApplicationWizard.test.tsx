@@ -273,6 +273,6 @@ describe('ApplicationWizard — stany szczególne', () => {
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Podpisz' }))
     expect(await screen.findByRole('heading', { name: /tego wniosku już nie ma/i })).toBeInTheDocument()
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /nowy wniosek/i })).toHaveAttribute('href', '/wnioski/nowy?form=URLOP-MAC-ROD')
+    expect(screen.getByRole('link', { name: /nowy wniosek/i })).toHaveAttribute('href', '/wnioski/nowy?form=URLOP-MAC-ROD&child=c-drodze')
   })
 })
