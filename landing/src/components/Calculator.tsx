@@ -5,6 +5,7 @@ import {
   SHOWN,
   buildRequest,
   defaultDueDate,
+  isoDate,
   maternityVariants,
   needsPay,
   plDate,
@@ -27,7 +28,7 @@ import type {
 } from './calcEngine'
 import '../calculator.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 const WORK_OPTIONS: { value: Work; label: string }[] = [
   { value: 'umowa_o_prace', label: 'Umowa o pracę' },
@@ -88,11 +89,24 @@ function Choice<T extends string>({
   )
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: (id: string) => ReactNode }) {
+function Field({
+  label,
+  hint,
+  required = false,
+  children,
+}: {
+  label: string
+  hint?: string
+  required?: boolean
+  children: (id: string) => ReactNode
+}) {
   const id = useId()
   return (
     <div className="calc-field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>
+        {label}
+        {required && <span className="calc-required"><span aria-hidden="true">➜</span> wymagane</span>}
+      </label>
       {children(id)}
       {hint && <p className="calc-hint">{hint}</p>}
     </div>
@@ -199,7 +213,7 @@ function BenefitCard({ b, compact = false }: { b: Benefit; compact?: boolean }) 
         </ul>
       )}
       {b.brakujace_zmienne.length > 0 && b.status === 'brak_danych' && (
-        <p className="calc-note">Do potwierdzenia: {b.brakujace_zmienne.map(missingLabel).join(', ')}.</p>
+        <p className="calc-note"><strong>Potrzebne informacje:</strong> {b.brakujace_zmienne.map(missingLabel).join(', ')}.</p>
       )}
       {b.informacje.map((info) => <p className="calc-note" key={info}>{info}</p>)}
       {b.wyliczenie?.uwagi.map((note) => <p className="calc-note" key={note}>{note}</p>)}
@@ -271,7 +285,7 @@ function Results({
           )}
           {summary.maybe.length > 0 && (
             <div className="calc-block">
-              <h5>Niepewne lub niepełne dane</h5>
+              <h5>Możliwe świadczenia — brakuje informacji</h5>
               <ul className="calc-cards">
                 {summary.maybe.map((b) => <BenefitCard key={b.id} b={b} />)}
               </ul>
@@ -373,7 +387,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
   const [a, setA] = useState<Answers>({
     role: 'matka',
     stage: 'ciaza',
-    date: defaultDueDate(),
+    date: '',
     childBirthDate: '',
     adoptionKind: 'przysposobienie',
     courtDate: '',
@@ -456,6 +470,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
     | { kind: 'error'; message: string }
     | { kind: 'done'; summaries: { title: string; summary: Summary }[] }
   >({ kind: 'idle' })
+  const initialAnswers = useRef(a)
   const resultRef = useRef<HTMLDivElement>(null)
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((prev) => ({ ...prev, [k]: v }))
   const insured = INSURED.includes(a.work)
@@ -464,11 +479,31 @@ export function Calculator({ appUrl }: { appUrl: string }) {
   const childLoss = a.stage === 'urodzone' && a.childStatus !== 'zywe'
   const location = [a.municipality, a.city, a.voivodeship].filter(Boolean).join(', ')
 
+  function applyDemo(specific: boolean) {
+    const insuranceStart = isoDate(new Date(new Date().getFullYear() - 2, 0, 1))
+    setA({
+      ...initialAnswers.current,
+      role: 'matka',
+      stage: 'ciaza',
+      date: defaultDueDate(),
+      work: specific ? 'jdg' : 'umowa_o_prace',
+      sickness: specific ? 'dobrowolne' : '',
+      insuranceStart,
+      gross: specific ? '5000' : '6500',
+      pregnancyCare: 'tak',
+      babyCount: specific ? 2 : 1,
+      babies: Array.from({ length: specific ? 2 : 1 }, defaultBaby),
+      city: 'Kraków',
+      municipality: 'Kraków',
+    })
+    setState({ kind: 'idle' })
+  }
+
   function changeStage(stage: Stage) {
     setA((prev) => ({
       ...prev,
       stage,
-      date: stage === 'ciaza' ? defaultDueDate() : '',
+      date: '',
       adoptionKind: stage === 'adopcja_zastepcza' ? 'przysposobienie' : prev.adoptionKind,
       role:
         stage === 'adopcja_zastepcza'
@@ -531,8 +566,15 @@ export function Calculator({ appUrl }: { appUrl: string }) {
       requestAnimationFrame(() => resultRef.current?.focus())
     } catch (error) {
       console.error('Nie udało się obliczyć uprawnień:', error)
-      const detail = error instanceof Error ? error.message : 'Nieznany błąd'
-      setState({ kind: 'error', message: `Nie udało się policzyć uprawnień. ${detail}` })
+      if (error instanceof TypeError) {
+        setState({
+          kind: 'error',
+          message: 'Nie udało się połączyć z kalkulatorem. Wypełnij wymagane pola, aby zobaczyć dostępne świadczenia, i spróbuj ponownie.',
+        })
+      } else {
+        const detail = error instanceof Error ? error.message : 'Nieznany błąd'
+        setState({ kind: 'error', message: `Nie udało się policzyć uprawnień. ${detail}` })
+      }
     }
   }
 
@@ -575,11 +617,11 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                   adoptionKind: v === 'przysposabiajacy' ? 'przysposobienie' : 'rodzina_zastepcza_niezawodowa',
                 }))}
               />
-              <Field label="Data przyjęcia dziecka na wychowanie">
-                {(id) => <input id={id} type="date" value={a.date} onChange={(e) => set('date', e.target.value)} />}
+              <Field label="Data przyjęcia dziecka na wychowanie" required>
+                {(id) => <input id={id} type="date" value={a.date} onChange={(e) => set('date', e.target.value)} required />}
               </Field>
-              <Field label="Data urodzenia przyjętego dziecka">
-                {(id) => <input id={id} type="date" value={a.childBirthDate} onChange={(e) => set('childBirthDate', e.target.value)} />}
+              <Field label="Data urodzenia przyjętego dziecka" required>
+                {(id) => <input id={id} type="date" value={a.childBirthDate} onChange={(e) => set('childBirthDate', e.target.value)} required />}
               </Field>
               <TriField
                 label="Czy dziecko mieszka w Polsce?"
@@ -613,7 +655,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                 ]}
                 onChange={(v) => set('role', v)}
               />
-              <Field label={a.stage === 'ciaza' ? 'Przewidywany termin porodu' : 'Data urodzenia dziecka'}>
+              <Field label={a.stage === 'ciaza' ? 'Przewidywany termin porodu' : 'Data urodzenia dziecka'} required>
                 {(id) => <input id={id} type="date" value={a.date} onChange={(e) => set('date', e.target.value)} required />}
               </Field>
               {a.stage === 'ciaza' && (
@@ -1081,14 +1123,24 @@ export function Calculator({ appUrl }: { appUrl: string }) {
           <button className="calc-submit" type="submit" disabled={state.kind === 'loading'}>
             {state.kind === 'loading' ? 'Sprawdzam uprawnienia…' : 'Sprawdź świadczenia i terminy'}
           </button>
-          <p className="calc-fine">
-            Kwoty są szacunkowe i brutto. Dane zostają w tej przeglądarce; nie pobieramy ich z ZUS ani nie wysyłamy wniosków.
-          </p>
+          <div className="calc-demos">
+            <strong>Wypróbuj kalkulator</strong>
+            <p>Wstaw przykładowe dane — możesz je potem zmienić.</p>
+            <div>
+              <button className="calc-small-button" type="button" onClick={() => applyDemo(false)}>Typowa sytuacja</button>
+              <button className="calc-small-button" type="button" onClick={() => applyDemo(true)}>Bliźnięta + własna firma</button>
+            </div>
+            <span className="calc-demo-label">Oba zestawy są wyłącznie demonstracyjne (DEMO), nie opisują prawdziwej osoby.</span>
+          </div>
         </form>
         <div className="calc-output" ref={resultRef} tabIndex={-1} aria-live="polite">
           {state.kind === 'idle' && (
             <div className="calc-empty">
-              <p>Odpowiedz na kilka pytań. Możesz rozwinąć szczegóły, by uwzględnić historię składek, sytuację rodziny, zdrowie i plan urlopów.</p>
+              <div>
+                <h3>Wypełnij wymagane pola, aby zobaczyć dostępne świadczenia</h3>
+                <p>Nie musisz znać wszystkich szczegółów — uzupełnij to, co wiesz. Przy brakujących informacjach pokażemy, co warto jeszcze sprawdzić.</p>
+                <div className="calc-illustration-slot" aria-label="Miejsce na ilustrację kalkulatora">Miejsce na ilustrację</div>
+              </div>
             </div>
           )}
           {state.kind === 'loading' && (
