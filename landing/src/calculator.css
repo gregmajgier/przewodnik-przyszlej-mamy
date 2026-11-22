@@ -217,7 +217,16 @@
   background: #fdf6f7;
   padding: 1.5rem;
 }
-.calc-empty-copy { position: relative; z-index: 1; width: 100%; max-width: 26rem; }
+.calc-empty-copy {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid rgb(239 67 99 / 0.14);
+  border-radius: 1rem;
+  background: #fff3f5;
+}
 .calc-empty-spirals { position: absolute; z-index: 0; inset: 0; color: var(--accent); opacity: 0.1; pointer-events: none; }
 .calc-empty-spiral { position: absolute; width: clamp(10rem, 34%, 15rem); height: auto; aspect-ratio: 1; }
 .calc-empty-spiral:nth-child(1) { top: -6%; left: -4%; }
