@@ -70,7 +70,7 @@ export interface FormsResponse {
   recommended_flow: string[]
 }
 
-export type PortalKind = 'ezus' | 'empatia'
+export type PortalKind = 'pue' | 'empatia'
 
 export interface AgentStep {
   field_id: string

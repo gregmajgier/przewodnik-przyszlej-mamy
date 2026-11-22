@@ -1,4 +1,4 @@
-/* Formularze online (eZUS / Emp@tia) wyświetlane w ramce i agent, który je wypełnia. */
+/* Formularze online (PUE ZUS / Emp@tia) wyświetlane w ramce i agent, który je wypełnia. */
 .sim-page {
   max-width: 44rem;
   margin: 0 auto;
@@ -31,6 +31,79 @@
 }
 .sim-empatia .sim-brand {
   color: #2a7a4b;
+}
+/* PUE ZUS: pasek, menu, ścieżka i potwierdzenie UPO (makieta, nie prawdziwy portal) */
+.sim-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.85rem;
+  border-radius: 6px;
+  background: #0b3d7a;
+  color: #fff;
+}
+.sim-topbar .sim-brand {
+  color: #fff;
+}
+.sim-topbar-sub {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+.sim-testtag {
+  margin-left: auto;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--ai);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.sim-session {
+  font-size: 0.875rem;
+  color: #46566a;
+}
+.sim-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #46566a;
+  border-bottom: 1px solid #d5dce5;
+}
+.sim-menu span {
+  padding: 0.35rem 0;
+}
+.sim-menu .is-active {
+  color: #0b3d7a;
+  box-shadow: inset 0 -3px 0 #0b3d7a;
+}
+.sim-crumbs {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #46566a;
+}
+.sim-steps {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+}
+.sim-upo {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 1rem;
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #9fd0a8;
+}
+.sim-upo dt {
+  font-weight: 700;
+}
+.sim-upo dd {
+  margin: 0;
 }
 .sim-form {
   display: flex;

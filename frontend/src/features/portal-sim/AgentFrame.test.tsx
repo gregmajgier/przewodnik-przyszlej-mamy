@@ -42,9 +42,9 @@ const fills = () => bridge.posted.filter((m) => m.type === 'fill').map((m) => (m
 
 const PLAN: AgentPlan = {
   application_id: 'app-1',
-  portal_id: 'ezus_800plus',
-  title: 'eZUS — 800+',
-  kind: 'ezus',
+  portal_id: 'pue_800plus',
+  title: 'PUE ZUS — 800+',
+  kind: 'pue',
   steps: [
     { field_id: 'applicant_first_name', label: 'Imię wnioskodawcy', value: 'Anna', reason: 'Z profilu ZUS.' },
     { field_id: 'street', label: 'Ulica', value: 'Floriańska', reason: 'Adres z profilu.' },
@@ -91,15 +91,15 @@ const callsTo = (mocked: ReturnType<typeof routeApi>, path: string) => mocked.mo
 describe('AgentFrame', () => {
   it('osadza formularz online w ramce, z nagłówkiem agenta', async () => {
     setup()
-    const frame = await screen.findByTitle('eZUS — 800+')
-    expect(frame).toHaveAttribute('src', '/sim/ezus/ezus_800plus')
+    const frame = await screen.findByTitle('PUE ZUS — 800+')
+    expect(frame).toHaveAttribute('src', '/sim/pue/pue_800plus')
     expect(frame).toHaveAttribute('sandbox', expect.stringContaining('allow-scripts'))
     expect(screen.getByRole('heading', { name: /agent wypełnia formularz online/i })).toBeInTheDocument()
   })
 
   it('nie rusza makiety, dopóki ta nie zgłosi gotowości', async () => {
     setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     expect(fills()).toEqual([])
     emit({ type: 'ready' })
     await waitFor(() => expect(fills()).toHaveLength(3))
@@ -107,7 +107,7 @@ describe('AgentFrame', () => {
 
   it('wykonuje plan w kolejności ze schematu i zatrzymuje się przed wysyłką', async () => {
     const { mocked } = setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
 
     await screen.findByRole('button', { name: /zatwierdzam i wysyłam/i })
@@ -123,7 +123,7 @@ describe('AgentFrame', () => {
     reduceMotion()
     bridge.autoAck = false // sami potwierdzamy, żeby zatrzymać agenta w trakcie
     setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
     await waitFor(() => expect(fills()).toHaveLength(1))
     emit({ type: 'ack', fieldId: 'applicant_first_name', ok: true, rect: { x: 40, y: 60, width: 100, height: 20 } })
@@ -134,7 +134,7 @@ describe('AgentFrame', () => {
 
   it('zatrzymuje się na brakujących danych i pyta rodzica, a po odpowiedzi pobiera nowy plan', async () => {
     const { mocked } = setup([BLOCKED_PLAN, { ...PLAN, steps: [...BLOCKED_PLAN.steps, { field_id: 'child_pesel', label: 'PESEL dziecka', value: '02070803628', reason: 'Podany przez ciebie.' }] }])
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
 
     expect(await screen.findByRole('heading', { name: /brakuje jeszcze/i })).toBeInTheDocument()
@@ -155,7 +155,7 @@ describe('AgentFrame', () => {
 
   it('wysyła dopiero po „Zatwierdzam i wysyłam”, a po potwierdzeniu makiety woła portal-submitted', async () => {
     const { mocked, onSubmitted } = setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
     await userEvent.click(await screen.findByRole('button', { name: /zatwierdzam i wysyłam/i }))
 
@@ -172,7 +172,7 @@ describe('AgentFrame', () => {
 
   it('ignoruje `submitted`, zanim rodzic zatwierdzi (agent jeszcze pracuje)', async () => {
     const { mocked, onSubmitted } = setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     bridge.autoAck = false
     emit({ type: 'ready' })
     await waitFor(() => expect(fills()).toHaveLength(1))
@@ -184,7 +184,7 @@ describe('AgentFrame', () => {
 
   it('gdy makieta odmówi wysyłki (brak pól), wraca do podglądu z komunikatem', async () => {
     setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
     await userEvent.click(await screen.findByRole('button', { name: /zatwierdzam i wysyłam/i }))
     emit({ type: 'invalid', fieldIds: ['street'] })
@@ -194,7 +194,7 @@ describe('AgentFrame', () => {
 
   it('zapisuje we wniosku pole, które rodzic zmienił ręcznie w makiecie', async () => {
     const { mocked } = setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
     await screen.findByRole('button', { name: /zatwierdzam i wysyłam/i })
     emit({ type: 'edited', fieldId: 'street', value: 'Szewska' })
@@ -206,7 +206,7 @@ describe('AgentFrame', () => {
   it('informuje o polach odrzuconych przez makietę', async () => {
     bridge.refuse.add('street')
     setup()
-    await screen.findByTitle('eZUS — 800+')
+    await screen.findByTitle('PUE ZUS — 800+')
     emit({ type: 'ready' })
     expect(await screen.findByRole('note')).toHaveTextContent(/nie przyjął pól: Ulica/i)
   })
@@ -215,6 +215,6 @@ describe('AgentFrame', () => {
     routeApi({ 'POST /api/applications/app-1/agent-plan': new ApiError(503, 'Asystent AI jest chwilowo niedostępny.') })
     render(<AgentFrame applicationId="app-1" onSubmitted={vi.fn()} />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Asystent AI jest chwilowo niedostępny.')
-    expect(screen.queryByTitle('eZUS — 800+')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('PUE ZUS — 800+')).not.toBeInTheDocument()
   })
 })

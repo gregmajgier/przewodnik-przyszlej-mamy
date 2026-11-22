@@ -85,7 +85,7 @@ export default function SendStep({ app, onChange, onGone }: Props) {
           Wyślemy ten wniosek jako PDF w załączniku na adres <strong>{app.recipient_email}</strong>. Zanim to zrobimy, podpisz go.
         </p>
       ) : (
-        <p>Podpisz wniosek, pobierz PDF i złóż go samodzielnie (osobiście, pocztą albo przez eZUS). Potem oznacz go jako złożony.</p>
+        <p>Podpisz wniosek, pobierz PDF i złóż go samodzielnie (osobiście, pocztą albo przez PUE ZUS). Potem oznacz go jako złożony.</p>
       )}
 
       {error && (

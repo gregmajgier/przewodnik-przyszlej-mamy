@@ -475,8 +475,8 @@ class ApplicationService:
                     await self._save(app)
                     raise DomainError(409, "Brakuje danych we wniosku. Uzupełnij je przed wysłaniem.")
                 app.status, app.sent_at = "sent", _now()
-                # makieta portalu = adresat do filtra poczty: ZUS (eZUS) albo urząd gminy (Emp@tia)
-                zus = (pf.CODE_TO_PORTAL.get(app.form_code) or "").startswith("ezus")
+                # makieta portalu = adresat do filtra poczty: ZUS (PUE) albo urząd gminy (Emp@tia)
+                zus = (pf.CODE_TO_PORTAL.get(app.form_code) or "").startswith("pue_")
                 app.recipient_email = "wnioski@zus.pl" if zus else "swiadczenia@um.krakow.pl"
                 app.recipient_domain = app.recipient_email.rsplit("@", 1)[1]
                 app = await self._save(app)

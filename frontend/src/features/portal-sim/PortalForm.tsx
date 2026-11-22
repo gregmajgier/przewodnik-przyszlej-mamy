@@ -8,7 +8,17 @@ import type { PortalField, PortalSchema } from './portalSchema'
 import './portal-sim.css'
 
 const domId = (fieldId: string) => `sim-field-${fieldId}`
-const KIND_NAME: Record<PortalKind, string> = { ezus: 'eZUS', empatia: 'Emp@tia' }
+const KIND_NAME: Record<PortalKind, string> = { pue: 'PUE ZUS', empatia: 'Emp@tia' }
+
+/** Numer UPO (Urzędowe Poświadczenie Przedłożenia) — wyłącznie testowy, losowany po stronie makiety. */
+function makeUpoNumber(): string {
+  const n = Math.floor(Math.random() * 1e8)
+    .toString()
+    .padStart(8, '0')
+  return `UPO/${new Date().getFullYear()}/${n}`
+}
+
+const PUE_MENU = ['Pulpit', 'Dokumenty i wiadomości', 'Moje dane', 'Ubezpieczony']
 
 export default function PortalForm({ portalId, kind }: { portalId: string; kind: PortalKind }) {
   const [schema, setSchema] = useState<PortalSchema | null>(null)
@@ -16,7 +26,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
   const [values, setValues] = useState<Record<string, FieldValue>>({})
   const [filled, setFilled] = useState<Set<string>>(new Set())
   const [invalid, setInvalid] = useState<Set<string>>(new Set())
-  const [submitted, setSubmitted] = useState(false)
+  const [submitted, setSubmitted] = useState<{ upo: string; at: Date } | null>(null)
   // pole świeżo wypełnione przez agenta — po renderze odsyłamy potwierdzenie z położeniem pola (dla kursora)
   const [ackRequest, setAckRequest] = useState<{ fieldId: string; n: number } | null>(null)
   const counter = useRef(0)
@@ -56,7 +66,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
       postToParent({ type: 'invalid', fieldIds: missing.map((f) => f.id) })
       return
     }
-    setSubmitted(true)
+    setSubmitted({ upo: makeUpoNumber(), at: new Date() })
     postToParent({ type: 'submitted' })
   }, [schema, values])
 
@@ -130,17 +140,61 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
   }
 
   const name = KIND_NAME[kind]
+  const isPue = kind === 'pue'
   return (
     <div className={`sim sim-page sim-${kind}`} data-portal={portalId}>
-      <header className="sim-header">
-        <span className="sim-brand">{name}</span>
-        <h1>{schema.title}</h1>
-      </header>
+      {isPue ? (
+        <>
+          <div className="sim-topbar">
+            <span className="sim-brand">PUE ZUS</span>
+            <span className="sim-topbar-sub">Platforma Usług Elektronicznych</span>
+            <span className="sim-testtag">DANE TESTOWE</span>
+          </div>
+          <div className="sim-session" role="note">
+            Zalogowano przez Profil Zaufany · konto testowe
+          </div>
+          <nav className="sim-menu" aria-label="Menu PUE ZUS (makieta)">
+            {PUE_MENU.map((m) => (
+              <span key={m} className={m === 'Dokumenty i wiadomości' ? 'is-active' : undefined}>
+                {m}
+              </span>
+            ))}
+          </nav>
+          <p className="sim-crumbs">Dokumenty i wiadomości › Utwórz dokument › Wniosek</p>
+          <header className="sim-header">
+            <h1>{schema.title.replace(/^PUE ZUS — /, '')}</h1>
+          </header>
+        </>
+      ) : (
+        <header className="sim-header">
+          <span className="sim-brand">{name}</span>
+          <h1>{schema.title}</h1>
+        </header>
+      )}
 
       {submitted ? (
         <section className="sim-done" role="status" aria-live="polite">
           <h2>Wniosek złożony</h2>
-          <p>Potwierdzenie i decyzja trafią na Twoją skrzynkę, a mRodzina pokaże je przy wniosku.</p>
+          {isPue ? (
+            <>
+              <ol className="sim-steps">
+                <li>Dokument podpisany Profilem Zaufanym</li>
+                <li>Dokument wysłany do ZUS</li>
+                <li>Wystawiono Urzędowe Poświadczenie Przedłożenia (UPO)</li>
+              </ol>
+              <dl className="sim-upo">
+                <dt>Numer UPO</dt>
+                <dd>{submitted.upo}</dd>
+                <dt>Data i godzina przedłożenia</dt>
+                <dd>{submitted.at.toLocaleString('pl-PL')}</dd>
+                <dt>Status</dt>
+                <dd>Przyjęty, oczekuje na rozpatrzenie</dd>
+              </dl>
+              <p>Odpowiedź ZUS pojawi się w „Dokumenty i wiadomości”, a mRodzina pokaże ją przy wniosku.</p>
+            </>
+          ) : (
+            <p>Potwierdzenie i decyzja trafią na Twoją skrzynkę, a mRodzina pokaże je przy wniosku.</p>
+          )}
         </section>
       ) : (
         <form
@@ -199,7 +253,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
             )
           })}
           <button type="submit" className="btn sim-submit">
-            Wyślij wniosek
+            {isPue ? 'Podpisz i wyślij' : 'Wyślij wniosek'}
           </button>
         </form>
       )}

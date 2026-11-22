@@ -74,7 +74,7 @@ def login_official(client: TestClient, email: str, password: str = "demo1234") -
 def send_application(client, headers, form_code: str = "URLOP-MAC-ROD") -> dict:
     """Składa wniosek przez prawdziwy kreator (plan 08): dziecko w drodze → szkic → odpowiedzi → podpis → wysyłka.
 
-    `URLOP-MAC-ROD` idzie e-mailem do pracodawcy, `ZAM` przez agenta w makiecie eZUS. Zwraca wysłany wniosek.
+    `URLOP-MAC-ROD` idzie e-mailem do pracodawcy, `ZAM` przez agenta w makiecie PUE. Zwraca wysłany wniosek.
     """
     from datetime import date, timedelta
 
