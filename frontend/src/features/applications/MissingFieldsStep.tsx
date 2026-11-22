@@ -58,7 +58,16 @@ function QuestionForm({ q, onAnswer, busy }: { q: Question; onAnswer: Props['onA
       ) : (
         <label className="field" htmlFor={inputId}>
           {q.label}
-          <input id={inputId} value={value} onChange={(e) => setValue(e.target.value)} autoComplete="off" />
+          <input
+            id={inputId}
+            type={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(q.label) ? 'number' : 'text'}
+            min={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(q.label) ? 0 : undefined}
+            step="0.01"
+            inputMode={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(q.label) ? 'decimal' : undefined}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            autoComplete="off"
+          />
         </label>
       )}
       <Button type="submit" block disabled={empty || busy} icon="arrowRight">

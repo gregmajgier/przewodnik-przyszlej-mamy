@@ -30,6 +30,14 @@ import '../calculator.css'
 
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
+function decimalInput(raw: string): string | null {
+  const value = raw.replace(/\s/g, '').replace(',', '.')
+  if (value === '') return ''
+  if (!/^\d*\.?\d*$/.test(value) || (value.match(/\./g) ?? []).length > 1) return null
+  return value
+}
+
+
 const WORK_OPTIONS: { value: Work; label: string }[] = [
   { value: 'umowa_o_prace', label: 'Umowa o pracę' },
   { value: 'umowa_zlecenia', label: 'Umowa zlecenie' },
@@ -773,7 +781,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                   hint="Wpisz podstawę, od której odprowadzano składki, nie kwotę „na rękę”. To tylko przybliżenie, jeśli podstawa się zmieniała."
                 >
                   {(id) => (
-                    <input id={id} inputMode="decimal" autoComplete="off" placeholder="np. 7000" value={a.gross} onChange={(e) => set('gross', e.target.value)} />
+                    <input id={id} type="number" min="0" max="1000000" step="0.01" inputMode="decimal" autoComplete="off" placeholder="np. 7000" value={a.gross} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('gross', value) }} />
                   )}
                 </Field>
               ) : (
@@ -784,13 +792,19 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                       {(id) => (
                         <input
                           id={id}
+                          type="number"
+                          min="0"
+                          max="1000000"
+                          step="0.01"
                           inputMode="decimal"
                           autoComplete="off"
                           placeholder="puste = brak danych"
                           value={a.monthlyGross[index] ?? ''}
                           onChange={(e) => {
                             const next = [...a.monthlyGross]
-                            next[index] = e.target.value
+                            const value = decimalInput(e.target.value)
+                            if (value === null) return
+                            next[index] = value
                             set('monthlyGross', next)
                           }}
                         />
@@ -820,20 +834,20 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             <TriField label="Czy jest ustalona opieka naprzemienna?" value={a.alternatingCare} onChange={(v) => set('alternatingCare', v)} />
             <TriField label="Czy pobierasz świadczenia rodzinne z innego kraju?" value={a.foreignBenefit} onChange={(v) => set('foreignBenefit', v)} />
             <Field label="Rok, którego dotyczą wpisane dochody">
-              {(id) => <input id={id} inputMode="numeric" placeholder={String(new Date().getFullYear() - 1)} value={a.familyIncomeYear} onChange={(e) => set('familyIncomeYear', e.target.value)} />}
+              {(id) => <input id={id} type="number" min="1900" max={new Date().getFullYear()} step="1" inputMode="numeric" placeholder={String(new Date().getFullYear() - 1)} value={a.familyIncomeYear} onChange={(e) => set('familyIncomeYear', /^\d*$/.test(e.target.value) ? e.target.value : a.familyIncomeYear)} />}
             </Field>
             <Field label="Roczny dochód opodatkowany rodziny (zł)">
-              {(id) => <input id={id} inputMode="decimal" value={a.familyIncomeTaxed} onChange={(e) => set('familyIncomeTaxed', e.target.value)} />}
+              {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.familyIncomeTaxed} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('familyIncomeTaxed', value) }} />}
             </Field>
             <Field label="Roczny dochód nieopodatkowany rodziny (zł)">
-              {(id) => <input id={id} inputMode="decimal" value={a.familyIncomeUntaxed} onChange={(e) => set('familyIncomeUntaxed', e.target.value)} />}
+              {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.familyIncomeUntaxed} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('familyIncomeUntaxed', value) }} />}
             </Field>
             <Field label="Dochód utracony (zł)">
-              {(id) => <input id={id} inputMode="decimal" value={a.familyIncomeLost} onChange={(e) => set('familyIncomeLost', e.target.value)} />
+              {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.familyIncomeLost} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('familyIncomeLost', value) }} />
               }
             </Field>
             <Field label="Dochód uzyskany (zł)">
-              {(id) => <input id={id} inputMode="decimal" value={a.familyIncomeGained} onChange={(e) => set('familyIncomeGained', e.target.value)} />
+              {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.familyIncomeGained} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('familyIncomeGained', value) }} />
               }
             </Field>
             <fieldset className="calc-field">
@@ -916,10 +930,10 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                     {(id) => <input id={id} type="date" value={a.changedBaseDate} onChange={(e) => set('changedBaseDate', e.target.value)} />}
                   </Field>
                   <Field label="Podstawa przed zmianą (zł)">
-                    {(id) => <input id={id} inputMode="decimal" value={a.baseBeforeChange} onChange={(e) => set('baseBeforeChange', e.target.value)} />}
+                    {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.baseBeforeChange} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('baseBeforeChange', value) }} />}
                   </Field>
                   <Field label="Podstawa po zmianie (zł)">
-                    {(id) => <input id={id} inputMode="decimal" value={a.baseAfterChange} onChange={(e) => set('baseAfterChange', e.target.value)} />}
+                    {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.baseAfterChange} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('baseAfterChange', value) }} />}
                   </Field>
                 </>
               )}
@@ -948,7 +962,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
               {(a.work === 'jdg' || a.work === 'wspolpraca_jdg') && (
                 <>
                   <Field label="Zadłużenie składkowe na dzień powstania prawa (zł)">
-                    {(id) => <input id={id} inputMode="decimal" value={a.jdgDebt} onChange={(e) => set('jdgDebt', e.target.value)} />}
+                    {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.jdgDebt} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('jdgDebt', value) }} />}
                   </Field>
                   <p className="calc-hint">Kalkulator nie sprawdza konta ZUS ani nie wystawia zaświadczenia — podaj kwotę z eZUS, jeśli ją znasz.</p>
                 </>
@@ -957,7 +971,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                 {(id) => <input id={id} type="number" min="0" inputMode="numeric" value={a.previousSicknessGap} onChange={(e) => set('previousSicknessGap', e.target.value)} />}
               </Field>
               <Field label="Podstawa poprzedniego zasiłku (zł/mies.)">
-                {(id) => <input id={id} inputMode="decimal" value={a.previousSicknessBase} onChange={(e) => set('previousSicknessBase', e.target.value)} />}
+                {(id) => <input id={id} type="number" min="0" step="0.01" inputMode="decimal" value={a.previousSicknessBase} onChange={(e) => { const value = decimalInput(e.target.value); if (value !== null) set('previousSicknessBase', value) }} />}
               </Field>
               {a.stage === 'urodzone' && (
                 <>
