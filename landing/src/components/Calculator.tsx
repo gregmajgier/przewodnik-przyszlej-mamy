@@ -1130,13 +1130,22 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             <span className="calc-demo-label">Oba zestawy są wyłącznie demonstracyjne (DEMO), nie opisują prawdziwej osoby.</span>
           </div>
         </form>
-        <div className="calc-output" ref={resultRef} tabIndex={-1} aria-live="polite">
+        <div className={`calc-output${state.kind === 'idle' ? ' calc-output-idle' : ''}`} ref={resultRef} tabIndex={-1} aria-live="polite">
           {state.kind === 'idle' && (
             <div className="calc-empty">
-              <div>
+              <div className="calc-empty-copy">
                 <h3>Opowiedz nam o sobie</h3>
                 <p>Po wypełnieniu pól pomożemy Ci znaleźć świadczenia, które mogą przysługiwać Twojej rodzinie. Nie musisz znać wszystkich szczegółów — brakujące informacje pokażemy w wynikach.</p>
               </div>
+            </div>
+          )}
+          {state.kind === 'idle' && (
+            <div className="calc-empty-spirals" aria-hidden="true">
+              {Array.from({ length: 8 }, (_, spiral) => (
+                <svg className="calc-empty-spiral" key={spiral} viewBox="0 0 140 140">
+                  <path d="M 84 18 C 53 10 23 30 18 60 C 12 96 43 124 78 114 C 113 104 126 64 102 39 C 83 19 52 27 43 49 C 34 71 52 89 70 82 C 85 76 86 58 74 50 C 64 43 52 49 53 60" />
+                </svg>
+              ))}
             </div>
           )}
           {state.kind === 'loading' && (
