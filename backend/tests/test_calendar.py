@@ -70,6 +70,15 @@ def test_birth_unlocks_800plus_deadline_3_months():
     assert not any(e.source_ref == "benefit:zas" for e in evs)
 
 
+def test_benefit_deadline_carries_form_code_for_redirect_to_wizard():
+    with_form = ZASILEK.model_copy(update={"form_codes": ["ZAM"]})
+    evs = generate_events(view(expected()), fits(with_form, B800), [], [], TODAY)
+    by_ref = {e.source_ref: e for e in evs if e.source_ref.startswith("benefit:")}
+    assert by_ref["benefit:zas"].form_code == "ZAM"
+    assert by_ref["benefit:zas"].child_id == "c-new"
+    assert by_ref["benefit:800"].form_code is None  # świadczenie bez kreatora — brak przycisku w kalendarzu
+
+
 def test_no_benefit_events_for_status_no():
     evs = generate_events(view(born()), [BenefitWithMatch(benefit=B800, status="no")], [], [], TODAY)
     assert not [e for e in evs if e.kind == "deadline" and e.source_ref.startswith("benefit:")]

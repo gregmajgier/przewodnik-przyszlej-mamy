@@ -70,6 +70,7 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
         return []
     out: list[CalendarEvent] = []
     src = f"benefit:{b.id}"
+    form_code = b.form_codes[0] if b.form_codes else None
     maybe = " Może Ci przysługiwać. Sprawdź warunki." if bm.status == "maybe" else ""
     how = f" {b.how_to_apply}" if b.how_to_apply else ""
 
@@ -79,7 +80,7 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
                 CalendarEvent(
                     id=event_id("deadline", src, None), family_id=family_id, kind="deadline",
                     title=f"{b.name}: ostatni dzień na wniosek", summary=(dl.note or "Złóż wniosek przed terminem.") + how + maybe,
-                    due_date=dl.fixed_date, source_ref=src,
+                    due_date=dl.fixed_date, source_ref=src, form_code=form_code,
                 )
             )
         return out
@@ -117,6 +118,7 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
             CalendarEvent(
                 id=event_id("deadline", src, ch.id), family_id=family_id, kind="deadline", title=title,
                 summary=summary, due_date=due, effect_until=effect_until, source_ref=src, child_id=ch.id,
+                form_code=form_code,
             )
         )
     return out

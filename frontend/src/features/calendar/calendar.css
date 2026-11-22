@@ -316,6 +316,12 @@ button.month-day:active {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.agenda-action {
+  margin-top: 0.4rem;
+}
+.agenda-action .btn {
+  min-height: 44px;
+}
 .agenda-meta {
   list-style: none;
   margin: 0.1rem 0 0;
