@@ -7,12 +7,12 @@ export type ModeName = 'normal' | 'jaskolka'
 export interface FamilyMode {
   mode: ModeName
   since: string | null
-  /** do kiedy można cofnąć zgłoszenie; `null` po upływie okna */
-  undo_until: string | null
   child_id: string | null
+  /** czy zgłoszenie można cofnąć; w trybie jaskółki zawsze tak (bez limitu czasu) */
+  can_undo: boolean
 }
 
-export const NORMAL_MODE: FamilyMode = { mode: 'normal', since: null, undo_until: null, child_id: null }
+export const NORMAL_MODE: FamilyMode = { mode: 'normal', since: null, child_id: null, can_undo: false }
 
 export interface FamilyModeValue {
   mode: FamilyMode
@@ -50,7 +50,7 @@ export function useFamilyMode(): FamilyModeValue {
   return useContext(FamilyModeContext)
 }
 
-/** Czy cofnięcie zgłoszenia jest jeszcze możliwe (okno `undo_until` nie minęło). */
-export function canUndo(mode: FamilyMode, now: Date = new Date()): boolean {
-  return mode.undo_until !== null && now.getTime() <= new Date(mode.undo_until).getTime()
+/** Czy zgłoszenie można cofnąć (backend: zawsze, dopóki rodzina jest w trybie jaskółki). */
+export function canUndo(mode: FamilyMode): boolean {
+  return mode.mode === 'jaskolka' && mode.can_undo
 }

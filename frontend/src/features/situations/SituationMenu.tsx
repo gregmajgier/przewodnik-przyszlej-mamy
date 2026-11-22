@@ -14,16 +14,18 @@ const SITUATION_OPTIONS = [
  * Spokojna, niewyróżniona opcja „Zmiana sytuacji” na karcie dziecka. Jedno kliknięcie w pozycję zgłasza zmianę —
  * bez pól, uzasadnień i pytania „czy na pewno?” (cofnięcie jest możliwe przez kilka dni).
  */
-export function SituationMenu({ child, onChanged }: { child: Child; onChanged: () => void | Promise<void> }) {
+export type LossKind = (typeof SITUATION_OPTIONS)[number]['kind']
+
+export function SituationMenu({ child, onChanged }: { child: Child; onChanged: (kind: LossKind) => void | Promise<void> }) {
   const { refresh } = useFamilyMode()
   const [error, setError] = useState<string | null>(null)
 
-  async function choose(kind: (typeof SITUATION_OPTIONS)[number]['kind']) {
+  async function choose(kind: LossKind) {
     setError(null)
     try {
       await api(`/api/families/me/children/${child.id}/situation`, { method: 'POST', body: { kind } })
       await refresh()
-      await onChanged()
+      await onChanged(kind)
     } catch (e) {
       setError(e instanceof ApiError ? e.detail : 'Nie udało się zapisać zmiany. Spróbuj ponownie.')
     }

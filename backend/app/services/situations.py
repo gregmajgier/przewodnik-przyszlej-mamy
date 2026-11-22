@@ -4,7 +4,7 @@ Zasady (spec §13.2–13.3):
 - zgłosić może każde z rodziców; bez uzasadnień i „czy na pewno?”; operacja jest idempotentna;
 - skutki dla obojga rodziców: szkice wniosków o to dziecko anulowane po cichu (status `cancelled`), wysłane
   wnioski dostają `child_loss_note`, **żadnych powiadomień** (drugi rodzic widzi tryb przy następnym wejściu);
-- cofnięcie możliwe przez `UNDO_WINDOW_DAYS` (domyślnie 7) dni — szkice anulowane wcześniej nie wracają;
+- cofnięcie możliwe w każdej chwili (bez limitu czasu) — szkice anulowane przy zgłoszeniu nie wracają;
 - dziecko nie jest usuwane z profilu; z trybu wychodzi się tylko ręcznie (`exit_mode`), nigdy automatycznie.
 
 Efekty „pochodne” (ukrywanie świadczeń o dziecku, `loss_support`, wyciszanie terminów) liczą moduły dopasowania
@@ -16,10 +16,9 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterable
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, Literal
 
-from ..config import settings
 from ..errors import DomainError
 from ..models.family import Child
 from ..security import Principal
@@ -35,9 +34,6 @@ LOSS_SUPPORT_TAG = "loss_support"
 
 NOT_FOUND_CHILD = "Nie znaleziono takiego dziecka."
 NO_FAMILY = "Nie należysz jeszcze do żadnej rodziny."
-UNDO_EXPIRED = (
-    "Czas na cofnięcie zgłoszenia minął. Możesz wrócić do zwykłego widoku jedną opcją na dole strony."
-)
 NOTHING_TO_UNDO = "Nie ma zgłoszenia, które można cofnąć."
 
 _locks: dict[str, asyncio.Lock] = {}
@@ -174,16 +170,13 @@ async def set_situation(
         return child
 
 
-async def undo_situation(store: Store, principal: Principal, child_id: str, *, now: datetime | None = None) -> Child:
-    """Cofnięcie zgłoszenia w oknie `UNDO_WINDOW_DAYS`. Anulowane szkice nie wracają."""
+async def undo_situation(store: Store, principal: Principal, child_id: str) -> Child:
+    """Cofnięcie zgłoszenia, w każdej chwili (także po wyjściu z trybu). Anulowane szkice nie wracają."""
     family_id = _family_id(principal)
     async with _lock(family_id):
         doc = await _own_child(store, principal, child_id)
         if doc.get("situation") != "loss":
             raise DomainError(409, NOTHING_TO_UNDO)
-        since = _as_dt(doc.get("situation_at"))
-        if since is None or (now or _now()) > since + timedelta(days=settings.undo_window_days):
-            raise DomainError(409, UNDO_EXPIRED)
         doc.update(situation=None, situation_kind=None, situation_at=None, situation_exited_at=None)
         child = await _save(store, doc)
         await _clear_loss_notes(store, family_id, child_id)
@@ -206,9 +199,9 @@ async def set_serious_illness(store: Store, principal: Principal, child_id: str,
     return await _save(store, {**doc, "serious_illness": bool(value)})
 
 
-async def mode_info(store: Store, principal: Principal, *, now: datetime | None = None) -> dict:
-    """Dane dla `GET /api/me/mode`: tryb rodziny, od kiedy, do kiedy można cofnąć i którego dziecka dotyczy."""
-    normal = {"mode": "normal", "since": None, "undo_until": None, "child_id": None}
+async def mode_info(store: Store, principal: Principal) -> dict:
+    """Dane dla `GET /api/me/mode`: tryb rodziny, od kiedy, którego dziecka dotyczy i czy można cofnąć zgłoszenie."""
+    normal = {"mode": "normal", "since": None, "child_id": None, "can_undo": False}
     if not principal.family_id:
         return normal
     active = [d for d in await _children(store, principal.family_id) if mode_active(d)]
@@ -216,11 +209,10 @@ async def mode_info(store: Store, principal: Principal, *, now: datetime | None 
         return normal
     first = min(active, key=lambda d: (_as_dt(d.get("situation_at")) or datetime.max.replace(tzinfo=timezone.utc), d["id"]))
     since = _as_dt(first.get("situation_at"))
-    deadline = since + timedelta(days=settings.undo_window_days) if since else None
-    open_window = deadline is not None and (now or _now()) <= deadline
     return {
         "mode": "jaskolka",
         "since": since.isoformat() if since else None,
-        "undo_until": deadline.isoformat() if open_window and deadline else None,
         "child_id": first["id"],
+        # dziecko w trybie zawsze ma `situation == "loss"`, więc zgłoszenie da się cofnąć bez limitu czasu
+        "can_undo": True,
     }

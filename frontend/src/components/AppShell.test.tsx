@@ -61,6 +61,7 @@ describe('AppShell', () => {
     await userEvent.click(screen.getByRole('button', { name: /konto: anna nowak/i }))
     expect(screen.getByRole('menuitem', { name: 'Rodzina' })).toHaveAttribute('href', '/rodzina')
     expect(screen.getByRole('menuitem', { name: 'Moje dane' })).toHaveAttribute('href', '/dane')
+    expect(screen.getByRole('menuitem', { name: 'Ciężka sytuacja' })).toHaveAttribute('href', '/rodzina')
     await userEvent.click(screen.getByRole('menuitem', { name: /wyloguj/i }))
     expect(session.logout).toHaveBeenCalled()
   })

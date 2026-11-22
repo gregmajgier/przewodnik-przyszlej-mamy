@@ -130,7 +130,7 @@ def test_nowak_family_journey(client, store):
 
     # 7. Piotr przy następnym wejściu widzi ten sam tryb — bez żadnego powiadomienia
     mode = client.get("/api/me/mode", headers=piotr).json()
-    assert mode["mode"] == "jaskolka" and mode["child_id"] == drafted and mode["undo_until"]
+    assert mode["mode"] == "jaskolka" and mode["child_id"] == drafted and mode["can_undo"] is True
     assert len(client.get("/api/notifications", headers=piotr).json()) == notifications_before_loss
 
     # 8. Szkic o to dziecko anulowano po cichu; szkic dla Mai został

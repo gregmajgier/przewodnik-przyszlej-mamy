@@ -406,12 +406,13 @@ Zgłoszenie straty dziecka przełącza **całą rodzinę** w spokojny, monochrom
 
 - **API (parent):** `POST|DELETE /api/families/me/children/{id}/situation {kind}` (`poronienie` | `martwe-urodzenie` |
   `smierc-dziecka`; DELETE = cofnięcie), `POST /api/families/me/mode/exit` („Wróć do zwykłego widoku”, 204),
-  `PATCH /api/families/me/children/{id}/serious-illness {value}`, `GET /api/me/mode → {mode, since, undo_until, child_id}`.
+  `PATCH /api/families/me/children/{id}/serious-illness {value}`, `GET /api/me/mode → {mode, since, child_id, can_undo}`.
   Zwykłe `PATCH /children/{id}` **nie** zmienia już `situation*` (tylko serwis ma skutki uboczne).
 - **Skutki zgłoszenia (obojga rodziców, bez powiadomień):** szkice wniosków o to dziecko → `status: "cancelled"`
   (nie wracają po cofnięciu); wysłane → `child_loss_note`; dziecko zostaje w profilu. Zgłoszenie jest idempotentne
   (pierwsze wygrywa, także przy jednoczesnym zgłoszeniu przez oboje rodziców).
-- **Cofnięcie:** do `UNDO_WINDOW_DAYS` (7) dni — potem 409 po polsku; w trybie zostaje tylko ręczne wyjście. Z trybu
+- **Cofnięcie:** w każdej chwili, bez limitu czasu (także po „Wróć do zwykłego widoku”), z karty dziecka na Rodzinie
+  albo z ekranu „Dla Was”; `can_undo` w `/api/me/mode` jest w trybie zawsze `true`. Anulowane szkice nie wracają. Z trybu
   nie wychodzi się automatycznie.
 - **Reguły dla innych modułów** (czyste funkcje w `situations.py`): `family_mode(children)`, `event_policy(children)`
   (`skip` dla dziecka w sytuacji, `mute` dla pozostałych w trybie — dla `calendar_gen`), `loss_support_applies(tags, children)`
@@ -419,6 +420,13 @@ Zgłoszenie straty dziecka przełącza **całą rodzinę** w spokojny, monochrom
 - **Frontend:** `features/situations` — `useFamilyMode` (kontekst z `/api/me/mode`), `SituationMenu` (jedno kliknięcie, bez
   potwierdzeń; na karcie dziecka w `FamilyPage`), `JaskolkaHome` (lista „Dla Was”; `AppShell` podstawia ją pod `/` w
   trybie i ustawia `data-theme="mono"`), trasa `/dla-was`.
+- **Wejście „Ciężka sytuacja”:** pozycja w menu konta (`AppShell`) prowadzi na `/rodzina` ze stanem
+  `{ hardSituation: true }`; `FamilyPage` pokazuje wtedy na górze czerwoną (token `--danger`) instrukcję zgłoszenia ze
+  skrótami do kart dzieci. Po zgłoszeniu straty albo włączeniu „Za życiem” panel dziecka pokazuje `NewFormsNotice`:
+  „możesz złożyć N wniosków”. Lista (`situations/newForms.ts`) to `form_codes` z checklisty sytuacji w `jaskolka.json`
+  (poronienie → ZAM, Z-12; martwe urodzenie → ZAM, ODPIS-AKTU, Z-12; śmierć dziecka → Z-12; Za życiem → ZA-ZYCIEM),
+  nazwy z `GET /api/wnioski`, akcja: kreator (`/api/applications/forms`) albo pusty PDF (`plik_lokalny`). Kod znika,
+  gdy każde świadczenie z nim ma w `/api/benefits` status `no`. W panelu dziecka po stracie jest „Cofnij zgłoszenie”.
 - **Scenariusz całości:** `backend/tests/test_e2e_nowak.py` (czytaj jak dokumentację).
 
 ## Wygląd i dostępność (konwencje po przeglądzie UX)

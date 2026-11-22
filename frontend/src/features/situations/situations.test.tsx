@@ -46,13 +46,13 @@ function view(children: Child[]): FamilyView {
   }
 }
 
-const IN_WINDOW: FamilyMode = {
+const IN_MODE: FamilyMode = {
   mode: 'jaskolka',
   since: '2026-11-20T10:00:00Z',
-  undo_until: new Date(Date.now() + 3 * 86400000).toISOString(),
   child_id: LOST.id,
+  can_undo: true,
 }
-const AFTER_WINDOW: FamilyMode = { ...IN_WINDOW, undo_until: null }
+const NO_UNDO: FamilyMode = { ...IN_MODE, can_undo: false }
 
 const LOSS_BENEFITS = [
   {
@@ -157,7 +157,7 @@ describe('SituationMenu', () => {
 describe('JaskolkaHome', () => {
   it('pokazuje listę „Dla Was”: tylko świadczenia o stracie z wnioskami wstępnie wypełnionymi', async () => {
     routeApi(BASE_ROUTES)
-    renderHome(IN_WINDOW)
+    renderHome(IN_MODE)
     expect(await screen.findByRole('heading', { name: 'Zasiłek pogrzebowy z ZUS' })).toBeInTheDocument()
     expect(screen.queryByText('Zwykłe świadczenie')).toBeNull() // bez tagu loss_support
     expect(screen.queryByText('Niepasujące wsparcie')).toBeNull() // match.status === no
@@ -170,7 +170,7 @@ describe('JaskolkaHome', () => {
 
   it('nie renderuje zakazanych treści („gratulacje”, 800+, PESEL, plan urlopu, wykrzykniki)', async () => {
     routeApi(BASE_ROUTES)
-    const { container } = renderHome(IN_WINDOW)
+    const { container } = renderHome(IN_MODE)
     await screen.findByRole('heading', { name: 'Zasiłek pogrzebowy z ZUS' })
     await screen.findByRole('link', { name: /Fundacja Nadzieja/ })
     const text = container.textContent ?? ''
@@ -179,7 +179,7 @@ describe('JaskolkaHome', () => {
 
   it('terminy innych dzieci są wyciszone, a o dziecku w sytuacji nie ma ani słowa', async () => {
     routeApi(BASE_ROUTES)
-    renderHome(IN_WINDOW)
+    renderHome(IN_MODE)
     const section = (await screen.findByRole('heading', { name: 'Terminy pozostałych dzieci' })).closest('section') as HTMLElement
     expect(within(section).getByText(/Zapis Mai do szkoły/)).toBeInTheDocument()
     expect(within(section).getByText(/do 01\.03\.2027/)).toBeInTheDocument()
@@ -188,16 +188,16 @@ describe('JaskolkaHome', () => {
 
   it('cofnięcie widać tylko w oknie i działa jednym kliknięciem', async () => {
     const api = routeApi({ ...BASE_ROUTES, 'DELETE /api/families/me/children/c-lost/situation': { ...LOST, situation: null } })
-    const { refresh } = renderHome(IN_WINDOW)
+    const { refresh } = renderHome(IN_MODE)
     const user = userEvent.setup()
     await user.click(await screen.findByRole('button', { name: 'Cofnij zgłoszenie' }))
     expect(api).toHaveBeenCalledWith('/api/families/me/children/c-lost/situation', { method: 'DELETE' })
     await waitFor(() => expect(refresh).toHaveBeenCalled())
   })
 
-  it('po upływie okna nie ma „Cofnij zgłoszenie”, jest tylko wyjście z trybu', async () => {
+  it('gdy backend nie pozwala cofnąć, nie ma „Cofnij zgłoszenie”, jest tylko wyjście z trybu', async () => {
     const api = routeApi({ ...BASE_ROUTES, 'POST /api/families/me/mode/exit': undefined })
-    const { refresh } = renderHome(AFTER_WINDOW)
+    const { refresh } = renderHome(NO_UNDO)
     await screen.findByRole('heading', { name: 'Zasiłek pogrzebowy z ZUS' })
     expect(screen.queryByRole('button', { name: 'Cofnij zgłoszenie' })).toBeNull()
     await userEvent.setup().click(screen.getByRole('button', { name: 'Wróć do zwykłego widoku' }))
@@ -207,17 +207,17 @@ describe('JaskolkaHome', () => {
 
   it('brak benefit/calendar API nie psuje strony (sekcje się nie pokazują)', async () => {
     routeApi({ 'GET /api/families/me': view([MAJA, LOST]) }) // /api/benefits i /api/calendar → 404 z atrapy
-    renderHome(IN_WINDOW)
+    renderHome(IN_MODE)
     expect(await screen.findByText(/Na razie nie ma tu pozycji do pokazania/)).toBeInTheDocument()
     expect(screen.queryByText('Terminy pozostałych dzieci')).toBeNull()
     expect(screen.getByRole('button', { name: 'Wróć do zwykłego widoku' })).toBeInTheDocument()
   })
 
-  it('canUndo uwzględnia okno', () => {
-    expect(canUndo(IN_WINDOW)).toBe(true)
-    expect(canUndo(AFTER_WINDOW)).toBe(false)
+  it('canUndo: w trybie jaskółki zawsze, bez limitu czasu; poza trybem nie', () => {
+    expect(canUndo(IN_MODE)).toBe(true)
+    expect(canUndo({ ...IN_MODE, since: '2020-01-01T00:00:00Z' })).toBe(true)
+    expect(canUndo(NO_UNDO)).toBe(false)
     expect(canUndo(NORMAL_MODE)).toBe(false)
-    expect(canUndo({ ...IN_WINDOW, undo_until: '2020-01-01T00:00:00Z' })).toBe(false)
   })
 })
 
@@ -238,7 +238,7 @@ describe('AppShell w trybie jaskółki', () => {
   const session = () => makeSession({ family: view([MAJA, LOST]) })
 
   it('ustawia motyw mono i pokazuje „Dla Was” zamiast panelu', async () => {
-    routeApi({ ...BASE_ROUTES, 'GET /api/me/mode': IN_WINDOW })
+    routeApi({ ...BASE_ROUTES, 'GET /api/me/mode': IN_MODE })
     renderWithSession(tree(), { route: '/', session: session() })
     expect(await screen.findByRole('heading', { name: 'Dla Was' })).toBeInTheDocument()
     expect(screen.queryByText('Panel z kolorowymi kafelkami')).toBeNull()
@@ -246,7 +246,7 @@ describe('AppShell w trybie jaskółki', () => {
   })
 
   it('inne strony działają normalnie także w trybie', async () => {
-    routeApi({ ...BASE_ROUTES, 'GET /api/me/mode': IN_WINDOW })
+    routeApi({ ...BASE_ROUTES, 'GET /api/me/mode': IN_MODE })
     renderWithSession(tree(), { route: '/rodzina', session: session() })
     expect(await screen.findByText('Strona rodziny')).toBeInTheDocument()
     await waitFor(() => expect(document.documentElement.dataset.theme).toBe('mono'))
@@ -267,7 +267,7 @@ describe('AppShell w trybie jaskółki', () => {
   })
 
   it('przywraca poprzedni motyw po wyjściu z trybu', async () => {
-    const api = routeApi({ ...BASE_ROUTES, 'GET /api/me/mode': IN_WINDOW, 'POST /api/families/me/mode/exit': undefined })
+    const api = routeApi({ ...BASE_ROUTES, 'GET /api/me/mode': IN_MODE, 'POST /api/families/me/mode/exit': undefined })
     renderWithSession(tree(), { route: '/', session: session() })
     await screen.findByRole('heading', { name: 'Dla Was' })
     api.mockImplementation((async (path: string, init?: { method?: string }) => {

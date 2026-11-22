@@ -66,6 +66,17 @@ function UserMenu({ name, onLogout }: { name: string; onLogout: () => void }) {
               {m.label}
             </NavLink>
           ))}
+          {/* zwykły Link (nie NavLink), żeby nie świecić się razem z „Rodzina”; stan pokazuje instrukcję na górze */}
+          <Link
+            to="/rodzina"
+            state={{ hardSituation: true }}
+            role="menuitem"
+            className="user-menu-item"
+            onClick={() => setOpen(false)}
+          >
+            <Icon name="heart" size={20} />
+            Ciężka sytuacja
+          </Link>
           <button type="button" role="menuitem" className="user-menu-item" onClick={onLogout}>
             <Icon name="logout" size={20} />
             Wyloguj
