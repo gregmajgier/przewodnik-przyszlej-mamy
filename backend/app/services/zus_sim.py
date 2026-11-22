@@ -44,6 +44,7 @@ def fetch_zus_data(persona_id: str, today: date) -> ParentProfile:
                 contribution_base=i["contribution_base"],
                 voluntary_sickness=i["voluntary_sickness"],
                 since=today - timedelta(days=i["since_days_ago"]),
+                payer_insured_count=i.get("payer_insured_count"),
             )
             for i in z["insurance"]
         ],

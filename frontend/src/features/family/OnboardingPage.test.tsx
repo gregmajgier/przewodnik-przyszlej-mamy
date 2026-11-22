@@ -184,7 +184,7 @@ describe('OnboardingPage', () => {
     expect(await screen.findByRole('heading', { name: /twoje umowy o pracę/i })).toBeInTheDocument()
     await userEvent.click(await screen.findByRole('button', { name: /pomiń na razie/i }))
 
-    expect(await screen.findByRole('heading', { name: /połącz skrzynkę gmail/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /połącz skrzynkę pocztową/i })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /połącz z gmail/i }))
     expect(await screen.findByText(/połączono: anna.nowak@gmail.com/i)).toBeInTheDocument()
     expect(isOnboarded(ANNA.id)).toBe(false)
@@ -202,6 +202,32 @@ describe('OnboardingPage', () => {
     expect(mocked).not.toHaveBeenCalledWith('/api/families', expect.anything())
   })
 
+  it('pocztę można połączyć także przez Outlook albo dowolny inny adres e-mail', async () => {
+    localStorage.removeItem('mr-mailbox')
+    const mocked = routeApi({ 'GET /api/profile/me': { ...PROFILE, known_children: [] } })
+    renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
+    await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /^dalej/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /^dalej/i }))
+    await userEvent.click(await screen.findByRole('button', { name: /pomiń na razie/i })) // umowy
+    expect(await screen.findByRole('heading', { name: /połącz skrzynkę pocztową/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /połącz z outlook/i })).toBeInTheDocument()
+    expect(screen.getByText('SYMULACJA')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: /inny adres e-mail/i }))
+    const field = screen.getByLabelText(/adres e-mail/i)
+    await userEvent.type(field, 'anna@wp')
+    await userEvent.click(screen.getByRole('button', { name: /^połącz$/i }))
+    expect(screen.getByRole('alert')).toHaveTextContent(/poprawny adres e-mail/i)
+
+    await userEvent.type(field, '.pl')
+    await userEvent.click(screen.getByRole('button', { name: /^połącz$/i }))
+    expect(await screen.findByText(/połączono: anna@wp.pl/i)).toBeInTheDocument()
+    expect(JSON.parse(localStorage.getItem('mr-mailbox') ?? '{}')).toEqual({ provider: 'other', address: 'anna@wp.pl' })
+    // własny adres: bez pytania symulowanej skrzynki Gmaila o adres
+    expect(mocked.mock.calls.some((c) => c[0] === '/api/mail/status')).toBe(false)
+  })
+
   it('Gmail można pominąć', async () => {
     routeApi({ 'GET /api/profile/me': { ...PROFILE, known_children: [] } })
     renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
@@ -209,7 +235,7 @@ describe('OnboardingPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: /^dalej/i }))
     await userEvent.click(await screen.findByRole('button', { name: /^dalej/i }))
     await userEvent.click(await screen.findByRole('button', { name: /pomiń na razie/i })) // umowy
-    expect(await screen.findByRole('heading', { name: /połącz skrzynkę gmail/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /połącz skrzynkę pocztową/i })).toBeInTheDocument()
     await userEvent.click(await screen.findByRole('button', { name: /pomiń na razie/i }))
     expect(await screen.findByText('Strona analizy')).toBeInTheDocument()
   })
@@ -242,7 +268,7 @@ describe('OnboardingPage', () => {
     expect(screen.getByText(/bez\s+wynagrodzenia/i)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))
-    expect(await screen.findByRole('heading', { name: /połącz skrzynkę gmail/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /połącz skrzynkę pocztową/i })).toBeInTheDocument()
   })
 
   it('krok umów: można pominąć bez dodawania, a dodane wcześniej umowy widać od razu z podglądem PDF', async () => {
@@ -256,7 +282,7 @@ describe('OnboardingPage', () => {
     })
     await goToContracts()
     await userEvent.click(await screen.findByRole('button', { name: /pomiń na razie/i }))
-    expect(await screen.findByRole('heading', { name: /połącz skrzynkę gmail/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /połącz skrzynkę pocztową/i })).toBeInTheDocument()
     expect(mocked).not.toHaveBeenCalledWith(expect.stringContaining('/import'), expect.anything())
     unmount()
 

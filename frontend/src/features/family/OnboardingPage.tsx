@@ -14,7 +14,8 @@ import { listDocuments } from '../contracts/documents'
 import type { EmploymentDocument } from '../contracts/types'
 import { AddChildSheet } from './AddChildSheet'
 import { CodeInput } from './CodeInput'
-import { connectGmail } from './gmail'
+import { connectMailbox, isEmail, PROVIDER_LABEL } from './gmail'
+import type { Mailbox } from './gmail'
 import '../../ui/ui.css'
 import '../onboarding/flow.css'
 
@@ -87,7 +88,10 @@ export default function OnboardingPage() {
   const [copied, setCopied] = useState(false)
   const [docs, setDocs] = useState<EmploymentDocument[] | null>(null)
   const [attaching, setAttaching] = useState(false)
-  const [gmail, setGmail] = useState<string | null>(null)
+  const [mailbox, setMailbox] = useState<Mailbox | null>(null)
+  const [otherOpen, setOtherOpen] = useState(false)
+  const [otherAddress, setOtherAddress] = useState('')
+  const [otherError, setOtherError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const firstName = user?.name.split(' ')[0] ?? ''
@@ -229,7 +233,7 @@ export default function OnboardingPage() {
             ? 'Dalej'
             : 'Pomiń na razie'
       : step === 'mail'
-        ? gmail
+        ? mailbox
           ? 'Sprawdź, co Wam przysługuje'
           : 'Pomiń na razie'
         : step === 'family' && mode === 'join' && !family
@@ -252,13 +256,13 @@ export default function OnboardingPage() {
           <>
             <h1 className="flow-title rise">Cześć{firstName ? `, ${firstName}` : ''}! Zacznijmy od rodziny</h1>
             <p className="flow-lead rise" style={{ ['--i' as string]: 1 }}>
-              W jednym miejscu zbierzemy sprawy Twoje, drugiego rodzica i dzieci.
+              W jednym miejscu zbierzemy sprawy Twoje i dzieci, a jeśli zechcesz, także drugiego rodzica.
             </p>
             <div className="choices rise" style={{ ['--i' as string]: 2 }}>
               <Choice
                 icon="home"
                 title="Zakładam rodzinę"
-                sub="Zaprosisz drugiego rodzica kodem"
+                sub="Dla Ciebie i dzieci. Drugiego rodzica możesz zaprosić kodem, teraz albo później"
                 pressed={mode === 'create'}
                 onClick={() => setMode('create')}
               />
@@ -374,7 +378,7 @@ export default function OnboardingPage() {
               Zaproś drugiego rodzica
             </h1>
             <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
-              Wpisze ten kod po zalogowaniu, a Ty zaakceptujesz prośbę. Oboje będziecie widzieć sprawy dzieci.
+              Wpisze ten kod po zalogowaniu i od razu dołączy do rodziny. Oboje będziecie widzieć sprawy dzieci.
             </p>
             {!solo && code && (
               <div className="rise" style={{ ['--i' as string]: 3 }}>
@@ -403,7 +407,7 @@ export default function OnboardingPage() {
                 </span>
                 <span className="choice-main">
                   <span className="choice-title">Wychowuję dzieci samodzielnie</span>
-                  <span className="choice-sub">Zaproszenie możesz wysłać później w zakładce Rodzina</span>
+                  <span className="choice-sub">Drugiego rodzica możesz zaprosić w każdej chwili w zakładce Rodzina</span>
                 </span>
                 <span className="choice-check" aria-hidden="true">
                   <Icon name="check" size={16} stroke={2.6} />
@@ -440,7 +444,7 @@ export default function OnboardingPage() {
               <Icon name="mail" size={40} />
             </div>
             <h1 className="flow-title rise" style={{ ['--i' as string]: 1 }}>
-              Połącz skrzynkę Gmail
+              Połącz skrzynkę pocztową
             </h1>
             <p className="flow-lead rise" style={{ ['--i' as string]: 2 }}>
               Odpowiedzi z ZUS, urzędu i od pracodawcy same zaktualizują status Waszych wniosków. Nie musisz niczego
@@ -451,23 +455,74 @@ export default function OnboardingPage() {
                 <Icon name="eye" size={18} />
                 <span>Czytamy wyłącznie wiadomości w sprawie Waszych wniosków. Prywatna poczta zostaje prywatna.</span>
               </div>
-              {gmail ? (
+              {mailbox ? (
                 <p className="row" style={{ margin: 0, fontWeight: 800, color: 'var(--green)' }}>
-                  <Icon name="checkCircle" size={22} /> Połączono: {gmail}
+                  <Icon name="checkCircle" size={22} /> Połączono: {mailbox.address}
                 </p>
               ) : (
-                <Button
-                  variant="secondary"
-                  leading="mail"
-                  disabled={busy}
-                  onClick={() =>
-                    void run(async () => {
-                      setGmail(await connectGmail())
-                    }, 'Nie udało się połączyć ze skrzynką.')
-                  }
-                >
-                  {busy ? 'Łączę…' : 'Połącz z Gmail'}
-                </Button>
+                <>
+                  <div className="mail-providers" role="group" aria-label="Wybierz pocztę">
+                    {(['gmail', 'outlook'] as const).map((p) => (
+                      <Button
+                        key={p}
+                        variant="secondary"
+                        leading="mail"
+                        disabled={busy}
+                        onClick={() =>
+                          void run(async () => {
+                            setMailbox(await connectMailbox(p))
+                          }, 'Nie udało się połączyć ze skrzynką.')
+                        }
+                      >
+                        Połącz z {PROVIDER_LABEL[p]}
+                      </Button>
+                    ))}
+                    <Button variant="secondary" leading="mail" disabled={busy} aria-expanded={otherOpen} onClick={() => setOtherOpen((o) => !o)}>
+                      Inny adres e-mail
+                    </Button>
+                  </div>
+                  {otherOpen && (
+                    <form
+                      className="stack"
+                      noValidate
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        if (!isEmail(otherAddress)) {
+                          setOtherError('Wpisz poprawny adres e-mail, np. anna@wp.pl.')
+                          return
+                        }
+                        setOtherError(null)
+                        void run(async () => {
+                          setMailbox(await connectMailbox('other', otherAddress))
+                        }, 'Nie udało się połączyć ze skrzynką.')
+                      }}
+                    >
+                      <label className="field">
+                        Adres e-mail (np. Onet, WP, Interia, poczta firmowa)
+                        <input
+                          type="email"
+                          autoComplete="email"
+                          inputMode="email"
+                          value={otherAddress}
+                          aria-invalid={otherError ? true : undefined}
+                          onChange={(e) => setOtherAddress(e.target.value)}
+                        />
+                      </label>
+                      {otherError && (
+                        <p role="alert" className="field-error" style={{ margin: 0 }}>
+                          {otherError}
+                        </p>
+                      )}
+                      <Button type="submit" disabled={busy}>
+                        {busy ? 'Łączę…' : 'Połącz'}
+                      </Button>
+                    </form>
+                  )}
+                  <p className="small muted" style={{ margin: 0 }}>
+                    <span className="badge-sim">SYMULACJA</span> W demo nie logujemy się do prawdziwej skrzynki. W pełnej
+                    wersji zalogujesz się u swojego dostawcy poczty.
+                  </p>
+                </>
               )}
             </div>
           </>

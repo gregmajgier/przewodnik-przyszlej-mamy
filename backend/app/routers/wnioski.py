@@ -2,8 +2,10 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
+
+from ..storage import Store, get_store
 
 DATA = Path(__file__).resolve().parents[1] / "data"
 
@@ -45,7 +47,28 @@ def zmienne():
 
 
 @router.get("/parametry")
-def parametry():
-    """Stawki i limity z reguly_uprawnien.json (docelowo edytowane w panelu admina)."""
+async def parametry(store: Store = Depends(get_store)):
+    """Stawki i limity silnika, z aktywnymi (demonstracyjnymi) zmianami panelu."""
     reguly = _load("reguly_uprawnien.json")
-    return {"drzewo": reguly["parametry_drzewo"], "lista": reguly["parametry"]}
+    from ..services.national_parameters import apply_overrides
+    drzewo = apply_overrides(reguly["parametry_drzewo"], await _stored_overrides(store))
+    lista = []
+    for item in reguly["parametry"]:
+        item_copy = dict(item)
+        item_copy["wartosc"] = _value_at_path(drzewo, item["sciezka"], item["wartosc"])
+        lista.append(item_copy)
+    return {"drzewo": drzewo, "lista": lista}
+
+
+async def _stored_overrides(store: Store) -> dict:
+    doc = await store.get("engine_parameters", "national-active")
+    return doc.get("overrides", {}) if doc else {}
+
+
+def _value_at_path(tree: dict, path: str, fallback):
+    node = tree
+    for part in path.split("."):
+        if not isinstance(node, dict) or part not in node:
+            return fallback
+        node = node[part]
+    return node

@@ -22,7 +22,14 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
   const { benefit, match } = item
   const cat = catMeta(categoryOf(benefit))
   const why = match.status === 'no' ? match.unmet : match.reasons
-  const form = match.status !== 'no' ? benefit.form_codes[0] : undefined
+  const payouts = item.payouts ?? []
+  // Gdy wiemy, kto wypłaca, wniosek zależy od tytułu ubezpieczenia (np. pracownik na zwolnieniu nic nie składa).
+  const form =
+    match.status === 'no'
+      ? undefined
+      : payouts.length > 0
+        ? (payouts.find((p) => p.form_code)?.form_code ?? undefined)
+        : benefit.form_codes[0]
   // świadczenie na jedno dziecko: kreator od razu zna dziecko
   const onlyChild = benefit.per_child && match.child_ids?.length === 1 ? match.child_ids[0] : undefined
   const childParam = onlyChild ? `&child=${encodeURIComponent(onlyChild)}` : ''
@@ -74,7 +81,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
 
         {why.length > 0 && (
           <section>
-            <h3>{match.status === 'no' ? 'Dlaczego nie teraz' : 'Dlaczego Wam pasuje'}</h3>
+            <h3>{match.status === 'no' ? 'Dlaczego nie teraz' : 'Co już wiemy'}</h3>
             <ul className="bsheet-why">
               {why.map((r) => (
                 <li key={r}>
@@ -103,6 +110,27 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
               </div>
             ))}
             <p className="small muted">Zapamiętamy odpowiedź i nie zapytamy drugi raz.</p>
+          </section>
+        )}
+
+        {match.status !== 'no' && payouts.length > 0 && (
+          <section aria-labelledby="bsheet-payout-h">
+            <h3 id="bsheet-payout-h">Kto wypłaci zasiłek i gdzie złożyć dokumenty</h3>
+            <ul className="bsheet-payouts">
+              {payouts.map((p) => (
+                <li key={`${p.parent_name}-${p.title}-${p.payer}`} className={`bsheet-payout is-${p.paid_by}`}>
+                  <p className="bsheet-payout-head">
+                    <Icon name={p.paid_by === 'none' ? 'info' : 'briefcase'} size={18} />
+                    {p.headline}
+                  </p>
+                  <p className="bsheet-payout-meta">
+                    {p.parent_name} · {p.title} · {p.payer}
+                  </p>
+                  <p>{p.why}</p>
+                  <p>{p.where}</p>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

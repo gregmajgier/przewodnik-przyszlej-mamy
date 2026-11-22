@@ -6,6 +6,7 @@ import type { FieldValue, ToFrame } from './agentBridge'
 import { coerceFill, initialValues } from './portalSchema'
 import type { PortalField, PortalSchema } from './portalSchema'
 import './portal-sim.css'
+import { openNativePicker } from '../../ui/nativePicker'
 
 const domId = (fieldId: string) => `sim-field-${fieldId}`
 const KIND_NAME: Record<PortalKind, string> = { pue: 'PUE ZUS', empatia: 'Emp@tia' }
@@ -213,7 +214,7 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
             return (
               <div key={f.id} className={cls}>
                 {f.type === 'bool' ? (
-                  <label className="row">
+                  <label className="sim-check">
                     <input
                       {...common}
                       type="checkbox"
@@ -240,7 +241,11 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
                     ) : (
                       <input
                         {...common}
-                        type={f.type === 'date' ? 'date' : 'text'}
+                        type={f.type === 'date' ? 'date' : /kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(f.label) ? 'number' : 'text'}
+                        min={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(f.label) ? 0 : undefined}
+                        step="0.01"
+                        inputMode={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(f.label) ? 'decimal' : undefined}
+                        onClick={f.type === 'date' ? (e) => openNativePicker(e.currentTarget) : undefined}
                         value={String(values[f.id] ?? '')}
                         autoComplete="off"
                         onChange={(e) => edit(f, e.target.value)}

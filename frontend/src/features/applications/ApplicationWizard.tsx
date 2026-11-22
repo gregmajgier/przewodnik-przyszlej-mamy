@@ -103,7 +103,15 @@ function DoneStep({ app }: { app: Application }) {
             </p>
           )}
           {app.channel === 'portal_agent' && <p>Złożyliśmy go przez formularz online. Odpowiedź urzędu pokaże się tutaj.</p>}
-          {app.channel === 'pdf_download' && <p>Oznaczyliśmy go jako złożony samodzielnie.</p>}
+          {app.channel === 'pdf_download' && (
+            <p>
+              {app.recipient_domain === 'zus.pl'
+                ? 'Złożyliśmy go w ZUS przez PUE ZUS (symulacja). Odpowiedź urzędu pokaże się tutaj.'
+                : app.recipient_domain
+                  ? 'Złożyliśmy go w elektronicznej skrzynce urzędu (symulacja). Odpowiedź pokaże się tutaj.'
+                  : 'Wniosek jest złożony. Zachowaj PDF na wypadek pytań z urzędu.'}
+            </p>
+          )}
           <div className="row">
             <Button to="/kalendarz" leading="calendar" variant="secondary">
               Zobacz w kalendarzu
@@ -214,7 +222,14 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
             <Button to="/wnioski" variant="secondary" leading="arrowLeft">
               Wróć do wniosków
             </Button>
-            <Button to={app ? `/wnioski/nowy?form=${encodeURIComponent(app.form_code)}` : '/wnioski/nowy'} leading="plus">
+            <Button
+              to={
+                app
+                  ? `/wnioski/nowy?form=${encodeURIComponent(app.form_code)}${app.child_id ? `&child=${encodeURIComponent(app.child_id)}` : ''}`
+                  : '/wnioski/nowy'
+              }
+              leading="plus"
+            >
               Nowy wniosek
             </Button>
           </div>

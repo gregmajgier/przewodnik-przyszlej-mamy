@@ -279,6 +279,20 @@ def test_ask_condition_answered_false_no():
     assert any("zameldowanie" in u.lower() for u in result.unmet)
 
 
+def test_negated_ask_condition_inverts_the_answer():
+    cond = Condition(
+        id="bez-zasilku",
+        text="Nie przysługuje zasiłek macierzyński",
+        kind="ask",
+        question="Czy przysługuje ci zasiłek macierzyński?",
+        negate=True,
+    )
+    b = benefit(id="sr", conditions=[cond])
+    assert match_benefit(ctx([]), b).questions[0].text == "Czy przysługuje ci zasiłek macierzyński?"
+    assert match_benefit(ctx([], answers={"benefit:sr:bez-zasilku": False}), b).status == "fits"
+    assert match_benefit(ctx([], answers={"benefit:sr:bez-zasilku": True}), b).status == "no"
+
+
 def test_auto_condition_uses_profile_key():
     cond = Condition(id="ill", text="Dziecko z ciężką chorobą", kind="auto", profile_key="family.child_serious_illness")
     b = benefit(conditions=[cond])
