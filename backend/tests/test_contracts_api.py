@@ -39,8 +39,7 @@ def family_with_partner(c):
     anna = login(c, "persona-nowak-anna")
     code = c.post("/api/families", headers=anna).json()["family"]["invite_code"]
     piotr = login(c, "persona-nowak-piotr")
-    req = c.post("/api/families/join", json={"code": code}, headers=piotr).json()
-    c.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=anna)
+    assert c.post("/api/families/join", json={"code": code}, headers=piotr).status_code == 201
     due = (date.today() + timedelta(days=60)).isoformat()
     c.post("/api/families/me/children", json={"name": "Maluszek", "due_date": due}, headers=anna)
     return anna, piotr
@@ -167,7 +166,7 @@ def test_family_isolation_lists(env, store):
     _, c, fake = env
     anna, piotr = family_with_partner(c)
     scan_and_confirm(c, fake, anna, draft())
-    # Piotr opuszcza rodzinę (symulacja innej rodziny): przenosimy go do osobnej rodziny w bazie
+    # Piotr opuszcza rodzinę (przykład innej rodziny): przenosimy go do osobnej rodziny w bazie
     user = asyncio.run(store.get("users", "user-nowak-piotr"))
     asyncio.run(store.put("users", {**user, "family_id": "family-other"}))
     asyncio.run(store.put("families", {"id": "family-other", "name": "Inna", "owner_id": "user-nowak-piotr",

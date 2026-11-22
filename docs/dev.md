@@ -3,7 +3,7 @@
 ## Szybki start Windows (bez Azure)
 
 Wszystko działa lokalnie bez żadnej konfiguracji: dane w pamięci procesu (`MemoryStore`),
-symulowany mObywatel/ZUS.
+demonstracyjne dane mObywatela/ZUS.
 
 Wymagania: Python 3.12+, Node 22+.
 Jeśli PowerShell nie rozpoznaje `node`, a Node jest zainstalowany w standardowym katalogu, dodaj go do `PATH`:
@@ -48,8 +48,9 @@ Wymień `py -3 -m venv .venv` na `python3 -m venv .venv`, a polecenia
 
 ## Persony i konta
 
-- **Rodzice (symulowany mObywatel)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży, e-ZLA kod B)
-  i `persona-nowak-piotr` (tata). Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
+- **Rodzice (mObywatel i Profil Zaufany w wersji demonstracyjnej)** — ekran `/logowanie`: `persona-nowak-anna` (mama, w ciąży,
+  e-ZLA kod B) i `persona-nowak-piotr` (tata). Obie opcje korzystają z tych samych przykładowych profili; rzeczywiste
+  logowanie zewnętrzne wymaga osobnej integracji. Dane z „ZUS” powstają przy pierwszym logowaniu, daty względem dnia
   uruchomienia. Nowe persony = nowy wpis w `backend/app/seed/personas.py`.
 - **Urzędnicy** (`POST /api/auth/official`): `urzednik.krakow@mrodzina.local` (gmina Kraków) i
   `urzednik.malopolska@mrodzina.local` (województwo). W trybie `dev` hasło to `demo1234`
@@ -195,9 +196,11 @@ limity: zakresy dat `od ≤ do` i najwyżej 3 lata, listy do 50 pozycji (inaczej
 **Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, adapter `calcEngine.ts`) obsługuje ciążę
 (osobno bieżące uprawnienia i prognozę po porodzie), dziecko urodzone oraz adopcję/rodzinę zastępczą niezawodową.
 Zbiera m.in. dokładne daty ubezpieczenia i osobne podstawy składek obojga rodziców, skład rodziny i dochód, miejsce
-zamieszkania, e-ZLA, dane o wcześniactwie/„Za życiem” oraz plan łączenia urlopu z pracą. Miesięczne podstawy są
-przypisane do konkretnych miesięcy przed terminem porodu; puste wartości pozostają nieznane, nie są zastępowane
-szacunkiem. Silnik zwraca statusy (także „brak danych” i niespełnione warunki), kwoty, ryzyka, wymagane wnioski i terminy;
+zamieszkania, e-ZLA, dane o wcześniactwie/„Za życiem” oraz plan łączenia urlopu z pracą (także przy adopcji).
+Miesięczne podstawy są przypisane do konkretnych miesięcy przed terminem porodu; miesiące przed objęciem
+ubezpieczeniem są pomijane, a puste miesiące objęte ubezpieczeniem pozostają nieznane i nie są zastępowane
+szacunkiem. Bieżący profil ciąży nie udaje już profilu po porodzie; prognoza po porodzie jest liczona osobno.
+Silnik zwraca statusy (także „brak danych” i niespełnione warunki), kwoty, ryzyka, wymagane wnioski i terminy;
 landing nie wylicza kwot samodzielnie ani nie zapisuje danych.
 
 Miasto i gmina wskazują właściwy urząd w podsumowaniu, ale aktualny katalog lokalnych programów nie jest podłączony.
@@ -222,7 +225,7 @@ Rozgałęzienie z diagramu: pracownik → najpierw wniosek o urlop u pracodawcy,
 **Przepływ:** `POST /api/applications {form_code, child_id?, channel?}` → szkic z prefillem (`services/prefill.py`:
 profil ZUS, odpowiedzi zapisane w profilu, dziecko) → `needs_input` + lista `missing`, gdy czegoś brakuje (nigdy puste pole
 w PDF) → `POST /{id}/answers` (odpowiedź zapisuje się w profilu; PESEL dziecka przy dziecku) → `GET /{id}/pdf` (podgląd) →
-`POST /{id}/sign` (**symulowany** Profil Zaufany) → `POST /{id}/submit`. Zasady:
+`POST /{id}/sign` (testowy podpis Profilem Zaufanym) → `POST /{id}/submit`. Zasady:
 
 - Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje (403).
   Cudzy wniosek lub dziecko cudzej rodziny → 404.
@@ -244,7 +247,7 @@ nie trafia do planu; brak wymaganej wartości → `blocked`, nigdy zgadywanie. B
 handler demo (`app/seed/demo_agent.py`).
 
 Frontend (`features/portal-sim`): makiety `/sim/ezus/:portalId` i `/sim/empatia/:portalId` (trasy publiczne, wyraźny
-znacznik „SYMULACJA”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
+znacznik „DANE TESTOWE”, kolor `--ai`) renderują pola z `GET /api/applications/portals/{id}`. `AgentFrame` osadza je w
 `<iframe>`, wykonuje plan krok po kroku z widocznym kursorem, zatrzymuje się na brakach (pyta rodzica) i przed wysyłką;
 dopiero „Zatwierdzam i wysyłam” wysyła, a po `submitted` woła `portal-submitted`. Protokół `postMessage`
 (`agentBridge.ts`): aplikacja → makieta `fill`/`submit`, makieta → aplikacja `ready`/`ack`/`edited`/`invalid`/`submitted`.
@@ -259,8 +262,8 @@ z jawnym `targetOrigin`. Makieta odrzuca pola spoza schematu i wartości niezgod
    (`services/prefill.py`).
 3. Kod musi istnieć w `katalog_wnioskow_pdf.json`; kanały wynikają z powyższej tabeli.
 
-**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis, poczta
-i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
+**Ograniczenia:** wzory wniosków do pracodawcy wymagają weryfikacji prawnej przed użyciem produkcyjnym; podpis i poczta
+korzystają z trybu testowego, a portale są makietami; linki „Zobacz w kalendarzu” i „Zobacz pocztę” w ostatnim kroku kreatora (`/kalendarz`,
 `/poczta`) działają dopiero po wdrożeniu planu 09.
 
 ## Umowy i ostrzeżenia o ryzyku (plan 04)
@@ -280,7 +283,7 @@ i portale są symulacjami; linki „Zobacz w kalendarzu” i „Zobacz pocztę�
 o pracę i umowę zlecenia. `GET /api/contracts/documents` — lista umów zalogowanego rodzica,
 `GET /api/contracts/documents/{id}/pdf` — PDF generowany na żądanie (`services/employment_docs.py`, nic nie
 przechowujemy), `POST /api/contracts/documents/{id}/import` — dodaje umowę jako zatwierdzoną (idempotentnie).
-W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (SYMULACJA — dane
+W onboardingu przycisk „Załącz umowy” wrzuca obie umowy i pokazuje poglądowy odczyt przez AI (DANE PRZYKŁADOWE — dane
 pochodzą z persony, model nie jest wołany). Asystent czatu widzi umowy w `profil_rodziny` (bez wynagrodzenia) i może
 cytować ich paragrafy narzędziem `tresc_umowy` — tylko umowy własne, bez paragrafu o wynagrodzeniu.
 
@@ -325,7 +328,7 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
 
 ## Poczta, statusy wniosków, kalendarz i powiadomienia (plan 09)
 
-- **Poczta symulowana, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
+- **Poczta testowa, domyślnie podłączona** (`/poczta`, ustawienia `/poczta/ustawienia` — „Gmail podłączony”).
   Skrzynka rodziny ma też 6 maili niezwiązanych (sklep, szkoła, przychodnia…), które filtr pomija.
 - **Filtr** (`services/mail_filter.py`): czytamy wątek wniosku, dokładny adres odbiorcy oraz domenę tylko dla
   instytucji (`zus.pl`, `gov.pl`, domeny z katalogu, `um.krakow.pl`) — nigdy całych domen publicznych
@@ -341,10 +344,13 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   tokeny z dziennego budżetu AI. Ręcznie: „Sprawdź pocztę” (`POST /api/mail/sync`, za `ai_guard`).
 - **Kalendarz** (`/kalendarz`, widżet „Najbliższe terminy”, narzędzie MCP `kalendarz`): terminy świadczeń względem
   porodu/urodzenia, złożone wnioski („kto złożył”, do kogo, status), termin porodu i ostrzeżenia z ryzyk (plan 04).
-  Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
-  oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
+  Przy wnioskach data oznacza utworzenie szkicu albo złożenie, nie termin końcowy; dopóki brak decyzji, koniec sprawy
+  nie ma znanej daty. Po złożeniu wykonana czynność trafia do „Zrobione”, a status sprawy pozostaje widoczny.
+  Terminy świadczeń na dziecko generują się tylko dla dzieci spełniających kryteria wieku. Wpisy mają stałe `id`
+  (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są oznaczone „po terminie”.
+  Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
   „Wkrótce”.
-- **Wysyłka wniosku uruchamia symulację odpowiedzi:** `ApplicationService.submit` (e-mail do pracodawcy) i
+- **Wysyłka wniosku uruchamia przygotowanie odpowiedzi testowej:** `ApplicationService.submit` (e-mail do pracodawcy) i
   `portal_submitted` (eZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają
   `mail.sim_inbox.schedule_reply`. Scenariusz: Anna składa wniosek w `/wnioski` → `/poczta` → „Symuluj odpowiedzi” →
   status „Zaakceptowany”, powiadomienia, wpis w kalendarzu. Wiadomości (wysłane i odebrane) to jeden model
@@ -414,3 +420,26 @@ Zgłoszenie straty dziecka przełącza **całą rodzinę** w spokojny, monochrom
   potwierdzeń; na karcie dziecka w `FamilyPage`), `JaskolkaHome` (lista „Dla Was”; `AppShell` podstawia ją pod `/` w
   trybie i ustawia `data-theme="mono"`), trasa `/dla-was`.
 - **Scenariusz całości:** `backend/tests/test_e2e_nowak.py` (czytaj jak dokumentację).
+
+## Wygląd i dostępność (konwencje po przeglądzie UX)
+
+- **Kolory.** Czysty róż marki `#EF4363` (`--pink`, `--brand`) ma na bieli kontrast tylko 3,7:1 (WCAG AA wymaga 4,5:1). Tło
+  pod białym tekstem (przyciski `.btn`, plakietki z liczbą, „Zapytaj”, wysyłka w czacie) bierze `--primary: #C8234A`,
+  drobny tekst w kolorze marki na jasnym tle `--pink-700`. Czysty róż zostaje dla logo, wordmarku, ekranów przejściowych
+  i dekoracji. Nie wpisuj kolorów w komponentach, używaj tokenów z `theme.css`.
+- **Nawigacja.** Panel główny z kafelkami i przycisk „wstecz” na podstronach (bez dolnego paska zakładek).
+- **Cele dotyku ≥ 44 px**: przyciski, samodzielne linki, pola formularzy i `summary`. Tekst plakietek i etykiet nie jest
+  mniejszy niż 0,875rem (ok. 15 px).
+- **Szerokość.** Żadna podstrona nie może się przewijać w bok: siatki używają `minmax(0, …)`, a długie wartości
+  `overflow-wrap`.
+- **Fonty** (Nunito, Sniglet) są hostowane lokalnie przez pakiety `@fontsource/*` (importy w `main.tsx`), bez Google Fonts:
+  działają offline i nie ujawniają adresu IP użytkownika Google. Polskie znaki wymagają importu podzbioru `latin-ext`.
+- **Teksty.** Bez długich myślników (—) w tekstach widocznych dla użytkownika: zdanie rozdziel kropką, przecinkiem albo
+  dwukropkiem.
+- **Wdrożenie (Azure Static Web Apps).** `frontend/public/staticwebapp.config.json` przekierowuje trasy aplikacji na
+  `index.html` (inaczej odświeżenie `/kalendarz` albo ramka agenta `/sim/...` dają 404).
+- **Terminy w podsumowaniu i kalendarzu.** „Najbliższy termin” bierze pod uwagę także kamienie milowe ciąży i porodu
+  (`services/milestones.py`: zaświadczenie lekarskie dla pracodawcy, zgłoszenie urodzenia w USC), a kalendarz pokazuje też
+  terminy „po porodzie” (urlop rodzicielski, 800+) liczone orientacyjnie od przewidywanego porodu.
+- **Czat w trybie demo** odpowiada konkretnie (kwota, sytuacja rodziny, jak złożyć wniosek, oficjalne źródło) z katalogu
+  świadczeń; narzędzie MCP `swiadczenia` przyjmuje `query` i zwraca wtedy tylko najtrafniejsze pozycje z opisem.

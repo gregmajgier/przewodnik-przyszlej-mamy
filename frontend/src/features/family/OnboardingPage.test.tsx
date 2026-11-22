@@ -104,12 +104,23 @@ describe('OnboardingPage', () => {
     expect(await screen.findByRole('heading', { name: /wasze dzieci/i })).toBeInTheDocument()
   })
 
-  it('krok 1: „Dołączam do rodziny” prowadzi do wpisania kodu', async () => {
-    routeApi({})
-    renderWithSession(<Tree />, { route: '/start', session: makeSession() })
+  it('krok 1: „Dołączam do rodziny” z kodem od razu dołącza i przechodzi do dzieci', async () => {
+    const mocked = routeApi({
+      'POST /api/families/join': { status: 'accepted' },
+      'GET /api/profile/me': PROFILE,
+    })
+    const session = makeSession()
+    renderWithSession(<Tree />, { route: '/start', session })
     await userEvent.click(screen.getByRole('button', { name: /dołączam do rodziny/i }))
-    await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))
-    expect(await screen.findByText('Strona dołączania')).toBeInTheDocument()
+    const join = screen.getByRole('button', { name: /dołącz do rodziny/i })
+    expect(join).toBeDisabled() // bez kodu nie ma czego wysłać
+    await userEvent.type(screen.getByLabelText('Kod zaproszenia'), 'ab12cd34')
+    await userEvent.click(join)
+    await waitFor(() =>
+      expect(mocked).toHaveBeenCalledWith('/api/families/join', { method: 'POST', body: { code: 'AB12CD34' } }),
+    )
+    expect(session.refresh).toHaveBeenCalled()
+    expect(await screen.findByRole('heading', { name: /wasze dzieci/i })).toBeInTheDocument()
   })
 
   it('krok 2: dzieci z rejestrów są zaznaczone, zapisujemy tylko wybrane', async () => {
@@ -191,7 +202,7 @@ describe('OnboardingPage', () => {
     })
     renderWithSession(<Tree />, { route: '/start', session: makeSession({ family: FAMILY_VIEW }) })
     await goToContracts()
-    expect(screen.getByText('SYMULACJA')).toBeInTheDocument()
+    expect(screen.getByText('DANE PRZYKŁADOWE')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /pomiń na razie/i })).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /załącz umowy/i }))
@@ -206,7 +217,7 @@ describe('OnboardingPage', () => {
     const uz = screen.getByRole('article', { name: 'Umowa zlecenia' })
     expect(uz).toHaveTextContent('Zleceniodawca')
     expect(uz).toHaveTextContent('Fundacja Rodzinny Kraków')
-    expect(uz).toHaveTextContent('dobrowolne — tak')
+    expect(uz).toHaveTextContent('dobrowolne, opłacane')
     expect(screen.getByText(/bez\s+wynagrodzenia/i)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: /^dalej/i }))

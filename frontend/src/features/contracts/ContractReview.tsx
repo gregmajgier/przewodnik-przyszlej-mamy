@@ -31,7 +31,7 @@ function Field({ name, missing, children }: { name: string; missing: boolean; ch
       {children}
       {missing && (
         <span className="field-missing-note" id={`contract-${name}-note`}>
-          Nie udało się odczytać — uzupełnij.
+          Nie udało się odczytać. Uzupełnij.
         </span>
       )}
     </div>
@@ -95,7 +95,7 @@ export function ContractReview({
             value={d.kind ?? ''}
             onChange={(e) => set('kind', (e.target.value || null) as ContractKind | null)}
           >
-            <option value="">— wybierz —</option>
+            <option value="">Wybierz</option>
             {(Object.keys(KIND_LABEL) as ContractKind[]).map((k) => (
               <option key={k} value={k}>
                 {KIND_LABEL[k]}
@@ -146,7 +146,7 @@ export function ContractReview({
               value={d.indefinite === null ? '' : d.indefinite ? 'yes' : 'no'}
               onChange={(e) => set('indefinite', e.target.value === '' ? null : e.target.value === 'yes')}
             >
-              <option value="">— wybierz —</option>
+              <option value="">Wybierz</option>
               <option value="yes">Tak, na czas nieokreślony</option>
               <option value="no">Nie, na czas określony</option>
             </select>

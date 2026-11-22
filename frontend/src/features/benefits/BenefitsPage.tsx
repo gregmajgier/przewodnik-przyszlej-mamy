@@ -53,7 +53,7 @@ export default function BenefitsPage() {
     <div className="page benefits">
       <PageHeader title="Baza świadczeń" eyebrow="Pieniądze, urlopy i ulgi">
         <p className="muted benefits-lead">
-          Wszystko, co przysługuje rodzinom w Polsce i w Twojej gminie — z dopasowaniem do Waszej sytuacji.
+          Wszystko, co przysługuje rodzinom w Polsce i w Twojej gminie, z dopasowaniem do Waszej sytuacji.
         </p>
       </PageHeader>
 
@@ -75,17 +75,27 @@ export default function BenefitsPage() {
             {annual > 0 && (
               <div className="benefits-summary-wide">
                 <span className="benefits-summary-num">{formatPln(annual)}</span>
-                <span>rocznie, szacunkowo — z tego, co już pasuje</span>
+                <span>rocznie, szacunkowo, z tego, co już pasuje</span>
               </div>
             )}
-            <div>
+            <button
+              type="button"
+              aria-label="Pokaż świadczenia, które pasują do Was"
+              aria-pressed={view === 'yours'}
+              onClick={() => setView('yours')}
+            >
               <span className="benefits-summary-num">{fits.length}</span>
               <span>pasuje do Was</span>
-            </div>
-            <div>
+            </button>
+            <button
+              type="button"
+              aria-label="Pokaż świadczenia do sprawdzenia"
+              aria-pressed={view === 'check'}
+              onClick={() => setView('check')}
+            >
               <span className="benefits-summary-num">{maybe.length}</span>
               <span>do sprawdzenia</span>
-            </div>
+            </button>
           </section>
 
           {featured.length > 0 && view === 'yours' && cat === 'all' && !query && (

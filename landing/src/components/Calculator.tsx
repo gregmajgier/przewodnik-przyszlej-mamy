@@ -5,6 +5,7 @@ import {
   SHOWN,
   buildRequest,
   defaultDueDate,
+  isoDate,
   maternityVariants,
   needsPay,
   plDate,
@@ -27,7 +28,7 @@ import type {
 } from './calcEngine'
 import '../calculator.css'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 const WORK_OPTIONS: { value: Work; label: string }[] = [
   { value: 'umowa_o_prace', label: 'Umowa o pracę' },
@@ -88,11 +89,24 @@ function Choice<T extends string>({
   )
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: (id: string) => ReactNode }) {
+function Field({
+  label,
+  hint,
+  required = false,
+  children,
+}: {
+  label: string
+  hint?: string
+  required?: boolean
+  children: (id: string) => ReactNode
+}) {
   const id = useId()
   return (
     <div className="calc-field">
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>
+        {label}
+        {required && <span className="calc-required"><span aria-hidden="true">➜</span> wymagane</span>}
+      </label>
       {children(id)}
       {hint && <p className="calc-hint">{hint}</p>}
     </div>
@@ -199,7 +213,7 @@ function BenefitCard({ b, compact = false }: { b: Benefit; compact?: boolean }) 
         </ul>
       )}
       {b.brakujace_zmienne.length > 0 && b.status === 'brak_danych' && (
-        <p className="calc-note">Do potwierdzenia: {b.brakujace_zmienne.map(missingLabel).join(', ')}.</p>
+        <p className="calc-note"><strong>Potrzebne informacje:</strong> {b.brakujace_zmienne.map(missingLabel).join(', ')}.</p>
       )}
       {b.informacje.map((info) => <p className="calc-note" key={info}>{info}</p>)}
       {b.wyliczenie?.uwagi.map((note) => <p className="calc-note" key={note}>{note}</p>)}
@@ -232,20 +246,17 @@ function ApplicationCard({ application }: { application: RequiredApplication }) 
 function Results({
   summaries,
   appUrl,
-  location,
   adoption,
   childLoss,
 }: {
   summaries: { title: string; summary: Summary }[]
   appUrl: string
-  location: string
   adoption: boolean
   childLoss: boolean
 }) {
   return (
     <div className="calc-results">
       <h3>Wynik dopasowany do podanych danych</h3>
-      <p className="calc-lead">To symulacja, nie decyzja ZUS. Niepełne dane oznaczamy zamiast zgadywać uprawnienia lub kwoty.</p>
       {summaries.map(({ title, summary }) => (
         <section className="calc-result-section" key={title} aria-label={title}>
           <h4 className="calc-result-title">{title}</h4>
@@ -271,7 +282,7 @@ function Results({
           )}
           {summary.maybe.length > 0 && (
             <div className="calc-block">
-              <h5>Niepewne lub niepełne dane</h5>
+              <h5>Możliwe świadczenia — brakuje informacji</h5>
               <ul className="calc-cards">
                 {summary.maybe.map((b) => <BenefitCard key={b.id} b={b} />)}
               </ul>
@@ -322,15 +333,6 @@ function Results({
           )}
         </section>
       ))}
-      {location && (
-        <div className="calc-block calc-local">
-          <h4>Właściwa lokalizacja: {location}</h4>
-          <p>
-            Wnioski obsługuje urząd właściwy dla miejsca zamieszkania. Nie pokazujemy tu kwot lokalnych programów bez
-            potwierdzonego, aktualnego katalogu gminy — sprawdź je w swoim urzędzie lub OPS.
-          </p>
-        </div>
-      )}
       {childLoss && (
         <div className="calc-block calc-support">
           <h4>Nie musisz szukać wsparcia samodzielnie</h4>
@@ -373,7 +375,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
   const [a, setA] = useState<Answers>({
     role: 'matka',
     stage: 'ciaza',
-    date: defaultDueDate(),
+    date: '',
     childBirthDate: '',
     adoptionKind: 'przysposobienie',
     courtDate: '',
@@ -456,19 +458,42 @@ export function Calculator({ appUrl }: { appUrl: string }) {
     | { kind: 'error'; message: string }
     | { kind: 'done'; summaries: { title: string; summary: Summary }[] }
   >({ kind: 'idle' })
+  const initialAnswers = useRef(a)
   const resultRef = useRef<HTMLDivElement>(null)
+  const calculationId = useRef(0)
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((prev) => ({ ...prev, [k]: v }))
   const insured = INSURED.includes(a.work)
   const asksSickness = insured && a.work !== 'umowa_o_prace'
   const payRequired = needsPay(a)
   const childLoss = a.stage === 'urodzone' && a.childStatus !== 'zywe'
-  const location = [a.municipality, a.city, a.voivodeship].filter(Boolean).join(', ')
+  function applyDemo(specific: boolean) {
+    const insuranceStart = isoDate(new Date(new Date().getFullYear() - 2, 0, 1))
+    const demoAnswers = {
+      ...initialAnswers.current,
+      role: 'matka',
+      stage: 'ciaza',
+      date: defaultDueDate(),
+      work: specific ? 'jdg' : 'umowa_o_prace',
+      sickness: specific ? 'dobrowolne' : '',
+      insuranceStart,
+      gross: specific ? '5000' : '6500',
+      pregnancyCare: 'tak',
+      babyCount: specific ? 2 : 1,
+      babies: Array.from({ length: specific ? 2 : 1 }, defaultBaby),
+      city: 'Kraków',
+      municipality: 'Kraków',
+    } satisfies Answers
+    setA(demoAnswers)
+    void calculate(demoAnswers)
+  }
 
   function changeStage(stage: Stage) {
+    calculationId.current += 1
+    setState({ kind: 'idle' })
     setA((prev) => ({
       ...prev,
       stage,
-      date: stage === 'ciaza' ? defaultDueDate() : '',
+      date: '',
       adoptionKind: stage === 'adopcja_zastepcza' ? 'przysposobienie' : prev.adoptionKind,
       role:
         stage === 'adopcja_zastepcza'
@@ -506,34 +531,48 @@ export function Calculator({ appUrl }: { appUrl: string }) {
     return (await res.json()) as Evaluation
   }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    const problem = validate(a)
+  async function calculate(answers: Answers) {
+    const requestId = ++calculationId.current
+    const problem = validate(answers)
     if (problem) {
       setState({ kind: 'error', message: problem })
       return
     }
     setState({ kind: 'loading' })
-    const request = buildRequest(a)
+    const request = buildRequest(answers)
     try {
       const evaluations = await Promise.all([
         fetchEvaluation(request.profile),
         ...(request.futureProfile ? [fetchEvaluation(request.futureProfile, request.futureDate)] : []),
       ])
+      if (requestId !== calculationId.current) return
       const summaries =
-        a.stage === 'ciaza'
+        answers.stage === 'ciaza'
           ? [
               { title: 'Twoja sytuacja teraz — ciąża', summary: summarize(evaluations[0]) },
               { title: 'Prognoza po porodzie', summary: summarize(evaluations[1]) },
             ]
-          : [{ title: a.stage === 'adopcja_zastepcza' ? 'Przyjęcie dziecka na wychowanie' : 'Twoja sytuacja', summary: summarize(evaluations[0]) }]
+          : [{ title: answers.stage === 'adopcja_zastepcza' ? 'Przyjęcie dziecka na wychowanie' : 'Twoja sytuacja', summary: summarize(evaluations[0]) }]
       setState({ kind: 'done', summaries })
       requestAnimationFrame(() => resultRef.current?.focus())
     } catch (error) {
+      if (requestId !== calculationId.current) return
       console.error('Nie udało się obliczyć uprawnień:', error)
-      const detail = error instanceof Error ? error.message : 'Nieznany błąd'
-      setState({ kind: 'error', message: `Nie udało się policzyć uprawnień. ${detail}` })
+      if (error instanceof TypeError) {
+        setState({
+          kind: 'error',
+          message: 'Nie udało się połączyć z kalkulatorem. Wypełnij wymagane pola, aby zobaczyć dostępne świadczenia, i spróbuj ponownie.',
+        })
+      } else {
+        const detail = error instanceof Error ? error.message : 'Nieznany błąd'
+        setState({ kind: 'error', message: `Nie udało się policzyć uprawnień. ${detail}` })
+      }
     }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    await calculate(a)
   }
 
   const referenceDate = a.stage === 'adopcja_zastepcza' ? a.date : a.date
@@ -575,11 +614,11 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                   adoptionKind: v === 'przysposabiajacy' ? 'przysposobienie' : 'rodzina_zastepcza_niezawodowa',
                 }))}
               />
-              <Field label="Data przyjęcia dziecka na wychowanie">
-                {(id) => <input id={id} type="date" value={a.date} onChange={(e) => set('date', e.target.value)} />}
+              <Field label="Data przyjęcia dziecka na wychowanie" required>
+                {(id) => <input id={id} type="date" value={a.date} onChange={(e) => set('date', e.target.value)} required />}
               </Field>
-              <Field label="Data urodzenia przyjętego dziecka">
-                {(id) => <input id={id} type="date" value={a.childBirthDate} onChange={(e) => set('childBirthDate', e.target.value)} />}
+              <Field label="Data urodzenia przyjętego dziecka" required>
+                {(id) => <input id={id} type="date" value={a.childBirthDate} onChange={(e) => set('childBirthDate', e.target.value)} required />}
               </Field>
               <TriField
                 label="Czy dziecko mieszka w Polsce?"
@@ -613,7 +652,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                 ]}
                 onChange={(v) => set('role', v)}
               />
-              <Field label={a.stage === 'ciaza' ? 'Przewidywany termin porodu' : 'Data urodzenia dziecka'}>
+              <Field label={a.stage === 'ciaza' ? 'Przewidywany termin porodu' : 'Data urodzenia dziecka'} required>
                 {(id) => <input id={id} type="date" value={a.date} onChange={(e) => set('date', e.target.value)} required />}
               </Field>
               {a.stage === 'ciaza' && (
@@ -730,7 +769,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
               />
               {a.incomeMode === 'average' ? (
                 <Field
-                  label={a.work === 'jdg' || a.work === 'wspolpraca_jdg' || a.work === 'ulga_na_start' ? 'Przeciętna zadeklarowana podstawa składek (zł/mies.)' : 'Przeciętna podstawa składek brutto (zł/mies.)'}
+                  label={a.work === 'jdg' || a.work === 'wspolpraca_jdg' ? 'Przeciętna zadeklarowana podstawa składek (zł/mies.)' : 'Przeciętna podstawa składek brutto (zł/mies.)'}
                   hint="Wpisz podstawę, od której odprowadzano składki, nie kwotę „na rękę”. To tylko przybliżenie, jeśli podstawa się zmieniała."
                 >
                   {(id) => (
@@ -906,7 +945,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                   </Field>
                 </>
               )}
-              {(a.work === 'jdg' || a.work === 'wspolpraca_jdg' || a.work === 'ulga_na_start') && (
+              {(a.work === 'jdg' || a.work === 'wspolpraca_jdg') && (
                 <>
                   <Field label="Zadłużenie składkowe na dzień powstania prawa (zł)">
                     {(id) => <input id={id} inputMode="decimal" value={a.jdgDebt} onChange={(e) => set('jdgDebt', e.target.value)} />}
@@ -923,7 +962,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
               {a.stage === 'urodzone' && (
                 <>
                   {a.babyCount > 1 && <Field label="W którym tygodniu ciąży nastąpił poród?">
-                    {(id) => <input id={id} type="number" min="20" max="45" inputMode="numeric" value={a.pregnancyWeek} onChange={(e) => set('pregnancyWeek', e.target.value)} />}
+                    {(id) => <input id={id} type="number" min="1" max="45" inputMode="numeric" value={a.pregnancyWeek} onChange={(e) => set('pregnancyWeek', e.target.value)} />}
                   </Field>}
                   {a.babies.map((baby, index) => (
                     <fieldset className="calc-field calc-baby" key={index}>
@@ -1027,7 +1066,7 @@ export function Calculator({ appUrl }: { appUrl: string }) {
                 <p className="calc-hint">Podaj podstawę, od której faktycznie opłacono składki, a nie samo wynagrodzenie brutto. Puste miesiące nie zostaną oszacowane.</p>
               </>
             )}
-            {a.stage !== 'adopcja_zastepcza' && (
+            {a.stage !== 'adopcja_zastepcza' && a.role === 'matka' && (
               <label className="calc-check">
                 <input type="checkbox" checked={a.eightOneFive} onChange={(e) => set('eightOneFive', e.target.checked)} />
                 Zasymuluj wybór równej stawki 81,5% (wniosek do 21 dni po porodzie)
@@ -1039,14 +1078,18 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             </label>
             {a.workDuringLeave && (
               <>
-                <Field label="Który rodzic będzie na tej części urlopu?">
-                  {(id) => (
-                    <select id={id} value={a.leaveParent} onChange={(e) => set('leaveParent', e.target.value as Answers['leaveParent'])}>
-                      <option value="matka">Matka</option>
-                      <option value="ojciec">Ojciec</option>
-                    </select>
-                  )}
-                </Field>
+                {a.stage === 'adopcja_zastepcza' ? (
+                  <p className="calc-hint">Ta symulacja dotyczy urlopu wnioskodawcy, który przyjął dziecko na wychowanie.</p>
+                ) : (
+                  <Field label="Który rodzic będzie na tej części urlopu?">
+                    {(id) => (
+                      <select id={id} value={a.leaveParent} onChange={(e) => set('leaveParent', e.target.value as Answers['leaveParent'])}>
+                        <option value="matka">Matka</option>
+                        <option value="ojciec">Ojciec</option>
+                      </select>
+                    )}
+                  </Field>
+                )}
                 <Field label="Urlop rodzicielski — od">
                   {(id) => <input id={id} type="date" value={a.leaveFrom} onChange={(e) => set('leaveFrom', e.target.value)} />}
                 </Field>
@@ -1081,14 +1124,32 @@ export function Calculator({ appUrl }: { appUrl: string }) {
           <button className="calc-submit" type="submit" disabled={state.kind === 'loading'}>
             {state.kind === 'loading' ? 'Sprawdzam uprawnienia…' : 'Sprawdź świadczenia i terminy'}
           </button>
-          <p className="calc-fine">
-            Kwoty są szacunkowe i brutto. Dane zostają w tej przeglądarce; nie pobieramy ich z ZUS ani nie wysyłamy wniosków.
-          </p>
+          <div className="calc-demos">
+            <strong>Wypróbuj kalkulator</strong>
+            <p>Wstaw przykładowe dane — możesz je potem zmienić.</p>
+            <div>
+              <button className="calc-small-button" type="button" disabled={state.kind === 'loading'} onClick={() => applyDemo(false)}>Typowa sytuacja</button>
+              <button className="calc-small-button" type="button" disabled={state.kind === 'loading'} onClick={() => applyDemo(true)}>Bliźnięta + własna firma</button>
+            </div>
+            <span className="calc-demo-label">Oba zestawy są wyłącznie demonstracyjne (DEMO), nie opisują prawdziwej osoby.</span>
+          </div>
         </form>
-        <div className="calc-output" ref={resultRef} tabIndex={-1} aria-live="polite">
+        <div className={`calc-output${state.kind === 'idle' ? ' calc-output-idle' : ''}`} ref={resultRef} tabIndex={-1} aria-live="polite">
           {state.kind === 'idle' && (
             <div className="calc-empty">
-              <p>Odpowiedz na kilka pytań. Możesz rozwinąć szczegóły, by uwzględnić historię składek, sytuację rodziny, zdrowie i plan urlopów.</p>
+              <div className="calc-empty-copy">
+                <h3>Opowiedz nam o sobie</h3>
+                <p>Po wypełnieniu pól pomożemy Ci znaleźć świadczenia, które mogą przysługiwać Twojej rodzinie. Nie musisz znać wszystkich szczegółów — brakujące informacje pokażemy w wynikach.</p>
+              </div>
+            </div>
+          )}
+          {state.kind === 'idle' && (
+            <div className="calc-empty-spirals" aria-hidden="true">
+              {Array.from({ length: 8 }, (_, spiral) => (
+                <svg className="calc-empty-spiral" key={spiral} viewBox="0 0 140 140">
+                  <path d="M 84 18 C 53 10 23 30 18 60 C 12 96 43 124 78 114 C 113 104 126 64 102 39 C 83 19 52 27 43 49 C 34 71 52 89 70 82 C 85 76 86 58 74 50 C 64 43 52 49 53 60" />
+                </svg>
+              ))}
             </div>
           )}
           {state.kind === 'loading' && (
@@ -1105,7 +1166,6 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             <Results
               summaries={state.summaries}
               appUrl={appUrl}
-              location={location}
               adoption={a.stage === 'adopcja_zastepcza'}
               childLoss={childLoss}
             />

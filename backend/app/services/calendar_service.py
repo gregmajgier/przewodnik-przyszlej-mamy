@@ -13,7 +13,7 @@ from .calendar_gen import BenefitWithMatch, generate_events, merge_done
 from .contracts import family_risks
 from .families import FamilyService
 
-NO_FAMILY = "Najpierw załóż rodzinę albo dołącz do niej — kalendarz jest wspólny dla rodziny."
+NO_FAMILY = "Najpierw załóż rodzinę albo dołącz do niej, bo kalendarz jest wspólny dla rodziny."
 
 
 async def family_calendar(store: Store, user_id: str, today: date) -> list[CalendarEvent]:
@@ -25,7 +25,9 @@ async def family_calendar(store: Store, user_id: str, today: date) -> list[Calen
         raise
     fid = view.family.id
     matches = await BenefitService(store).list_matches(user_id, today)
-    benefits = [BenefitWithMatch(benefit=m.benefit, status=m.match.status) for m in matches]
+    benefits = [
+        BenefitWithMatch(benefit=m.benefit, status=m.match.status, child_ids=m.match.child_ids) for m in matches
+    ]
     applications = await list_family_applications(store, fid)
     risks = await family_risks(store, user_id, fid, today)
 

@@ -132,3 +132,26 @@ def test_estimated_values_are_positive_when_present():
     for b in load_national_benefits():
         if b.annual_value_estimate is not None:
             assert b.annual_value_estimate > 0, b.id
+
+
+def test_maternity_leave_and_allowance_are_one_entry_not_a_duplicate():
+    from app.seed.benefits import load_national_benefits
+
+    names = [b.name for b in load_national_benefits()]
+    assert len(names) == len(set(names))
+    assert not any(n == "Urlop macierzyński" for n in names)  # scalone z zasiłkiem
+    merged = next(b for b in load_national_benefits() if b.id == "nat-zasilek-macierzynski")
+    assert merged.name == "Urlop i zasiłek macierzyński" and set(merged.form_codes) == {"URLOP-MAC-ROD", "ZAM"}
+
+
+def test_seed_removes_obsolete_benefits_from_existing_databases():
+    import asyncio
+
+    from app.seed import seed_all
+    from app.storage import MemoryStore
+
+    store = MemoryStore()
+    asyncio.run(store.put("benefits", {"id": "nat-urlop-macierzynski", "name": "Urlop macierzyński", "status": "published"}))
+    asyncio.run(seed_all(store))
+    assert asyncio.run(store.get("benefits", "nat-urlop-macierzynski")) is None
+    assert asyncio.run(store.get("benefits", "nat-zasilek-macierzynski")) is not None

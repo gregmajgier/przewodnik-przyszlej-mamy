@@ -201,8 +201,6 @@ def test_partner_sees_answer_after_joining_family(client):
     hp = login(client, "persona-nowak-piotr")
     code = client.get("/api/families/me", headers=ha).json()["family"]["invite_code"]
     assert client.post("/api/families/join", json={"code": code}, headers=hp).status_code == 201
-    req = client.get("/api/families/me/join-requests", headers=ha).json()[0]
-    assert client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=ha).status_code == 200
     assert _by_id(client, hp)["nat-zasilek-rodzinny"]["match"]["status"] == "fits"
 
 
@@ -255,7 +253,8 @@ def test_analysis_estimate_and_nearest_deadline(client):
     assert a["estimated_annual_total"] == expected > 0
     nd = a["nearest_deadline"]
     assert nd is not None and date.fromisoformat(nd["date"]) >= date.today()
-    assert nd["benefit_id"] in items
+    # najbliższy termin to termin świadczenia albo kamień milowy ciąży/porodu (np. zaświadczenie dla pracodawcy)
+    assert nd["benefit_id"] in items or nd["benefit_id"].startswith("milestone:")
 
 
 def test_summary_matches_analysis_aggregates(client):
@@ -298,3 +297,49 @@ async def test_tool_swiadczenia_validates_status_and_family(client, store, isola
     login(client, "persona-nowak-anna")  # użytkownik istnieje, ale bez rodziny
     with pytest.raises(ToolError):
         await call_tool("swiadczenia", {}, ctx)
+
+
+def test_pregnant_family_never_sees_empty_nearest_deadline(client):
+    """Rodzina w ciąży zawsze ma najbliższy termin: kamień milowy (zaświadczenie, USC) albo termin świadczenia."""
+    h = login(client, "persona-nowak-anna")
+    assert client.post("/api/families", json={}, headers=h).status_code == 201
+    due = date.today() + timedelta(days=200)  # za daleko na wnioski o urlop: zostają tylko terminy stałe i kamienie milowe
+    assert client.post("/api/families/me/children", json={"name": "W drodze", "due_date": due.isoformat()}, headers=h).status_code == 201
+    nd = client.get("/api/summary", headers=h).json()["nearest_deadline"]
+    assert nd is not None and nd["benefit_name"]
+
+
+def test_calendar_for_pregnancy_has_pre_and_post_birth_deadlines(client):
+    h = login(client, "persona-nowak-anna")
+    client.post("/api/families", json={}, headers=h)
+    due = date.today() + timedelta(days=60)
+    client.post("/api/families/me/children", json={"name": "W drodze", "due_date": due.isoformat()}, headers=h)
+    titles = [e["title"] for e in client.get("/api/calendar", headers=h).json()]
+    joined = " | ".join(titles)
+    for expected in ("Zaświadczenie lekarskie o ciąży", "Przewidywany termin porodu", "Urlop rodzicielski: wniosek po porodzie",
+                     "Świadczenie rodzicielskie (1000 zł miesięcznie): wniosek po porodzie", "Zgłoszenie urodzenia w USC"):
+        assert expected in joined, f"brak w kalendarzu: {expected}"
+
+
+def test_tool_swiadczenia_query_returns_only_the_best_matches_with_details(client, store, fresh_tools):
+    _setup_family(client)
+    user = asyncio.run(store.get("users", "user-nowak-anna"))
+    ctx = ToolContext(store=store, principal=Principal(user["id"], "parent", user.get("family_id"), None), today=date.today())
+    hits = asyncio.run(call_tool("swiadczenia", {"query": "Ile wynosi becikowe?"}, ctx))
+    assert [x["id"] for x in hits] == ["nat-becikowe"]
+    assert hits[0]["description"] and hits[0]["how_to_apply"] and hits[0]["amount"] == "1000 zł jednorazowo"
+    assert asyncio.run(call_tool("swiadczenia", {"query": "zzzz xylofon"}, ctx)) == []
+    everything = asyncio.run(call_tool("swiadczenia", {}, ctx))  # bez `query`: lista bez ciężkich opisów
+    assert len(everything) > 10 and all("description" not in x for x in everything)
+
+
+def test_tool_swiadczenia_query_works_without_a_family_using_the_national_catalog(client, store, fresh_tools):
+    login(client, "persona-nowak-anna")  # konto bez rodziny
+    ctx = ToolContext(store=store, principal=Principal("user-nowak-anna", "parent", None, None), today=date.today())
+    hits = asyncio.run(call_tool("swiadczenia", {"query": "becikowe"}, ctx))
+    assert [x["id"] for x in hits] == ["nat-becikowe"] and hits[0]["status"] is None  # ogólnie, bez dopasowania do rodziny
+    from app.ai.tools import ToolError as TE
+    import pytest as _pytest
+
+    with _pytest.raises(TE):  # bez `query` nadal wymagamy rodziny (lista dopasowań ma sens tylko dla niej)
+        asyncio.run(call_tool("swiadczenia", {}, ctx))

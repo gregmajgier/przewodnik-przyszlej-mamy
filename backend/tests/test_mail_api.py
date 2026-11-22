@@ -80,8 +80,7 @@ def test_partner_sees_family_threads(client):
     anna = login(client, "persona-nowak-anna")
     code = client.post("/api/families", headers=anna).json()["family"]["invite_code"]
     piotr = login(client, "persona-nowak-piotr")
-    req = client.post("/api/families/join", json={"code": code}, headers=piotr).json()
-    client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=anna)
+    assert client.post("/api/families/join", json={"code": code}, headers=piotr).status_code == 201
     submit(client, anna)
     [t] = client.get("/api/mail/threads", headers=piotr).json()
     assert t["application"]["applicant_name"] == "Anna Nowak"

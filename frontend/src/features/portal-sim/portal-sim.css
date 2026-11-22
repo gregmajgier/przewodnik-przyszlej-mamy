@@ -24,7 +24,7 @@
 }
 .sim-brand {
   font-weight: 800;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #1f5fa8;
@@ -62,7 +62,7 @@
 }
 .sim-error {
   color: var(--danger);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 .sim-submit {
@@ -157,7 +157,7 @@
   padding: 0.3rem 0.75rem;
   border-radius: 999px;
   background: var(--white);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--ink-2);
   white-space: nowrap;
@@ -191,7 +191,7 @@
   white-space: nowrap;
   background: var(--violet);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 800;
   border-radius: 999px;
   padding: 0 0.5rem;

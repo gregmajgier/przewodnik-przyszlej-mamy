@@ -135,7 +135,7 @@
   font-weight: 900;
 }
 .chat-suggestion-q {
-  font-size: 0.86rem;
+  font-size: 0.875rem;
   color: var(--ink-2);
   line-height: 1.35;
 }
@@ -255,7 +255,7 @@
 }
 .msg-sources-h {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -280,7 +280,7 @@
   background: var(--white);
   box-shadow: inset 0 0 0 1px var(--line-2);
   color: var(--ink);
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   font-weight: 700;
   text-decoration: none;
 }
@@ -358,7 +358,7 @@
   height: 2.6rem;
   border: 0;
   border-radius: 999px;
-  background: var(--pink);
+  background: var(--primary);
   color: #fff;
   cursor: pointer;
   transition:
@@ -380,6 +380,6 @@
 .chat-disclaimer {
   margin: 0.5rem 0 0;
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: var(--ink-3);
 }

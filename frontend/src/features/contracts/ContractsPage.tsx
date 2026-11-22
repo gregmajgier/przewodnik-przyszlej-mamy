@@ -23,7 +23,7 @@ export function ContractSummary({ c }: { c: Contract }) {
       : 'okres nieznany'
   return (
     <>
-      <strong>{c.kind ? KIND_LABEL[c.kind] : 'Umowa'}</strong> — {c.employer_name}
+      <strong>{c.kind ? KIND_LABEL[c.kind] : 'Umowa'}</strong>, {c.employer_name}
       <br />
       <span className="muted">
         {c.position && `${c.position} · `}

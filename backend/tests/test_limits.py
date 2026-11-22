@@ -281,7 +281,7 @@ def test_budget_exhausted_returns_429_with_gentle_message(app_and_client):
     r = c.post("/api/_t/ai", headers=login(c, "persona-nowak-anna"))
     assert r.status_code == 429
     assert r.json()["detail"] == (
-        "Asystent AI jest dziś przeciążony. Spróbuj jutro — reszta aplikacji działa normalnie."
+        "Asystent AI jest dziś przeciążony. Spróbuj jutro, reszta aplikacji działa normalnie."
     )
     assert int(r.headers["Retry-After"]) > 0
     # reszta aplikacji działa
@@ -506,7 +506,7 @@ def test_inflight_cap_over_http_and_released_after_request(app_and_client, monke
     monkeypatch.setattr(settings, "ai_max_inflight", 1)
     gate = app.state.ai_inflight = InflightGate()
     h = login(c, "persona-nowak-anna")
-    gate.acquire(5)  # symulacja trwającego żądania
+    gate.acquire(5)  # przykład trwającego żądania
     r = c.post("/api/_t/ai", headers=h)
     assert r.status_code == 429
     assert "obciążony" in r.json()["detail"]

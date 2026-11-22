@@ -12,13 +12,14 @@ from datetime import date, timedelta
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..models.application import Application
 from ..models.benefit import Benefit
 from ..models.calendar import CalendarEvent
 from ..models.contract import Risk
 from ..models.family import Child, FamilyView
+from .milestones import milestones_for
 from .situations import event_policy, family_mode
 
 class BenefitWithMatch(BaseModel):
@@ -26,6 +27,7 @@ class BenefitWithMatch(BaseModel):
 
     benefit: Benefit
     status: Literal["fits", "maybe", "no"]
+    child_ids: list[str] = Field(default_factory=list)
 
 
 STALE_DAYS = 365  # terminów sprzed ponad roku nie pokazujemy (np. 800+ dla 7-latka)
@@ -68,7 +70,8 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
         return []
     out: list[CalendarEvent] = []
     src = f"benefit:{b.id}"
-    maybe = " Może Ci przysługiwać — sprawdź warunki." if bm.status == "maybe" else ""
+    form_code = b.form_codes[0] if b.form_codes else None
+    maybe = " Może Ci przysługiwać. Sprawdź warunki." if bm.status == "maybe" else ""
     how = f" {b.how_to_apply}" if b.how_to_apply else ""
 
     if dl.anchor == "fixed":
@@ -77,18 +80,24 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
                 CalendarEvent(
                     id=event_id("deadline", src, None), family_id=family_id, kind="deadline",
                     title=f"{b.name}: ostatni dzień na wniosek", summary=(dl.note or "Złóż wniosek przed terminem.") + how + maybe,
-                    due_date=dl.fixed_date, source_ref=src,
+                    due_date=dl.fixed_date, source_ref=src, form_code=form_code,
                 )
             )
         return out
 
-    for ch in children:
+    concerned_ids = set(bm.child_ids)
+    target_children = [ch for ch in children if not b.per_child or ch.id in concerned_ids]
+    for ch in target_children:
         if dl.anchor == "due":
             if ch.status != "expected" or not ch.due_date:
                 continue
             base = ch.due_date
             when = "przed porodem" if (dl.offset_days or 0) + (dl.offset_months or 0) * 30 < 0 else "po terminie porodu"
             title = f"{b.name}: wniosek ({when}, {ch.name})"
+        elif dl.anchor == "birth" and ch.status == "expected" and ch.due_date:
+            # dziecko jeszcze w drodze: termin liczony od przewidywanego porodu, więc tylko orientacyjnie
+            base = ch.due_date
+            title = f"{b.name}: wniosek po porodzie ({ch.name})"
         else:  # birth / child_age — dopiero po urodzeniu
             if ch.status != "born" or not ch.birth_date:
                 continue
@@ -101,12 +110,15 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
         if ch.birth_date and b.criteria.child_age_max_months is not None:
             effect_until = add_months(ch.birth_date, b.criteria.child_age_max_months + 1) - timedelta(days=1)
         summary = (dl.note or f"Złóż wniosek do {_fmt(due)}.") + how + maybe
+        if ch.status == "expected" and dl.anchor == "birth":
+            summary += f" Termin orientacyjny: liczony od przewidywanego porodu ({_fmt(ch.due_date)}), zmieni się z datą urodzenia."
         if effect_until:
             summary += f" Świadczenie przysługuje do {_fmt(effect_until)}."
         out.append(
             CalendarEvent(
                 id=event_id("deadline", src, ch.id), family_id=family_id, kind="deadline", title=title,
                 summary=summary, due_date=due, effect_until=effect_until, source_ref=src, child_id=ch.id,
+                form_code=form_code,
             )
         )
     return out
@@ -136,6 +148,15 @@ def generate_events(
                 )
             )
 
+    for m in milestones_for(children, today):
+        src = f"milestone:{m.key}"
+        events.append(
+            CalendarEvent(
+                id=event_id("deadline", src, m.child_id), family_id=fid, kind="deadline", title=m.title,
+                summary=m.summary, due_date=m.due, source_ref=src, child_id=m.child_id,
+            )
+        )
+
     active_children = [c for c in children if c.situation != "loss"]
     for bm in benefits_with_match:
         events.extend(_benefit_events(fid, bm, active_children, today))
@@ -149,17 +170,21 @@ def generate_events(
         when = (a.sent_at.date() if a.sent_at else a.created_at.date())
         status = APP_STATUS_LABEL.get(a.status, a.status)
         to = a.recipient_email or "portal / urząd"
-        summary = (
-            f"Złożył(a): {who}, {_fmt(when)}. Do: {to}. Status: {status}."
-            if a.sent_at
-            else f"Przygotowuje: {who}. Status: {status}."
-        )
+        date_label = "Złożono" if a.sent_at else "Utworzono"
+        if a.status in ("accepted", "rejected", "cancelled"):
+            end_note = " Sprawa zakończona; data zakończenia nie jest zapisana."
+        elif a.sent_at:
+            end_note = " Termin zakończenia nie jest znany."
+        else:
+            end_note = " To data rozpoczęcia wniosku, nie termin końcowy."
+        actor_note = f" Złożył(a): {who}." if a.sent_at else f" Przygotowuje: {who}."
+        summary = f"{date_label}: {_fmt(when)}.{end_note}{actor_note} Do: {to}. Status: {status}."
         events.append(
             CalendarEvent(
                 id=event_id("application", src, a.child_id), family_id=fid, kind="application",
-                title=f"Wniosek {a.form_code}", summary=summary, due_date=when, source_ref=src,
+                title=f"Wniosek {a.form_code}", summary=summary, due_date=when, date_label=date_label, source_ref=src,
                 child_id=a.child_id, actor_user_id=a.applicant_id, actor_name=who, recipient=a.recipient_email,
-                status=a.status, done=a.status in ("accepted", "rejected"),
+                status=a.status, done=bool(a.sent_at) or a.status in ("accepted", "rejected", "cancelled"),
             )
         )
 

@@ -144,12 +144,22 @@ describe('/jaskolka bez logowania', () => {
     expect(screen.getByRole('link', { name: /Wróć do mRodziny/ })).toHaveAttribute('href', '/')
     const phone = screen.getByRole('link', { name: /116 123/ })
     expect(phone).toHaveAttribute('href', 'tel:116123')
-    expect(screen.getByText(/Potrzebujesz porozmawiać/)).toBeInTheDocument()
+    expect(screen.getByText(/Telefon wsparcia emocjonalnego/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('link', { name: 'Poronienie' }))
     await screen.findByText('Skrócony urlop macierzyński')
     expect(screen.getByRole('link', { name: /Wróć do wyboru sytuacji/ })).toHaveAttribute('href', '/jaskolka')
     expect(screen.getByRole('link', { name: /116 123/ })).toBeInTheDocument()
+  })
+
+  it('stopka od razu pokazuje numery pomocy, bez klikania', async () => {
+    renderAt('/jaskolka')
+    await screen.findByRole('link', { name: 'Poronienie' })
+    const footer = document.querySelector('.jk-help') as HTMLElement
+    expect(within(footer).getByRole('link', { name: /116 123/ })).toHaveAttribute('href', 'tel:116123')
+    expect(within(footer).getByRole('link', { name: '112' })).toHaveAttribute('href', 'tel:112')
+    expect(within(footer).getByRole('link', { name: /więcej miejsc pomocy/i })).toHaveAttribute('target', '_blank')
+    expect(within(footer).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('nieznana sytuacja pokazuje komunikat po polsku i link do listy, nie biały ekran', async () => {

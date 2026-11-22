@@ -207,7 +207,7 @@ export default function ApplicationWizard({ applicationId }: { applicationId: st
         <div className="card empty stack" role="status">
           <Icon name="doc" size={36} />
           <p>
-            Mógł zostać usunięty albo dane po naszej stronie zostały odświeżone. Zacznij od nowa — formularz wypełnimy za
+            Mógł zostać usunięty albo dane po naszej stronie zostały odświeżone. Zacznij od nowa, a formularz wypełnimy za
             Ciebie jeszcze raz.
           </p>
           <div className="row" style={{ justifyContent: 'center' }}>

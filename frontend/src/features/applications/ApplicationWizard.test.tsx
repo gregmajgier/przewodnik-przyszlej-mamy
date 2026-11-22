@@ -174,7 +174,6 @@ describe('ApplicationWizard — krok 3: podpis i wysyłka', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /podpisz profilem zaufanym/i }))
     const dialog = screen.getByRole('dialog', { name: /podpisz profilem zaufanym/i })
-    expect(within(dialog).queryByText(/symulacja/i)).not.toBeInTheDocument()
     await userEvent.click(within(dialog).getByRole('button', { name: 'Podpisz' }))
     await waitFor(() => expect(mocked).toHaveBeenCalledWith(`${BASE}/sign`, { method: 'POST' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())

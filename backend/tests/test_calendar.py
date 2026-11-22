@@ -22,6 +22,11 @@ B800 = Benefit(
     id="800", name="800+", scope="national", category="benefit", description="x", how_to_apply="x", source_url="https://x.pl",
     deadline=Deadline(anchor="birth", offset_months=3), criteria=Criteria(child_age_min_months=0, child_age_max_months=215),
 )
+ACTIVE_PARENT = Benefit(
+    id="active-parent", name="Aktywny rodzic", scope="national", category="benefit", description="x", how_to_apply="x",
+    source_url="https://x.pl", deadline=Deadline(anchor="child_age", offset_months=35),
+    criteria=Criteria(child_age_min_months=12, child_age_max_months=35), per_child=True,
+)
 
 
 def view(*children: Child) -> FamilyView:
@@ -43,9 +48,17 @@ def fits(*bs):
 
 def test_due_date_generates_prebirth_deadlines():
     evs = generate_events(view(expected()), fits(ZASILEK, B800), [], [], TODAY)
-    deadlines = [e for e in evs if e.kind == "deadline"]
-    assert [(e.source_ref, e.due_date) for e in deadlines] == [("benefit:zas", date(2026, 12, 30))]
-    assert "przed porodem" in deadlines[0].title
+    deadlines = [e for e in evs if e.kind == "deadline" and e.source_ref.startswith("benefit:")]
+    assert [(e.source_ref, e.due_date) for e in deadlines] == [
+        ("benefit:zas", date(2026, 12, 30)),
+        ("benefit:800", date(2027, 4, 20)),  # termin „po porodzie” liczony orientacyjnie od przewidywanego porodu
+    ]
+    assert "przed porodem" in deadlines[0].title and "po porodzie" in deadlines[1].title
+    assert "orientacyjny" in deadlines[1].summary
+    # kamienie milowe ciąży: zaświadczenie dla pracodawcy (8 tyg. przed porodem) i rejestracja w USC (21 dni po)
+    milestones = {e.source_ref: e.due_date for e in evs if e.source_ref.startswith("milestone:")}
+    assert milestones == {"milestone:pregnancy-certificate": date(2027, 1, 20) - timedelta(days=56),
+                          "milestone:usc-registration": date(2027, 1, 20) + timedelta(days=21)}
     assert any(e.kind == "child" and e.due_date == date(2027, 1, 20) for e in evs)
 
 
@@ -57,9 +70,32 @@ def test_birth_unlocks_800plus_deadline_3_months():
     assert not any(e.source_ref == "benefit:zas" for e in evs)
 
 
+def test_benefit_deadline_carries_form_code_for_redirect_to_wizard():
+    with_form = ZASILEK.model_copy(update={"form_codes": ["ZAM"]})
+    evs = generate_events(view(expected()), fits(with_form, B800), [], [], TODAY)
+    by_ref = {e.source_ref: e for e in evs if e.source_ref.startswith("benefit:")}
+    assert by_ref["benefit:zas"].form_code == "ZAM"
+    assert by_ref["benefit:zas"].child_id == "c-new"
+    assert by_ref["benefit:800"].form_code is None  # świadczenie bez kreatora — brak przycisku w kalendarzu
+
+
 def test_no_benefit_events_for_status_no():
     evs = generate_events(view(born()), [BenefitWithMatch(benefit=B800, status="no")], [], [], TODAY)
-    assert not [e for e in evs if e.kind == "deadline"]
+    assert not [e for e in evs if e.kind == "deadline" and e.source_ref.startswith("benefit:")]
+
+
+def test_per_child_benefit_deadlines_skip_children_outside_matching_age():
+    older = Child(id="c-older", family_id="fam", name="Antek", birth_date=date(2023, 7, 26))
+    eligible = Child(id="c-eligible", family_id="fam", name="Maja", birth_date=date(2024, 11, 22))
+    match = BenefitWithMatch(benefit=ACTIVE_PARENT, status="fits", child_ids=[eligible.id])
+
+    events = generate_events(view(older, eligible), [match], [], [], TODAY)
+    deadlines = [e for e in events if e.source_ref == "benefit:active-parent"]
+
+    assert len(deadlines) == 1
+    assert "Maja" in deadlines[0].title
+    assert deadlines[0].due_date == date(2027, 10, 22)
+    assert not any("Antek" in e.title for e in deadlines)
 
 
 def test_done_preserved_on_regeneration():
@@ -90,7 +126,28 @@ def test_application_event_shows_who_submitted():
     [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
     assert e.actor_name == "Piotr Nowak" and e.actor_user_id == "u-piotr"
     assert "Piotr Nowak" in e.summary and "kadry@firma.pl" in e.summary
-    assert e.due_date == date(2026, 11, 20) and e.status == "sent"
+    assert e.date_label == "Złożono" and "Złożono: 20.11.2026" in e.summary
+    assert "Termin zakończenia nie jest znany" in e.summary
+    assert e.due_date == date(2026, 11, 20) and e.status == "sent" and e.done is True
+
+
+def test_draft_application_date_is_labeled_as_start():
+    created = datetime(2026, 11, 20, 9, 0, tzinfo=timezone.utc)
+    app = Application(id="a2", family_id="fam", applicant_id="u-anna", form_code="ZAM", channel="portal_agent",
+                      status="draft", created_at=created)
+    [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
+    assert e.date_label == "Utworzono"
+    assert "Utworzono: 20.11.2026" in e.summary
+    assert "nie termin końcowy" in e.summary and e.done is False
+
+
+def test_accepted_application_shows_that_its_end_date_is_not_recorded():
+    sent = datetime(2026, 11, 20, 9, 0, tzinfo=timezone.utc)
+    app = Application(id="a3", family_id="fam", applicant_id="u-anna", form_code="ZAM", channel="portal_agent",
+                      status="accepted", sent_at=sent, created_at=sent)
+    [e] = [e for e in generate_events(view(), [], [app], [], TODAY) if e.kind == "application"]
+    assert e.done is True
+    assert "Sprawa zakończona; data zakończenia nie jest zapisana" in e.summary
 
 
 def test_warning_from_risk():
@@ -137,6 +194,29 @@ def test_calendar_api_generates_and_patch_done_persists(client):
     again = client.get("/api/calendar", headers=anna).json()
     assert next(e for e in again if e["id"] == target)["done"] is True
     assert len(again) == len({e["id"] for e in again})
+
+
+def test_calendar_hides_age_limited_deadlines_for_ineligible_sibling(client):
+    anna, _ = family(client)
+    today = date.today()
+    older_birth = add_months(today, -40)
+    eligible_birth = add_months(today, -24)
+    older = client.post(
+        "/api/families/me/children", json={"name": "Antek", "birth_date": older_birth.isoformat()}, headers=anna
+    )
+    eligible = client.post(
+        "/api/families/me/children", json={"name": "Maja", "birth_date": eligible_birth.isoformat()}, headers=anna
+    )
+    assert older.status_code == eligible.status_code == 201
+
+    events = client.get("/api/calendar", headers=anna).json()
+    active_parent = [
+        e for e in events if e["source_ref"].startswith("benefit:nat-aktywny-rodzic")
+    ]
+
+    assert active_parent
+    assert any("Maja" in e["title"] for e in active_parent)
+    assert not any("Antek" in e["title"] for e in active_parent)
 
 
 def test_calendar_due_date_change_no_duplicates(client):

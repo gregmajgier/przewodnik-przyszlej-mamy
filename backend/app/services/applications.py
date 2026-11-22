@@ -2,7 +2,7 @@
 
 Zasady (spec §8):
 - Wnioskodawcą jest rodzic, który założył wniosek; drugi rodzic widzi go na liście rodziny, ale nie edytuje.
-- Zawsze podgląd i zatwierdzenie przed wysyłką. Podpis (symulowany Profil Zaufany) obejmuje kanały PDF;
+- Zawsze podgląd i zatwierdzenie przed wysyłką. Podpis testowy Profilem Zaufanym obejmuje kanały PDF;
   zapisujemy odcisk danych z chwili podpisu — zmiana czegokolwiek unieważnia podpis.
 - Wysyłka jest idempotentna po `application.id` (podwójne kliknięcie = jedna wiadomość).
 - Dane wniosków (PESEL, PDF-y) nie trafiają do logów.
@@ -265,7 +265,7 @@ class ApplicationService:
     @staticmethod
     def _channel_error(code: str, channel: str) -> str:
         if _catalog().get(code, {}).get("tylko_elektronicznie") and channel == "pdf_download":
-            return "Ten wniosek można złożyć tylko elektronicznie — wersja PDF nie jest dostępna."
+            return "Ten wniosek można złożyć tylko elektronicznie, więc wersja PDF nie jest dostępna."
         return "Ten wniosek nie obsługuje wybranego sposobu złożenia."
 
     async def list_for_family(self, user_id: str) -> list[Application]:
@@ -377,7 +377,7 @@ class ApplicationService:
             return render_employer_application(code, data)
         if pf.load_map(code) and pf.load_map(code).get("pdf"):
             return fill_pdf(code, values)
-        raise DomainError(422, "Ten wniosek składasz przez portal — nie ma dla niego wersji PDF.")
+        raise DomainError(422, "Ten wniosek składasz przez portal, więc nie ma dla niego wersji PDF.")
 
     async def pdf(self, user_id: str, app_id: str) -> tuple[str, bytes]:
         """Podgląd PDF: (kod formularza, bajty). Wymaga kompletu danych."""
@@ -394,7 +394,7 @@ class ApplicationService:
         if app.status in FINAL_STATUSES:
             raise DomainError(409, MSG_FINAL)
         if app.channel not in SIGNED_CHANNELS:
-            raise DomainError(409, "Ten wniosek składasz przez portal — podpisujesz go w makiecie portalu.")
+            raise DomainError(409, "Ten wniosek składasz przez portal, a podpisujesz go w makiecie portalu.")
         if app.status == "needs_input":
             raise DomainError(409, "Uzupełnij brakujące dane przed podpisaniem.")
         app.signed_at = _now()
@@ -455,7 +455,7 @@ class ApplicationService:
         app.status, app.sent_at = "sent", _now()
         app = await self._save(app)
         if app.channel == "employer_email":
-            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy (plan 09)
+            await schedule_reply(self.store, app, app.sent_at)  # odpowiedź testowa pracodawcy (plan 09)
         return app
 
     async def portal_submitted(self, user_id: str, app_id: str) -> Application:
@@ -480,7 +480,7 @@ class ApplicationService:
                 app.recipient_email = "wnioski@zus.pl" if zus else "swiadczenia@um.krakow.pl"
                 app.recipient_domain = app.recipient_email.rsplit("@", 1)[1]
                 app = await self._save(app)
-                await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź urzędu (plan 09)
+                await schedule_reply(self.store, app, app.sent_at)  # odpowiedź testowa urzędu (plan 09)
                 return app
         finally:
             if not lock.locked():

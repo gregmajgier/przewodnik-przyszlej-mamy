@@ -90,6 +90,22 @@ describe('BenefitsPage', () => {
     expect(within(list).getByRole('button', { name: /za życiem.*nie pasuje/i })).toBeInTheDocument()
   })
 
+  it('kafelki podsumowania od razu filtrują listę pasujących i wymagających sprawdzenia', async () => {
+    routeApi({ 'GET /api/benefits': [FITS, MAYBE, NO] })
+    renderPage()
+    const list = await screen.findByRole('region', { name: /przeglądaj świadczenia/i })
+
+    await userEvent.click(screen.getByRole('button', { name: /pokaż świadczenia do sprawdzenia/i }))
+    expect(within(list).getByRole('button', { name: /karta dużej rodziny/i })).toBeInTheDocument()
+    expect(within(list).queryByRole('button', { name: /800 plus/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /sprawdź/i })).toHaveAttribute('aria-selected', 'true')
+
+    await userEvent.click(screen.getByRole('button', { name: /pokaż świadczenia, które pasują do was/i }))
+    expect(within(list).getByRole('button', { name: /800 plus/i })).toBeInTheDocument()
+    expect(within(list).queryByRole('button', { name: /karta dużej rodziny/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /dla was/i })).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('szczegóły w arkuszu: dlaczego pasuje, „Złóż wniosek” do kreatora i źródło w nowej karcie', async () => {
     routeApi({ 'GET /api/benefits': [FITS, MAYBE, NO] })
     renderPage()

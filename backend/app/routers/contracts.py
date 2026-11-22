@@ -18,7 +18,7 @@ from ..storage import Store, get_store
 router = APIRouter(prefix="/api", tags=["contracts"])
 
 MAX_FILE_BYTES = 5 * 1024 * 1024
-TOO_LARGE = "Plik jest za duży — maksymalnie 5 MB."
+TOO_LARGE = "Plik jest za duży (maksymalnie 5 MB)."
 MULTIPART_OVERHEAD = 64 * 1024
 
 

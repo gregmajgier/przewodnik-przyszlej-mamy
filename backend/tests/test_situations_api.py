@@ -17,7 +17,8 @@ def test_report_status_and_mode_returned_to_both_parents(client, store):
         mode = client.get("/api/me/mode", headers=h).json()
         assert mode["mode"] == "jaskolka" and mode["child_id"] == ids["Dziecko w drodze"] and mode["undo_until"]
     assert client.get("/api/notifications", headers=hp).status_code in (200, 404)  # plan 09 może jeszcze nie istnieć
-    assert store._data.get("notifications", {}) == {}
+    # zgłoszenie sytuacji nie tworzy powiadomień (jest tylko to o dołączeniu Piotra do rodziny)
+    assert {n["kind"] for n in store._data.get("notifications", {}).values()} <= {"family"}
 
 
 def test_report_is_idempotent(client, store):

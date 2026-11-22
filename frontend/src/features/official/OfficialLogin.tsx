@@ -13,7 +13,7 @@ import '../../ui/ui.css'
 import './official.css'
 
 const PERKS: { icon: IconName; text: string }[] = [
-  { icon: 'doc', text: 'Wklejasz uchwałę — formularz świadczenia wypełnia się sam' },
+  { icon: 'doc', text: 'Wklejasz uchwałę, a formularz świadczenia wypełnia się sam' },
   { icon: 'checkCircle', text: 'Zatwierdzasz warunki, które sprawdzimy u każdej rodziny' },
   { icon: 'family', text: 'Po publikacji rodzice z Twojego obszaru od razu je widzą' },
 ]
@@ -71,7 +71,7 @@ export default function OfficialLogin() {
         <div className="off-login-hero-inner">
           <Wordmark light className="off-login-mark" />
           <p className="off-login-tag">Panel samorządu</p>
-          <h1 id="off-login-h">Świadczenia Twojej gminy — tam, gdzie szukają ich rodzice.</h1>
+          <h1 id="off-login-h">Świadczenia Twojej gminy tam, gdzie szukają ich rodzice.</h1>
           <ul className="off-login-perks">
             {PERKS.map((p, i) => (
               <li key={p.icon} className="rise" style={{ ['--i' as string]: i + 2 }}>
@@ -92,7 +92,7 @@ export default function OfficialLogin() {
           </span>
           <div>
             <h2>Zaloguj się</h2>
-            <p className="muted">Konto służbowe nadaje zespół mRodziny — jedno na gminę, powiat albo województwo.</p>
+            <p className="muted">Konto służbowe nadaje zespół mRodziny: jedno na gminę, powiat albo województwo.</p>
           </div>
           <div className="field">
             <label htmlFor="official-email">E-mail służbowy</label>
@@ -137,7 +137,7 @@ export default function OfficialLogin() {
             {busy ? 'Loguję…' : 'Zaloguj się'}
           </Button>
           <p className="off-login-foot">
-            <Icon name="lock" size={16} /> Połączenie szyfrowane. Sesja wygasa po 12 godzinach.
+            <Icon name="clock" size={20} /> Połączenie szyfrowane. Sesja wygasa po 12 godzinach.
           </p>
         </form>
         <section className="off-demo rise" style={{ ['--i' as string]: 1 }} aria-labelledby="off-demo-h">

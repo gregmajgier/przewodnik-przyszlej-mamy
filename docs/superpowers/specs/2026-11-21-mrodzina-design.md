@@ -32,7 +32,7 @@ Osobno, bez logowania: **`/jaskolka`** — spokojna ścieżka dla rodziców w sy
 - Panel admina ZUS i strona `/demo` dla jurorów — pominięte świadomą decyzją zespołu (mimo że materiały cytują polecenie wymagające edycji parametrów). Parametry ZUS żyją w bazie jako dane seedowane (`parametry_admin`), bez UI edycji; struktura ma pozwolić dodać panel później.
 - Kalkulator — **zaparkowany** (patrz §12), buduje go inna osoba.
 - Powiadomienia e-mail/SMS — **[W]**.
-- Integracja z prawdziwymi eZUS / Emp@tia / ePUAP / mObywatel — symulowane.
+- Integracja z prawdziwymi eZUS / Emp@tia / ePUAP / mObywatel — wersje demonstracyjne.
 - Aplikacja mobilna natywna.
 
 **Anty-cele (porażka, nawet jeśli technicznie działa)**
@@ -45,14 +45,14 @@ Osobno, bez logowania: **`/jaskolka`** — spokojna ścieżka dla rodziców w sy
 ## 3. Użytkownicy i konta
 
 ### 3.1 Rodzic [P]
-- Logowanie: **symulowany mObywatel** (wybór persony). Każdy rodzic ma **osobne konto**.
+- Logowanie: **profil mObywatel** (wybór persony). Każdy rodzic ma **osobne konto**.
 - Pierwszy rodzic tworzy **rodzinę** i dodaje dzieci (w tym „dziecko w drodze”).
 - **Rodzic samotnie wychowujący** to pełnoprawny przypadek, nie „niekompletna rodzina”.
 
 ### 3.2 Dołączanie drugiego rodzica [P]
 1. Założyciel rodziny generuje **kod zaproszenia** w ustawieniach rodziny.
 2. Drugi rodzic (po własnym logowaniu) wybiera „Dołącz do rodziny” i wpisuje kod.
-3. Założyciel dostaje prośbę i ją **akceptuje** (lub odrzuca). Dopiero po akceptacji drugi rodzic jest członkiem.
+3. ~~Założyciel dostaje prośbę i ją akceptuje.~~ *Zmiana 2026-11-22 (decyzja zespołu):* **kod jest zgodą założyciela**, więc drugi rodzic dołącza od razu po wpisaniu kodu, a założyciel dostaje powiadomienie „X dołączył(a) do Waszej rodziny”. Kod ważny 7 dni i do wymiany w ustawieniach rodziny; stare, wiszące prośby domyka ponowne wpisanie kodu („Sprawdź status”).
 - Po dołączeniu **oboje widzą wszystko**: dane obojga, dzieci, umowy, dochody — bo wiele wniosków liczy dochód na członka rodziny.
 - Każdy rodzic może składać wnioski; **wnioskodawcą jest zalogowany rodzic**, dane drugiego rodzica i dzieci wypełniają się z profilu. W kalendarzu widać, kto co złożył.
 - *Decyzja buildera:* ważność kodu, jednorazowość, limit członków (rozsądnie: 2 rodziców).
@@ -106,7 +106,7 @@ Symulacja jest modułem backendu za jednym interfejsem, żeby dało się ją pod
 Pokazuje: ścieżkę ciążową, wnioski do pracodawcy, 800+, odblokowanie KDR po porodzie, świadczenia zależne od wieku, lokalne świadczenia Krakowa/Małopolski.
 *Decyzja buildera:* konkretne kwoty, nazwy pracodawców, daty względne do dnia uruchomienia.
 
-Decyzja zespołu: **jedyna persona to rodzina Nowaków**, dane wymyślone przez nas (bez zewnętrznych zestawów spraw). Moja decyzja: logika wszystkich gałęzi (zlecenie/JDG → od razu ZAM, ostrzeżenia o zadłużeniu i braku chorobowego, rodzic samotnie wychowujący) jest **budowana zgodnie ze specem**, ale w prototypie **seedujemy tylko Nowaków**. Moduł symulacji przyjmuje persony jako dane, więc kolejne dodaje się bez zmian w kodzie.
+Decyzja zespołu: **jedyna persona to rodzina Nowaków**, dane wymyślone przez nas (bez zewnętrznych zestawów spraw). Moja decyzja: logika wszystkich gałęzi (zlecenie/JDG → od razu ZAM, ostrzeżenia o zadłużeniu i braku chorobowego, rodzic samotnie wychowujący) jest **budowana zgodnie ze specem**, ale w prototypie **seedujemy tylko Nowaków**. Moduł danych testowych przyjmuje persony jako dane, więc kolejne dodaje się bez zmian w kodzie.
 
 ## 6. Onboarding i „analiza” [P]
 
@@ -152,13 +152,13 @@ Urzędnik dodaje świadczenie / program / wsparcie:
 ### 8.1 Kanały (zgodnie z katalogiem)
 | Odbiorca | Przykłady | Kanał w mRodzinie |
 |---|---|---|
-| Pracodawca | URLOP-MAC-ROD, URLOP-ROD, URLOP-OJC, URLOP-UZUP | PDF generowany przez aplikację → **e-mail ze skrzynki rodzica** (w prototypie symulowanej, §9) [P] |
+| Pracodawca | URLOP-MAC-ROD, URLOP-ROD, URLOP-OJC, URLOP-UZUP | PDF generowany przez aplikację → **e-mail ze skrzynki rodzica** (w prototypie testowej, §9) [P] |
 | ZUS | ZAM, ZAS-53, ZAS-55, ZAS-26, ZAS-33 | **Agent w makiecie eZUS** [P]; PDF do pobrania jako alternatywa |
 | ZUS (tylko online) | 800+, Aktywny rodzic | Agent w makiecie eZUS/Emp@tii [P] |
 | Gmina | KDR, „Za życiem” | Agent w makiecie Emp@tii [P] lub PDF z instrukcją |
-| USC | odpis / zgłoszenie urodzenia | symulacja [P] |
+| USC | odpis / zgłoszenie urodzenia | makieta [P] |
 
-Podpis przez gov (Profil Zaufany) — **symulowany krok** w flow PDF [P]; prawdziwy podpis [W].
+Podpis przez gov (Profil Zaufany) — **krok testowy** w flow PDF [P]; prawdziwy podpis [W].
 
 ### 8.2 Flow wniosku [P]
 1. Wybór wniosku (z rekomendacji świadczenia lub z listy).
@@ -179,8 +179,8 @@ Podpis przez gov (Profil Zaufany) — **symulowany krok** w flow PDF [P]; prawdz
 
 ## 9. Poczta i statusy wniosków [P]
 
-- Prototyp: **połączenie z pocztą jest symulowane i domyślnie aktywne** — rodzina Nowaków ma od początku podłączoną symulowaną skrzynkę z predefiniowanymi danymi (bez ekranu zgody, bez prawdziwego OAuth i prawdziwych maili). W ustawieniach widać „Gmail podłączony” z informacją, co czytamy.
-- Wysyłka wniosku do pracodawcy „z poczty rodzica” trafia do folderu „Wysłane” symulowanej skrzynki; odpowiedzi (pracodawca, ZUS, gmina) są predefiniowanymi wiadomościami, które pojawiają się po wysyłce (np. z opóźnieniem lub przyciskiem symulacji).
+- Prototyp: **połączenie z pocztą działa w trybie testowym i jest domyślnie aktywne** — rodzina Nowaków ma od początku podłączoną testową skrzynkę z predefiniowanymi danymi (bez ekranu zgody, bez prawdziwego OAuth i prawdziwych maili). W ustawieniach widać „Gmail podłączony” z informacją, co czytamy.
+- Wysyłka wniosku do pracodawcy „z poczty rodzica” trafia do folderu „Wysłane” testowej skrzynki; odpowiedzi (pracodawca, ZUS, gmina) są predefiniowanymi wiadomościami, które pojawiają się po wysyłce (np. z opóźnieniem lub przyciskiem do ich wywołania).
 - Skrzynka jest modułem za jednym interfejsem (`MailProvider`), żeby można było podpiąć prawdziwy Gmail/Outlook bez zmian w reszcie.
 - **[W]**: prawdziwe Gmail (OAuth, weryfikacja aplikacji Google) i Outlook (Microsoft Graph), podłączanie dowolnej skrzynki rodzica.
 - Ustawienia poczty jasno mówią: czytamy **tylko** maile w sprawie wysłanych wniosków, i tylko po dacie wysyłki.
@@ -268,19 +268,19 @@ Oznaczenie na karcie dziecka, które dodaje właściwe świadczenia (4000 zł, w
 - **AI**: Azure AI Foundry, tanie modele OpenAI w prototypie. **[W]**: model on-premise do ekstrakcji i wypełniania.
 - **Przejrzystość**: każda rekomendacja i każdy automatyczny status ma widoczne „dlaczego”.
 - **Źródła**: kalkulator i świadczenia powołują się na oficjalne źródła (linki z katalogu).
-- **Wygląd**: kolor główny `#EF4363`, tło `#f8fbef`, tekst `#191919`, Nunito (treść), Sniglet (tylko wordmark). `/jaskolka` i tryb jaskółki — monochromatyczne. Elementy AI/symulacji oznaczone osobnym kolorem (z legendy w materiałach).
+- **Wygląd**: kolor główny `#EF4363`, tło `#f8fbef`, tekst `#191919`, Nunito (treść), Sniglet (tylko wordmark). `/jaskolka` i tryb jaskółki — monochromatyczne. Elementy AI i dane demonstracyjne oznaczone osobnym kolorem (z legendy w materiałach).
 - Język interfejsu: polski.
 
 ## 15. Architektura (podejście A — wybrane)
 
 **Rozważone podejścia**
-- **A. Jedna aplikacja, symulacje w backendzie, agent w przeglądarce** — *wybrane*. Najmniej ruchomych części, płynny efekt agenta; agent nie steruje prawdziwą przeglądarką (przebudowa przy realnym eZUS).
+- **A. Jedna aplikacja, dane demonstracyjne w backendzie, agent w przeglądarce** — *wybrane*. Najmniej ruchomych części, płynny efekt agenta; agent nie steruje prawdziwą przeglądarką (przebudowa przy realnym eZUS).
 - **B. Jak A + prawdziwy Playwright w kontenerze** ze streamingiem obrazu — odrzucone na teraz: ciężki kontener, wolniej i bardziej zawodnie, a wypełniamy własną makietę. Zostaje jako [W].
 - **C. Osobne aplikacje** (rodzic / gmina / jaskółka) — odrzucone: trzy wdrożenia i duplikacja; podział zespołowy da się zrobić katalogami w jednej aplikacji.
 
 **Kształt**
 - `frontend/` — jedna aplikacja React (Vite, TS) z obszarami: aplikacja rodzica, panel jednostki samorządu, `/jaskolka` (ładowana osobno, bez logowania, własny motyw), makiety eZUS/Emp@tii (dla iframe).
-- `backend/` — FastAPI: auth (persona mObywatel, konta urzędników), rodzina i zaproszenia, profil, ekstrakcja umów, katalog i silnik dopasowania, wnioski (PDF + plan agenta), poczta (symulowana skrzynka za interfejsem `MailProvider` + polling + klasyfikacja LLM), kalendarz, czat (klient MCP + serwer MCP z narzędziami §11a, indeks przepisów w Azure AI Search, web search), limity zapytań, moduł symulacji ZUS/mObywatel.
+- `backend/` — FastAPI: auth (persona mObywatel, konta urzędników), rodzina i zaproszenia, profil, ekstrakcja umów, katalog i silnik dopasowania, wnioski (PDF + plan agenta), poczta (testowa skrzynka za interfejsem `MailProvider` + polling + klasyfikacja LLM), kalendarz, czat (klient MCP + serwer MCP z narzędziami §11a, indeks przepisów w Azure AI Search, web search), limity zapytań, moduł danych testowych ZUS/mObywatel.
 - **Cosmos DB** — dane; **AI Foundry** — modele; hosting jak obecnie (SWA dla frontu, Container App dla backendu).
 - Landing (`landing/`) już istnieje i linkuje do frontendu; CTA do `/jaskolka` dodać.
 

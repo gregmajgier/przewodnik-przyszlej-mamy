@@ -18,7 +18,7 @@ plany wdrożenia: [`docs/superpowers/plans/`](docs/superpowers/plans/) · przewo
 
 ## Uruchomienie na Windowsie — krok po kroku
 
-Nie potrzebujesz Azure. Lokalnie aplikacja używa danych demo i symuluje logowanie przez mObywatela oraz dane ZUS.
+Nie potrzebujesz Azure. Lokalnie aplikacja używa przykładowych profili logowania i testowych danych ZUS.
 Potrzebujesz Pythona 3.12+ i Node.js 22+.
 
 ### 1. Otwórz projekt
@@ -126,17 +126,17 @@ Wszystkie opcjonalne lokalnie; pełna lista z opisami: [`backend/.env.example`](
 | `VITE_API_URL`, `VITE_APP_URL` | Adres API dla frontendu; adres aplikacji dla linków z landingu. |
 | `CORS_ORIGINS` | Dozwolone adresy frontendów; lokalnie domyślnie aplikacja i landing. |
 
-## Co jest prawdziwe, a co symulowane
+## Co jest rzeczywiste, a co demonstracyjne
 
 | Obszar | Stan |
 |---|---|
-| Logowanie mObywatelem, dane ZUS (PESEL, ubezpieczenia, e-ZLA, dzieci) | **Symulowane** — persony z wymyślonymi danymi, daty względem dnia uruchomienia. |
+| Logowanie mObywatelem, dane ZUS (PESEL, ubezpieczenia, e-ZLA, dzieci) | **Dane demonstracyjne** — przykładowe persony, daty względem dnia uruchomienia. |
 | Przepisy w czacie | **Prawdziwe** — 8 aktów z oficjalnego API Sejmu (ELI), podział na artykuły, linki do ISAP. Nie zastępują porady prawnej. |
 | Asystent AI | **Prawdziwy** po podłączeniu Azure AI Foundry; bez konfiguracji tryb demo (wskazuje artykuły bez interpretacji). |
 | Wyszukiwanie w sieci | Prawdziwe po ustawieniu dostawcy (`brave`/`serper`); domyślnie wyłączone. |
 | `/jaskolka` (sytuacje, checklisty, fundacje) | **Prawdziwa** treść z oficjalnych źródeł; punkty niepewne mają `verify: true`. Linki fundacji sprawdza `backend/scripts/check_jaskolka_urls.py`. |
 | Tryb jaskółki w koncie, flaga „Za życiem” | **Prawdziwe** (logika, API, interfejs). |
-| Portale eZUS / Emp@tia, podpis Profilem Zaufanym, poczta | **Symulowane** (makiety, `SimMailProvider`) — zawsze z oznaczeniem „SYMULACJA”. |
+| Portale eZUS / Emp@tia, podpis Profilem Zaufanym, poczta | **Wersje demonstracyjne** (makiety, `SimMailProvider`) — oznaczone jako testowe. |
 
 ## Zakres: prototyp [P] i wizja [W]
 
@@ -153,7 +153,7 @@ Kolumna „Stan” pokazuje, co jest gotowe **w tej gałęzi**; reszta [P] powst
 | Czat „Zapytaj mRodzinę” (przepisy, dane rodziny, sieć; źródła w odpowiedzi) | [P] | 06 | gotowe |
 | Panel jednostki samorządu | [P] | 07 | w toku (inny autor) |
 | Wnioski, agent w makiecie portalu | [P] | 08 | w toku (inny autor) |
-| Poczta symulowana, kalendarz, powiadomienia w aplikacji | [P] | 09 | w toku (inny autor) |
+| Poczta testowa, kalendarz, powiadomienia w aplikacji | [P] | 09 | w toku (inny autor) |
 | Tryb jaskółki w koncie, „Za życiem”, test całości | [P] | 10 | gotowe w części niezależnej od planów 03/08/09 (patrz `docs/superpowers/plans/NOTES-10.md`) |
 | Kalkulator świadczeń (publiczny landing + API) | [P] | silnik `backend/app/engine/` | działa w wersji demo |
 | Powiadomienia e-mail i SMS | [W] | — | tylko wzmianka w UI |

@@ -72,7 +72,7 @@ def test_llm_error_raises_conditions_error():
     fake = FakeLLM().script(LLMError("x"))
     with pytest.raises(ConditionsError) as e:
         run(extract_conditions(fake, "Coś"))
-    assert "dodaj je ręcznie" in e.value.detail
+    assert "Dodaj je ręcznie" in e.value.detail
 
 
 def test_prefill_maps_age_and_income():

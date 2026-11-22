@@ -21,7 +21,7 @@ describe('ChildTimeline', () => {
     expect(now).toHaveTextContent('7 lat · 1. klasa')
     expect(now).toHaveTextContent('Dobry Start: zostało 9 dni')
     expect(items[0]).toHaveTextContent('Zapisy do 1. klasy')
-    expect(items[3]).toHaveTextContent('Dobry Start — nabór wniosków')
+    expect(items[3]).toHaveTextContent('Dobry Start: nabór wniosków')
     expect(items[3]).toHaveTextContent('1 lipca 2027')
     expect(items[3]).toHaveTextContent('za 7 miesięcy')
   })

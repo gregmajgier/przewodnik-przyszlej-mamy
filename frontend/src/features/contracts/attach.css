@@ -1,4 +1,4 @@
-/* Krok onboardingu „Umowy”: załączanie i (symulowany) odczyt przez AI. */
+/* Krok onboardingu „Umowy”: załączanie i testowy odczyt przez AI. */
 .attach-drop {
   display: flex;
   flex-direction: column;
@@ -32,7 +32,7 @@
   gap: 0.45rem;
   margin: 0;
   color: var(--ink-2);
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .attach-files {
@@ -93,7 +93,7 @@
 }
 .attach-file-state {
   flex: none;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
   font-weight: 800;
 }
 .attach-files li.is-done .attach-file-state {
@@ -175,10 +175,11 @@
   min-width: 0;
 }
 .attach-result-title .muted {
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
-.attach-facts {
+/* dl.facts (theme.css) to siatka dt/dd; tu każdy wiersz jest w <div>, więc nadpisujemy ją wyższą specyficznością */
+dl.facts.attach-facts {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -186,15 +187,18 @@
 }
 .attach-fact {
   display: grid;
-  grid-template-columns: 7.5rem 1fr;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
   gap: 0.75rem;
+}
+.attach-fact dd {
+  overflow-wrap: anywhere;
 }
 .attach-result .doc-preview {
   align-self: flex-start;
   min-height: 44px;
   padding-left: 0;
 }
-@media (max-width: 380px) {
+@media (max-width: 420px) {
   .attach-fact {
     grid-template-columns: 1fr;
     gap: 0;

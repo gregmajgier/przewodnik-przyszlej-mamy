@@ -148,6 +148,8 @@ def okres_macierzynskiego(ctx: CalcContext) -> tuple[date | None, int]:
 def wariant_81_5(ctx: CalcContext) -> tuple[bool, list[str]]:
     """Czy obowiązuje 81,5% za cały okres (wniosek do 21 dni po porodzie — art. 30a ustawy zasiłkowej)."""
     uw: list[str] = []
+    if ctx.profile.wnioskodawca.rola != "matka":
+        return False, uw
     wn = ctx.profile.plan.wniosek_81_5
     if not (wn and wn.czy):
         return False, uw
@@ -475,6 +477,50 @@ def oblicz_zasilek_uzupelniajacy(ctx: CalcContext) -> Wyliczenie:
     return w
 
 
+def _adopcja_okresy_rodzicielskiego(ctx: CalcContext, start: date, dni: int, procent: Decimal,
+                                    podstawa: Decimal | None, w: Wyliczenie) -> int:
+    koniec = start + timedelta(days=dni - 1)
+    czesci = sorted(
+        (c for c in ctx.profile.plan.czesci_urlopu_rodzicielskiego or []
+         if c.rodzic is None and c.od and c.do),
+        key=lambda c: c.od,
+    )
+    pelna_kwota = kwota_miesieczna(podstawa, procent, ctx.params, uwagi=w.uwagi) if podstawa is not None else None
+    if not czesci:
+        w.okresy.append(okres("Urlop rodzicielski (70%)", start, dni, procent, pelna_kwota, _wyplaca(ctx)))
+        return 0
+
+    cursor = start
+    wydluzenie = 0
+    for czesc in czesci:
+        od = max(start, czesc.od, cursor)
+        do = min(koniec, czesc.do)
+        if od > do:
+            continue
+        if od > cursor:
+            w.okresy.append(okres("Urlop rodzicielski (70%)", cursor, (od - cursor).days,
+                                 procent, pelna_kwota, _wyplaca(ctx)))
+        dni_czesci = (do - od).days + 1
+        wymiar_pracy = czesc.wymiar_pracy_w_trakcie or 0
+        kwota = (
+            kwota_miesieczna(podstawa, procent, ctx.params, wymiar_pracy=wymiar_pracy)
+            if podstawa is not None
+            else None
+        )
+        nazwa = f"Urlop rodzicielski — praca {wymiar_pracy:g} etatu" if wymiar_pracy else "Urlop rodzicielski (70%)"
+        w.okresy.append(okres(nazwa, od, dni_czesci, procent, kwota, _wyplaca(ctx)))
+        wydluzenie += math.floor(dni_czesci * wymiar_pracy)
+        cursor = do + timedelta(days=1)
+
+    if cursor <= koniec:
+        w.okresy.append(okres("Urlop rodzicielski (70%)", cursor, (koniec - cursor).days + 1,
+                             procent, pelna_kwota, _wyplaca(ctx)))
+    if wydluzenie:
+        w.okresy.append(okres("Wydłużenie urlopu rodzicielskiego przy łączeniu z pracą",
+                             koniec + timedelta(days=1), wydluzenie, procent, pelna_kwota, _wyplaca(ctx)))
+    return wydluzenie
+
+
 def oblicz_zasilek_adopcja(ctx: CalcContext) -> Wyliczenie:
     """Przyjęcie dziecka na wychowanie (art. 183 KP): urlop na warunkach macierzyńskiego jak przy porodzie
     (20–37 tyg.), nie dłużej niż do ukończenia przez dziecko 7 lat (10 przy odroczonym obowiązku szkolnym)
@@ -512,14 +558,15 @@ def oblicz_zasilek_adopcja(ctx: CalcContext) -> Wyliczenie:
     p100, p70 = _pct(ctx.params, "zasilek.procent.macierzynski"), _pct(ctx.params, "zasilek.procent.rodzicielski")
     podstawa = _podstawa(ctx)
     if podstawa is None:
-        w.okresy += [okres("Urlop na warunkach urlopu macierzyńskiego", start, dni, p100, None, _wyplaca(ctx)),
-                     okres("Urlop rodzicielski", start + timedelta(days=dni), rod_dni, p70, None, _wyplaca(ctx))]
+        w.okresy.append(okres("Urlop na warunkach urlopu macierzyńskiego", start, dni, p100, None, _wyplaca(ctx)))
+        wydluzenie = _adopcja_okresy_rodzicielskiego(ctx, start + timedelta(days=dni), rod_dni, p70, None, w)
+        w.szczegoly["rodzicielski_wydluzenie_dni"] = wydluzenie
         return _brak_podstawy(w)
     m100 = kwota_miesieczna(podstawa, p100, ctx.params, uwagi=w.uwagi)
-    m70 = kwota_miesieczna(podstawa, p70, ctx.params)
     w.podstawa_wymiaru, w.kwota_miesieczna, w.stawka_dzienna = _f(podstawa), _f(m100), _f(m100 / 30)
-    w.okresy += [okres("Urlop na warunkach urlopu macierzyńskiego (100%)", start, dni, p100, m100, _wyplaca(ctx)),
-                 okres("Urlop rodzicielski (70%)", start + timedelta(days=dni), rod_dni, p70, m70, _wyplaca(ctx))]
+    w.okresy.append(okres("Urlop na warunkach urlopu macierzyńskiego (100%)", start, dni, p100, m100, _wyplaca(ctx)))
+    wydluzenie = _adopcja_okresy_rodzicielskiego(ctx, start + timedelta(days=dni), rod_dni, p70, podstawa, w)
+    w.szczegoly["rodzicielski_wydluzenie_dni"] = wydluzenie
     w.kwota_laczna = _suma(w.okresy)
     return w
 

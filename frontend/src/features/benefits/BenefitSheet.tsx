@@ -104,7 +104,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
                 </div>
               </div>
             ))}
-            <p className="small muted">Zapamiętamy odpowiedź — nie zapytamy drugi raz.</p>
+            <p className="small muted">Zapamiętamy odpowiedź i nie zapytamy drugi raz.</p>
           </section>
         )}
 

@@ -353,7 +353,7 @@ export function DateField({
         />
         <Icon name="calendar" size={20} className="date-field-icon" />
       </span>
-      {invalid && <span className="field-error">Sprawdź datę — taki dzień nie istnieje.</span>}
+      {invalid && <span className="field-error">Sprawdź datę: taki dzień nie istnieje.</span>}
     </label>
   )
 }

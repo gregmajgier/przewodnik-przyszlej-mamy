@@ -1,4 +1,4 @@
-"""Predefiniowana zawartość symulowanej skrzynki (plan 09): maile NIEZWIĄZANE z wnioskami.
+"""Predefiniowana zawartość testowej skrzynki (plan 09): maile NIEZWIĄZANE z wnioskami.
 
 Pokazują, że filtr czyta tylko korespondencję w sprawie wniosków. Wkładane leniwie przy pierwszym dostępie
 do skrzynki danej rodziny (identyfikator rodziny powstaje dopiero w trakcie działania aplikacji).

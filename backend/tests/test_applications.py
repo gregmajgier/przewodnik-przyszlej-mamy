@@ -75,8 +75,7 @@ def _complete_zam(client, h, child, channel=None):
 def _join_partner(client, ha):
     fam = client.get("/api/families/me", headers=ha).json()["family"]
     hp = login(client, "persona-nowak-piotr")
-    req = client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp).json()
-    assert client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=ha).status_code == 200
+    assert client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp).status_code == 201
     return hp
 
 

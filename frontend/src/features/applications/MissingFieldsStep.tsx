@@ -80,7 +80,7 @@ export default function MissingFieldsStep({ questions, onAnswer, busy = false, e
         <div>
           <h2 id="missing-h">Brakuje jeszcze {questions.length === 1 ? 'jednej informacji' : `${questions.length} informacji`}</h2>
           <p className="muted small">
-            Pytanie 1 z {questions.length}. Zapamiętamy odpowiedź — przy kolejnym wniosku już o to nie zapytamy.
+            Pytanie 1 z {questions.length}. Zapamiętamy odpowiedź i przy kolejnym wniosku już o to nie zapytamy.
           </p>
         </div>
       </div>

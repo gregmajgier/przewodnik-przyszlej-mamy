@@ -70,12 +70,12 @@ function Header({ inSituation }: { inSituation: boolean }) {
 }
 
 function Helpline() {
+  // Numery pomocy widać zawsze, bez klikania: osoba w kryzysie nie powinna ich szukać.
   return (
     <footer className="jk-help">
-      <p>
-        Potrzebujesz porozmawiać? Telefon wsparcia emocjonalnego{' '}
-        <a href="tel:116123">116 123</a> (bezpłatnie, całodobowo). Jeśli ktoś jest w niebezpieczeństwie, zadzwoń
-        pod <a href="tel:112">112</a>.{' '}
+      <p className="jk-help-line">
+        Telefon wsparcia emocjonalnego: <a href="tel:116123">116 123</a>, bezpłatnie i całą dobę.{' '}
+        Jeśli ktoś jest w niebezpieczeństwie: <a href="tel:112">112</a>.{' '}
         <a
           href="https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna"
           target="_blank"

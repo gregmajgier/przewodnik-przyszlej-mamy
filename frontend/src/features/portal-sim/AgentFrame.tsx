@@ -30,7 +30,7 @@ const toFieldValue = (v: unknown): FieldValue => (typeof v === 'boolean' ? v : S
 const errorText = (e: unknown, fallback: string) => (e instanceof ApiError ? e.detail : fallback)
 
 /**
- * Agent „klikający” w makiecie portalu (SYMULACJA):
+ * Agent „klikający” w makiecie portalu:
  * pobiera plan (`/agent-plan`), wykonuje kroki po kolei z widocznym kursorem, zatrzymuje się na brakujących danych
  * (pyta rodzica) oraz przed wysyłką — wysyła dopiero po „Zatwierdzam i wysyłam”. Rodzic może sam edytować
  * dowolne pole w makiecie; zmiany zapisujemy we wniosku.
@@ -94,7 +94,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
           case 'invalid':
             if (phaseRef.current === 'submitting') {
               setPhase('review')
-              setError('Makieta nie przyjęła wniosku — uzupełnij zaznaczone pola i zatwierdź ponownie.')
+              setError('Makieta nie przyjęła wniosku. Uzupełnij zaznaczone pola i zatwierdź ponownie.')
             }
             break
           case 'submitted':
@@ -197,7 +197,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
         <div>
           <h2 id="agent-h">Agent wypełnia formularz online</h2>
           <p className="muted small">
-            Wpisuje dane z Waszego profilu. Możesz kliknąć dowolne pole i je poprawić — nic nie zostanie wysłane, dopóki tego
+            Wpisuje dane z Waszego profilu. Możesz kliknąć dowolne pole i je poprawić. Nic nie zostanie wysłane, dopóki tego
             nie zatwierdzisz.
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function AgentFrame({ applicationId, onSubmitted }: Props) {
       <div className="agent-status" role="status" aria-live="polite">
         {phase === 'loading' && 'Przygotowuję plan…'}
         {phase === 'running' && `Wypełniam formularz: krok ${Math.min(progress + 1, total)} z ${total}`}
-        {phase === 'blocked' && 'Zatrzymałem się — potrzebuję jeszcze kilku danych.'}
+        {phase === 'blocked' && 'Zatrzymałem się: potrzebuję jeszcze kilku danych.'}
         {phase === 'review' && 'Gotowe. Sprawdź formularz i zatwierdź wysyłkę.'}
         {phase === 'submitting' && 'Wysyłam…'}
         {phase === 'done' && 'Wniosek złożony.'}

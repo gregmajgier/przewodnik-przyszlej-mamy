@@ -17,7 +17,7 @@ export function ContractUpload({ onScanned }: { onScanned: (r: ScanResult) => vo
     e.preventDefault()
     if (!file) return
     if (file.size > MAX_BYTES) {
-      setError('Plik jest za duży — maksymalnie 5 MB.')
+      setError('Plik jest za duży (maksymalnie 5 MB).')
       return
     }
     setBusy(true)
@@ -39,7 +39,7 @@ export function ContractUpload({ onScanned }: { onScanned: (r: ScanResult) => vo
       <h2>Dodaj umowę</h2>
       <p className="muted">
         Wgraj umowę o pracę, zlecenie albo umowę B2B (PDF, zdjęcie lub tekst, do 5 MB). Asystent AI
-        odczyta dane, a Ty je sprawdzisz, zanim cokolwiek zapiszemy. Możesz dodać kilka umów — np.
+        odczyta dane, a Ty je sprawdzisz, zanim cokolwiek zapiszemy. Możesz dodać kilka umów, np.
         etat i zlecenie.
       </p>
       <div className="field">

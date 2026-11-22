@@ -63,6 +63,18 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Strona start')).toBeInTheDocument()
   })
 
+  it('pozwala wybrać Profil Zaufany w trybie demonstracyjnym', async () => {
+    const session = makeSession({ user: null, token: null })
+    renderWithSession(<Tree />, { route: '/logowanie', session })
+    await userEvent.click(screen.getByRole('button', { name: /zaczynamy/i }))
+    await userEvent.click(screen.getByRole('button', { name: /zaloguj profilem zaufanym/i }))
+
+    expect(await screen.findByText(/Profil Zaufany — KONTA TESTOWE/)).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
+    expect(session.login).toHaveBeenCalledWith('persona-nowak-anna')
+    expect(await screen.findByText('Strona start')).toBeInTheDocument()
+  })
+
   it('użytkownik z rodziną, który przeszedł już onboarding na tym urządzeniu, trafia na /', async () => {
     markOnboarded(ANNA.id)
     const session = makeSession({

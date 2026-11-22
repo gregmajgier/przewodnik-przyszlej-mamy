@@ -243,7 +243,7 @@ export function defaultDueDate(today = new Date()): string {
   return isoDate(new Date(today.getFullYear(), today.getMonth() + 4, today.getDate()))
 }
 
-export const VOLUNTARY: Work[] = ['umowa_zlecenia', 'jdg', 'wspolpraca_jdg', 'ulga_na_start']
+export const VOLUNTARY: Work[] = ['umowa_zlecenia', 'jdg', 'wspolpraca_jdg']
 export const INSURED: Work[] = ['umowa_o_prace', ...VOLUNTARY, 'duchowny', 'marynarz', 'sluzba_mundurowa']
 export const needsPay = (a: Answers) =>
   INSURED.includes(a.work) &&
@@ -310,8 +310,8 @@ export function validate(a: Answers, today = new Date()): string | null {
   if (a.childDeathDate && !isValidDate(a.childDeathDate)) return 'Sprawdź datę śmierci dziecka.'
   if (a.stage === 'urodzone' && a.childStatus.startsWith('zgon_') && !a.childDeathDate)
     return 'Podaj datę śmierci dziecka, aby dobrać właściwy okres świadczenia.'
-  if (a.pregnancyWeek && (!Number.isInteger(Number(a.pregnancyWeek)) || Number(a.pregnancyWeek) < 20 || Number(a.pregnancyWeek) > 45))
-    return 'Tydzień ciąży podaj jako liczbę od 20 do 45.'
+  if (a.pregnancyWeek && (!Number.isInteger(Number(a.pregnancyWeek)) || Number(a.pregnancyWeek) < 1 || Number(a.pregnancyWeek) > 45))
+    return 'Tydzień ciąży podaj jako liczbę od 1 do 45.'
 
   if (!Number.isInteger(a.babyCount) || a.babyCount < 1 || a.babyCount > 10) return 'Liczba dzieci z porodu powinna wynosić od 1 do 10.'
   if (!Number.isInteger(Number(a.adultsInFamily)) || Number(a.adultsInFamily) < 1 || Number(a.adultsInFamily) > 10)
@@ -355,23 +355,36 @@ function boolOrNull(v: TriState): boolean | null {
   return v === '' ? null : v === 'tak'
 }
 
-function incomeRows(a: Answers, months: { rok: number; miesiac: number }[]) {
+function incomeRows(a: Answers, months: { rok: number; miesiac: number }[], insuranceStart: string) {
   if (!needsPay(a)) return []
+  let firstFullMonth: Date | null = null
+  if (insuranceStart) {
+    const start = parseDate(insuranceStart)
+    firstFullMonth = new Date(start.getFullYear(), start.getMonth() + (start.getDate() === 1 ? 0 : 1), 1)
+  }
+  const coveredMonths = months.flatMap((month, index) => {
+    const monthStart = new Date(month.rok, month.miesiac - 1, 1)
+    return firstFullMonth && monthStart < firstFullMonth ? [] : [{ ...month, index }]
+  })
+  if (!coveredMonths.length) return []
   if (a.incomeMode === 'average') {
     if (!a.gross.trim()) return []
     const value = moneyValue(a.gross)
-    return months.map((m) => ({ ...m, value }))
+    return coveredMonths.map((month) => ({ rok: month.rok, miesiac: month.miesiac, value }))
   }
-  return months.flatMap((m, i) => {
-    const entry = a.monthlyGross[i]
-    return entry?.trim() ? [{ ...m, value: moneyValue(entry) }] : []
-  })
+  const values = coveredMonths.map(({ index }) => a.monthlyGross[index] ?? '')
+  if (values.some((value) => !value.trim())) return []
+  return coveredMonths.map((month, i) => ({
+    rok: month.rok,
+    miesiac: month.miesiac,
+    value: moneyValue(values[i]),
+  }))
 }
 
 export function buildRequest(a: Answers): RequestPlan {
   const referenceDate = parseDate(a.date)
   const months = lastTwelveMonths(referenceDate)
-  const rows = incomeRows(a, months)
+  const rows = incomeRows(a, months, a.insuranceStart)
   const chorobowe =
     a.work === 'umowa_o_prace'
       ? 'obowiazkowe'
@@ -420,11 +433,12 @@ export function buildRequest(a: Answers): RequestPlan {
       ...a,
       work: a.secondParentWork,
       sickness: a.secondParentSickness,
+      insuranceStart: a.secondParentInsuranceStart,
       gross: a.secondParentGross,
       monthlyGross: a.secondParentMonthlyGross,
       incomeMode: a.secondParentIncomeMode,
     }
-    const partnerRows = incomeRows(secondParentAnswers, months)
+    const partnerRows = incomeRows(secondParentAnswers, months, a.secondParentInsuranceStart)
     const partnerSickness =
       a.secondParentWork === 'umowa_o_prace'
         ? 'obowiazkowe'
@@ -528,11 +542,11 @@ export function buildRequest(a: Answers): RequestPlan {
       a.stage === 'adopcja_zastepcza'
         ? { stan_dziecka: null, liczba_dzieci: null }
         : {
-            data_porodu: a.date,
+            data_porodu: a.stage === 'ciaza' ? null : a.date,
             liczba_dzieci: a.babyCount,
-            stan_dziecka: a.stage === 'ciaza' ? 'zywe' : a.childStatus,
+            stan_dziecka: a.stage === 'ciaza' ? null : a.childStatus,
             ...(a.stage === 'urodzone' && a.childDeathDate ? { data_zgonu_dziecka: a.childDeathDate } : {}),
-            ...(a.pregnancyWeek ? { tydzien_ciazy: Number(a.pregnancyWeek) } : {}),
+            ...(a.stage === 'urodzone' && a.pregnancyWeek ? { tydzien_ciazy: Number(a.pregnancyWeek) } : {}),
           },
     dzieci: children,
     matka: {
@@ -563,11 +577,12 @@ export function buildRequest(a: Answers): RequestPlan {
   }
 
   const plan: Record<string, unknown> = {}
-  if (a.eightOneFive) plan.wniosek_81_5 = { czy: true, data_zlozenia: a.stage === 'urodzone' ? isoDate(new Date()) : a.date }
+  if (a.eightOneFive && a.role === 'matka' && a.stage !== 'adopcja_zastepcza')
+    plan.wniosek_81_5 = { czy: true, data_zlozenia: a.stage === 'urodzone' ? isoDate(new Date()) : a.date }
   if (a.workDuringLeave) {
     plan.czesci_urlopu_rodzicielskiego = [
       {
-        rodzic: a.leaveParent,
+        rodzic: a.stage === 'adopcja_zastepcza' ? null : a.leaveParent,
         od: a.leaveFrom,
         do: a.leaveTo,
         wymiar_pracy_w_trakcie: Number(a.leaveWorkFraction),
@@ -582,6 +597,11 @@ export function buildRequest(a: Answers): RequestPlan {
     futureProfile: {
       ...profile,
       wnioskodawca: { ...(profile.wnioskodawca as Record<string, unknown>), etap: 'po_porodzie' },
+      porod: {
+        data_porodu: a.date,
+        liczba_dzieci: a.babyCount,
+        stan_dziecka: 'zywe',
+      },
     },
     futureDate: a.date,
   }

@@ -129,7 +129,7 @@ def test_extract_llm_error_message(env):
     fake.script(LLMError("x"), LLMError("x"))
     r = c.post(f"/api/official/benefits/{b['id']}/extract-conditions", headers=h)
     assert r.status_code == 502
-    assert r.json()["detail"] == "Nie udało się wyodrębnić warunków — dodaj je ręcznie."
+    assert r.json()["detail"] == "Nie udało się wyodrębnić warunków. Dodaj je ręcznie."
     assert c.get(f"/api/official/benefits/{b['id']}", headers=h).json()["extra_conditions"] == []
 
 

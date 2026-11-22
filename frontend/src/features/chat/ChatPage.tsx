@@ -126,7 +126,7 @@ export default function ChatPage() {
                 <Logo className="chat-hero-logo" color="#fff" duration={1300} />
               </div>
               <h2>W czym mogę Ci pomóc?</h2>
-              <p className="muted">Pytaj o urlopy, zasiłki, żłobek, przedszkole i szkołę. Odpowiadam na podstawie przepisów i Waszych danych — zawsze ze źródłem.</p>
+              <p className="muted">Pytaj o urlopy, zasiłki, żłobek, przedszkole i szkołę. Odpowiadam na podstawie przepisów i Waszych danych, zawsze ze źródłem.</p>
               <div className="chat-suggestions">
                 {SUGGESTIONS.map((s, i) => (
                   <button

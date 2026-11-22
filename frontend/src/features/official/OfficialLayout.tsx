@@ -93,7 +93,7 @@ export default function OfficialLayout() {
     <div className="shell off-shell">
       <header className="shell-header">
         <div className="shell-header-inner">
-          <Link to="/urzednik" className="shell-brand off-brand" aria-label="mRodzina — panel samorządu">
+          <Link to="/urzednik" className="shell-brand off-brand" aria-label="mRodzina: panel samorządu">
             <Wordmark />
             <span className="off-brand-tag">Samorząd</span>
           </Link>

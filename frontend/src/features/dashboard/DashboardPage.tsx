@@ -6,6 +6,7 @@ import { useSession } from '../../lib/session'
 import { useApi } from '../../lib/useApi'
 import { Icon } from '../../ui/Icon'
 import { Avatar, Pill } from '../../ui/controls'
+import { categoryOf, catMeta, shortAmount } from '../benefits/categories'
 import type { BenefitMatch, Summary } from '../benefits/types'
 import type { CalendarEvent } from '../calendar/types'
 import { STATUS_LABEL } from '../applications/types'
@@ -70,6 +71,11 @@ export default function DashboardPage() {
   const items = benefits.data ?? []
   const forYou = items.filter((b) => b.match.status !== 'no')
   const maybe = items.filter((b) => b.match.status === 'maybe').length
+  const fits = forYou.length - maybe
+  // na kafelku: najcenniejsze świadczenia, najpierw te, które na pewno pasują
+  const top = [...forYou]
+    .sort((a, b) => (a.match.status === b.match.status ? 0 : a.match.status === 'fits' ? -1 : 1) || (b.benefit.annual_value_estimate ?? 0) - (a.benefit.annual_value_estimate ?? 0))
+    .slice(0, 3)
   const openApps = (apps.apps ?? []).filter((a) => isOpen(a.status))
   const recentApps = [...openApps, ...(apps.apps ?? []).filter((a) => !isOpen(a.status))].slice(0, 3)
   const upcoming = (calendar.data ?? [])
@@ -94,7 +100,7 @@ export default function DashboardPage() {
                 Znaleźliśmy dla Was <strong>{plural(forYou.length || summary.data.totals.fits + summary.data.totals.maybe, 'świadczenie', 'świadczenia', 'świadczeń')}</strong>
                 {deadline && (
                   <>
-                    . Najbliższy termin: <strong>{deadline.benefit_name}</strong> — {formatDate(deadline.date)}
+                    . Najbliższy termin: <strong>{deadline.benefit_name}</strong>, {formatDate(deadline.date)}
                   </>
                 )}
                 .
@@ -142,7 +148,7 @@ export default function DashboardPage() {
                   .slice(0, 2)
                   .map((m) => m.benefit.name.replace(/\s*\(.*\)$/, ''))
                   .join(' · ') || guides[0]?.title || ''}
-                urgent={urgent ? `${urgent.title.split(' — ')[0]}: ${urgent.urgent}` : undefined}
+                urgent={urgent ? `${urgent.title.split(/ — |: /)[0]}: ${urgent.urgent}` : undefined}
               />
             )
           })}
@@ -187,7 +193,7 @@ export default function DashboardPage() {
             {gmail && (
               <span className="bento-sync">
                 <span className={`sync-dot ${apps.syncing ? 'is-busy' : ''}`} aria-hidden="true" />
-                {apps.syncing ? 'Sprawdzam Gmail…' : 'Gmail połączony — statusy aktualizują się same'}
+                {apps.syncing ? 'Sprawdzam Gmail…' : 'Gmail połączony, statusy aktualizują się same'}
               </span>
             )}
           </Link>
@@ -199,18 +205,52 @@ export default function DashboardPage() {
               </span>
               <span className="bento-title">
                 Baza świadczeń
-                <span className="bento-sub">Wszystko, co przysługuje rodzinom</span>
+                <span className="bento-sub">{benefits.data ? `${plural(forYou.length, 'świadczenie', 'świadczenia', 'świadczeń')} dla Was` : 'Wczytuję…'}</span>
               </span>
               <Icon name="arrowUpRight" size={20} className="bento-go" />
             </div>
-            <div className="bento-numbers">
-              <span>
-                <strong>{benefits.data ? forYou.length - maybe : '–'}</strong> dla Was
-              </span>
-              <span>
-                <strong>{benefits.data ? maybe : '–'}</strong> do sprawdzenia
-              </span>
-            </div>
+            {benefits.data ? (
+              <>
+                <ul className="bento-benefits-list" aria-label="Najwięcej dla Was">
+                  {top.map((b) => {
+                    const cat = catMeta(categoryOf(b.benefit))
+                    const yearly = b.benefit.annual_value_estimate
+                    const short = shortAmount(b.benefit)
+                    // kwota roczna mówi więcej niż „100%” — procent zostawiamy tylko, gdy nie ma szacunku
+                    const amount = yearly ? `${formatPln(yearly)} / rok` : short && !short.endsWith('%') ? short : null
+                    return (
+                      <li key={b.benefit.id}>
+                        <span className={`icon-tile icon-tile-sm tone-${cat.tone}`}>
+                          <Icon name={cat.icon} size={17} />
+                        </span>
+                        <span className="bento-benefit-name">{b.benefit.name}</span>
+                        {amount && <span className="bento-benefit-amount">{amount}</span>}
+                      </li>
+                    )
+                  })}
+                </ul>
+                <div className="bento-split">
+                  <span className="bento-split-bar" aria-hidden="true">
+                    <span style={{ flexGrow: fits }} className="is-fits" />
+                    <span style={{ flexGrow: maybe }} className="is-maybe" />
+                  </span>
+                  <span className="bento-split-legend">
+                    <span>
+                      <i className="is-fits" aria-hidden="true" /> {fits} pasuje
+                    </span>
+                    <span>
+                      <i className="is-maybe" aria-hidden="true" /> {maybe} do sprawdzenia
+                    </span>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="bento-benefits-list" aria-hidden="true">
+                <span className="skeleton" style={{ height: '2.6rem' }} />
+                <span className="skeleton" style={{ height: '2.6rem' }} />
+                <span className="skeleton" style={{ height: '2.6rem' }} />
+              </div>
+            )}
           </Link>
 
           <Link to="/kalendarz" className="bento-tile bento-wide rise" style={{ ['--i' as string]: 3 }}>

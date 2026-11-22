@@ -102,7 +102,7 @@ export const STATUS_LABEL: Record<AppStatus, string> = {
 
 export const CHANNEL_LABEL: Record<Channel, string> = {
   employer_email: 'E-mail do pracodawcy (PDF w załączniku)',
-  portal_agent: 'Formularz online — wypełni go za Ciebie agent',
+  portal_agent: 'Formularz online, wypełni go za Ciebie agent',
   pdf_download: 'PDF do pobrania i samodzielnego złożenia',
 }
 

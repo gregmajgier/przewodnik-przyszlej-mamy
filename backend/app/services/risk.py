@@ -50,7 +50,7 @@ def _fixed_term_risk(profile: ParentProfile, c: Contract, child: Child) -> Risk 
         explanation=(
             f"Twoja umowa o pracę ({c.employer_name or 'bez nazwy pracodawcy'}) kończy się {_fmt(c.end_date)}, "
             f"a termin porodu to {_fmt(child.due_date)}. Umowa na czas określony, która upływa po trzecim miesiącu "
-            "ciąży, zwykle przedłuża się do dnia porodu (art. 177 Kodeksu pracy). To dobra wiadomość — "
+            "ciąży, zwykle przedłuża się do dnia porodu (art. 177 Kodeksu pracy). To dobra wiadomość, "
             "ale zweryfikuj to z pracodawcą."
         ),
         action="Poinformuj pracodawcę o ciąży i dostarcz zaświadczenie lekarskie, zanim umowa wygaśnie.",
@@ -66,7 +66,7 @@ def _mandate_risk(
     latest = child.due_date - timedelta(days=VOLUNTARY_SICKNESS_LEAD_DAYS)
     deadline = latest if latest >= today else None
     late_note = (
-        " Termin na spokojne zgłoszenie mógł już minąć — zapytaj w ZUS, czy nadal możesz to zrobić."
+        " Termin na spokojne zgłoszenie mógł już minąć. Zapytaj w ZUS, czy nadal możesz to zrobić."
         if deadline is None
         else ""
     )
@@ -97,7 +97,7 @@ def _debt_risk(profile: ParentProfile, child: Child, source_ref: str) -> Risk:
             "Przy działalności gospodarczej zadłużenie może odebrać prawo do zasiłku chorobowego "
             "i macierzyńskiego (zweryfikuj w ZUS)."
         ),
-        action="Spłać zaległe składki albo poproś ZUS o układ ratalny — najlepiej przed terminem porodu.",
+        action="Spłać zaległe składki albo poproś ZUS o układ ratalny, najlepiej przed terminem porodu.",
         deadline=child.due_date,
         user_id=profile.user_id,
         source_ref=source_ref,
