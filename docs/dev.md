@@ -192,11 +192,18 @@ dalej decyduje `services/matching.py`; silnik działa obok.
 `engine/schemas.py` → statusy, kwoty, ryzyka, wnioski, kalendarz) i `GET /api/silnik/formularz`. Wejście ma twarde
 limity: zakresy dat `od ≤ do` i najwyżej 3 lata, listy do 50 pozycji (inaczej 422) — silnik rozwija okresy dzień po dniu.
 
-**Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, logika w `calcEngine.ts`): kilka pytań → profil
-silnika → `POST ${VITE_API_URL}/api/silnik/ocena`. W ciąży liczy stan na termin porodu (`data_oceny`), więc pokazuje
-też to, co zaczyna się po porodzie. Landing sam niczego nie liczy i nic nie zapisuje; pokazuje tylko świadczenia
-pieniężne z listy `SHOWN` (bez zasiłku opiekuńczego i ścieżek straty). Domyślna konfiguracja CORS dopuszcza lokalny landing;
-przy własnym `CORS_ORIGINS` trzeba dodać origin, z którego otwierasz stronę.
+**Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, adapter `calcEngine.ts`) obsługuje ciążę
+(osobno bieżące uprawnienia i prognozę po porodzie), dziecko urodzone oraz adopcję/rodzinę zastępczą niezawodową.
+Zbiera m.in. dokładne daty ubezpieczenia i osobne podstawy składek obojga rodziców, skład rodziny i dochód, miejsce
+zamieszkania, e-ZLA, dane o wcześniactwie/„Za życiem” oraz plan łączenia urlopu z pracą. Miesięczne podstawy są
+przypisane do konkretnych miesięcy przed terminem porodu; puste wartości pozostają nieznane, nie są zastępowane
+szacunkiem. Silnik zwraca statusy (także „brak danych” i niespełnione warunki), kwoty, ryzyka, wymagane wnioski i terminy;
+landing nie wylicza kwot samodzielnie ani nie zapisuje danych.
+
+Miasto i gmina wskazują właściwy urząd w podsumowaniu, ale aktualny katalog lokalnych programów nie jest podłączony.
+`benefits_local_sample.json` zawiera wyłącznie przykłady demonstracyjne — nie wyświetlaj ich jako prawdziwych ofert.
+Domyślna konfiguracja CORS dopuszcza lokalny landing; przy własnym `CORS_ORIGINS` trzeba dodać origin, z którego
+otwierasz stronę.
 
 ## Wnioski, agent i makiety portali (plan 08)
 

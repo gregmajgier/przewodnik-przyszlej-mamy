@@ -119,6 +119,38 @@ def test_p3_ojciec_nie_przejmuje_macierzynskiego_bez_przeslanek(p3):
     assert sw(p3, "ZASILEK_MACIERZYNSKI_OJCIEC_PRZEJECIE").status == "nie_przysluguje"
 
 
+def test_szczegolowe_ubezpieczenie_drugiego_rodzica_pokazuje_jego_kwote():
+    profil = copy.deepcopy(PERSONY["P3_OJCIEC_MATKA_STUDENTKA"])
+    profil["drugi_rodzic"]["tytul_ubezpieczenia"] = "umowa_o_prace"
+    profil["drugi_rodzic"]["ubezpieczenie"] = {
+        "chorobowe": "obowiazkowe",
+        "data_objecia_chorobowym": "2020-01-01",
+        "przychody_12_miesiecy": [
+            {"rok": 2026, "miesiac": m, "podstawa_wymiaru_skladek": 5000} for m in range(1, 13)
+        ],
+    }
+
+    wynik = ocena(profil)
+    macierzynski = next(w for w in wynik.swiadczenia_drugiego_rodzica if w.id == "ZASILEK_MACIERZYNSKI_MATKA")
+    assert macierzynski.wyliczenie.kwota_miesieczna == 4314.5
+    assert any(w.id == "ZASILEK_URLOP_RODZICIELSKI" for w in wynik.swiadczenia_drugiego_rodzica)
+
+
+def test_brak_podstawy_drugiego_rodzica_nie_generuje_szacunku_kwoty():
+    profil = copy.deepcopy(PERSONY["P3_OJCIEC_MATKA_STUDENTKA"])
+    profil["drugi_rodzic"]["tytul_ubezpieczenia"] = "umowa_o_prace"
+    profil["drugi_rodzic"]["ubezpieczenie"] = {
+        "chorobowe": "obowiazkowe",
+        "data_objecia_chorobowym": "2020-01-01",
+    }
+
+    wynik = ocena(profil)
+    macierzynski = next(w for w in wynik.swiadczenia_drugiego_rodzica if w.id == "ZASILEK_MACIERZYNSKI_MATKA")
+    assert macierzynski.status == "przysluguje"
+    assert macierzynski.wyliczenie.kwota_miesieczna is None
+    assert macierzynski.wyliczenie.kwota_laczna is None
+
+
 def test_ojciec_przejmuje_gdy_matka_bez_ubezpieczenia_podjela_prace():
     profil = copy.deepcopy(PERSONY["P3_OJCIEC_MATKA_STUDENTKA"])
     profil["matka"]["podjela_prace_min_pol_etatu"] = True

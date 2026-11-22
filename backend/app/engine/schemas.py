@@ -295,6 +295,7 @@ class DrugiRodzic(_Model):
     dane: DaneDrugiegoRodzica | None = None
     tytul_ubezpieczenia: TytulUbezpieczenia | None = None
     platnik: PlatnikDrugiegoRodzica | None = None
+    ubezpieczenie: Ubezpieczenie | None = None
     aktywny_zawodowo: bool | None = None
 
 
