@@ -178,7 +178,8 @@
   font-size: 0.82rem;
   overflow-wrap: anywhere;
 }
-.attach-facts {
+/* dl.facts (theme.css) to siatka dt/dd; tu każdy wiersz jest w <div>, więc nadpisujemy ją wyższą specyficznością */
+dl.facts.attach-facts {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -186,15 +187,18 @@
 }
 .attach-fact {
   display: grid;
-  grid-template-columns: 7.5rem 1fr;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
   gap: 0.75rem;
+}
+.attach-fact dd {
+  overflow-wrap: anywhere;
 }
 .attach-result .doc-preview {
   align-self: flex-start;
   min-height: 44px;
   padding-left: 0;
 }
-@media (max-width: 380px) {
+@media (max-width: 420px) {
   .attach-fact {
     grid-template-columns: 1fr;
     gap: 0;

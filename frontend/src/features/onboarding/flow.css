@@ -372,3 +372,8 @@
 .doc-preview:hover {
   text-decoration: underline;
 }
+
+/* Onboarding: pole kodu pod opcją „Dołączam do rodziny” */
+.join-inline {
+  margin-top: 1.25rem;
+}

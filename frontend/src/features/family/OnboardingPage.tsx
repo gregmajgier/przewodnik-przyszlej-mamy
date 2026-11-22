@@ -13,6 +13,7 @@ import ContractsAttachStep from '../contracts/ContractsAttachStep'
 import { listDocuments } from '../contracts/documents'
 import type { EmploymentDocument } from '../contracts/types'
 import { AddChildSheet } from './AddChildSheet'
+import { CodeInput } from './CodeInput'
 import { connectGmail } from './gmail'
 import '../../ui/ui.css'
 import '../onboarding/flow.css'
@@ -76,6 +77,7 @@ export default function OnboardingPage() {
   const startAt = (location.state as { step?: Step } | null)?.step
   const [step, setStep] = useState<Step>(startAt && ORDER.includes(startAt) ? startAt : 'family')
   const [mode, setMode] = useState<'create' | 'join'>('create')
+  const [joinCode, setJoinCode] = useState('')
   const [known, setKnown] = useState<KnownChild[] | null>(null)
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [addOpen, setAddOpen] = useState(false)
@@ -138,8 +140,14 @@ export default function OnboardingPage() {
   async function next() {
     if (step === 'family') {
       if (mode === 'join') {
-        if (family) setStep('children') // już jesteś w rodzinie — dołączanie nie jest potrzebne
-        else navigate('/dolacz')
+        if (family) {
+          setStep('children') // już jesteś w rodzinie — dołączanie nie jest potrzebne
+          return
+        }
+        await run(async () => {
+          await api('/api/families/join', { method: 'POST', body: { code: joinCode.trim() } })
+          navigate('/dolacz', { state: { sent: true } })
+        }, 'Nie udało się wysłać prośby.')
         return
       }
       await run(async () => {
@@ -212,7 +220,11 @@ export default function OnboardingPage() {
         ? gmail
           ? 'Sprawdź, co Wam przysługuje'
           : 'Pomiń na razie'
-        : 'Dalej'
+        : step === 'family' && mode === 'join' && !family
+          ? busy
+            ? 'Wysyłam…'
+            : 'Wyślij prośbę'
+          : 'Dalej'
 
   return (
     <div className="flow">
@@ -246,6 +258,14 @@ export default function OnboardingPage() {
                 onClick={() => setMode('join')}
               />
             </div>
+            {mode === 'join' && !family && (
+              <div className="join-inline stack rise">
+                <p className="flow-lead" style={{ margin: 0 }}>
+                  Wpisz kod zaproszenia. Drugi rodzic znajdzie go w aplikacji, w zakładce Rodzina.
+                </p>
+                <CodeInput value={joinCode} onChange={setJoinCode} autoFocus />
+              </div>
+            )}
           </>
         )}
 
@@ -431,7 +451,7 @@ export default function OnboardingPage() {
       </div>
 
       <div className="flow-foot">
-        <Button block icon="arrowRight" disabled={busy || (step === 'children' && !known) || (step === 'contracts' && (!docs || attaching))} onClick={() => void next()}>
+        <Button block icon="arrowRight" disabled={busy || (step === 'family' && mode === 'join' && !family && !joinCode.trim()) || (step === 'children' && !known) || (step === 'contracts' && (!docs || attaching))} onClick={() => void next()}>
           {nextLabel}
         </Button>
       </div>
