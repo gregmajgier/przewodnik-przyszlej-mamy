@@ -4,6 +4,7 @@ import { api, ApiError } from '../../lib/api'
 import './contracts.css'
 import { KIND_LABEL } from './types'
 import type { Contract, ContractDraft, ContractKind, ScanResult } from './types'
+import { openNativePicker } from '../../ui/nativePicker'
 
 const LABELS: Record<string, string> = {
   kind: 'Rodzaj umowy',
@@ -135,6 +136,7 @@ export function ContractReview({
           <input
             {...inputProps('start_date')}
             type="date"
+            onClick={(e) => openNativePicker(e.currentTarget)}
             value={d.start_date ?? ''}
             onChange={(e) => set('start_date', e.target.value || null)}
           />
@@ -157,6 +159,7 @@ export function ContractReview({
             <input
               {...inputProps('end_date')}
               type="date"
+            onClick={(e) => openNativePicker(e.currentTarget)}
               value={d.end_date ?? ''}
               onChange={(e) => set('end_date', e.target.value || null)}
             />

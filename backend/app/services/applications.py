@@ -45,6 +45,7 @@ SIGNED_CHANNELS = ("employer_email", "pdf_download")
 
 MSG_FINAL = "Ten wniosek został już złożony i nie można go zmieniać."
 MSG_LOSS = "Dla tego dziecka nie składamy już wniosków. Jeśli to pomyłka, zmień dane dziecka w zakładce „Rodzina”."
+MSG_DEMO = "To przykładowy wniosek, który pokazuje, jak działa aplikacja. Załóż własny wniosek, żeby go wypełnić i złożyć."
 
 
 # ---------- katalog i kanały ----------
@@ -60,6 +61,16 @@ def loss_forms() -> frozenset[str]:
 
 def _catalog() -> dict[str, dict]:
     return {w["kod"]: w for w in pf._read_json(pf.DATA / "katalog_wnioskow_pdf.json")["wnioski"]}
+
+
+def pdf_recipient(code: str) -> str | None:
+    """Gdzie trafia wniosek PDF złożony w aplikacji (symulacja eZUS / skrzynki urzędu): ZUS albo gmina."""
+    institution = (_catalog().get(code, {}).get("instytucja") or "").lower()
+    if institution.startswith("zus"):
+        return "wnioski@zus.pl"
+    if "gmina" in institution or "mops" in institution:
+        return "swiadczenia@um.krakow.pl"
+    return None
 
 
 def channels_for(code: str) -> list[Channel]:
@@ -161,6 +172,8 @@ class ApplicationService:
         if doc is None or doc.get("family_id") != family_id:
             raise DomainError(404, "Nie znaleziono takiego wniosku.")
         app = Application.model_validate(doc)
+        if mutate and app.demo:
+            raise DomainError(403, MSG_DEMO)
         if mutate and app.applicant_id != user_id:
             raise DomainError(403, "Ten wniosek składa drugi rodzic. Możesz go tylko przeglądać.")
         return app
@@ -465,10 +478,14 @@ class ApplicationService:
                 logger.error("Nie wysłano wniosku %s: %s", app.id, type(e).__name__)
                 raise DomainError(502, "Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę.") from None
             app.thread_id = sent.thread_id
+        elif app.channel == "pdf_download":
+            # SYMULACJA złożenia przez eZUS / skrzynkę urzędu: adresat według instytucji z katalogu wniosków
+            app.recipient_email = pdf_recipient(app.form_code)
+            app.recipient_domain = app.recipient_email.rsplit("@", 1)[1] if app.recipient_email else None
         app.status, app.sent_at = "sent", _now()
         app = await self._save(app)
-        if app.channel == "employer_email":
-            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy (plan 09)
+        if app.channel == "employer_email" or app.recipient_email:
+            await schedule_reply(self.store, app, app.sent_at)  # symulowana odpowiedź pracodawcy/urzędu (plan 09)
         return app
 
     async def portal_submitted(self, user_id: str, app_id: str) -> Application:

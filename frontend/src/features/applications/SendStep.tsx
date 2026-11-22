@@ -85,7 +85,10 @@ export default function SendStep({ app, onChange, onGone }: Props) {
           Wyślemy ten wniosek jako PDF w załączniku na adres <strong>{app.recipient_email}</strong>. Zanim to zrobimy, podpisz go.
         </p>
       ) : (
-        <p>Podpisz wniosek, pobierz PDF i złóż go samodzielnie (osobiście, pocztą albo przez eZUS). Potem oznacz go jako złożony.</p>
+        <p>
+          Podpisz wniosek, a potem złóż go jednym kliknięciem: wyślemy go do urzędu przez eZUS albo elektroniczną skrzynkę
+          urzędu <span className="badge-sim">SYMULACJA</span>. Wolisz złożyć go osobiście albo pocztą? Pobierz PDF.
+        </p>
       )}
 
       {error && (
@@ -108,7 +111,7 @@ export default function SendStep({ app, onChange, onGone }: Props) {
               </button>
             )}
             <button type="button" className="btn" disabled={sending} onClick={() => void submit()}>
-              {app.channel === 'employer_email' ? 'Wyślij' : 'Oznacz jako złożony'}
+              {app.channel === 'employer_email' ? 'Wyślij' : sending ? 'Składam…' : 'Złóż wniosek'}
             </button>
           </>
         )}

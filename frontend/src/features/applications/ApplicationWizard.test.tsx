@@ -213,14 +213,22 @@ describe('ApplicationWizard — krok 3: podpis i wysyłka', () => {
     expect(screen.getByRole('button', { name: 'Wyślij' })).toBeEnabled()
   })
 
-  it('kanał PDF: pobranie pliku i oznaczenie jako złożony', async () => {
+  it('kanał PDF: „Złóż wniosek” składa go w ZUS (symulacja), a PDF można też pobrać', async () => {
     const signed = makeApp({ channel: 'pdf_download', status: 'ready', signed_at: '2026-11-21T10:05:00Z', recipient_email: null })
-    const mocked = renderWizard(signed, { [`POST ${BASE}/submit`]: makeApp({ channel: 'pdf_download', status: 'sent', sent_at: '2026-11-21T10:06:00Z' }) })
+    const sent = makeApp({
+      channel: 'pdf_download',
+      status: 'sent',
+      sent_at: '2026-11-21T10:06:00Z',
+      recipient_email: 'wnioski@zus.pl',
+      recipient_domain: 'zus.pl',
+    })
+    const mocked = renderWizard(signed, { [`POST ${BASE}/submit`]: sent })
     await toSendStep()
     expect(screen.getByRole('button', { name: /pobierz pdf/i })).toBeInTheDocument()
     expect(screen.queryByText(/wyślemy ten wniosek/i)).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /oznacz jako złożony/i }))
-    expect(await screen.findByText(/oznaczyliśmy go jako złożony samodzielnie/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /oznacz jako złożony/i })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /^złóż wniosek$/i }))
+    expect(await screen.findByText(/złożyliśmy go w ZUS przez eZUS/i)).toBeInTheDocument()
     expect(mocked).toHaveBeenCalledWith(`${BASE}/submit`, { method: 'POST' })
   })
 

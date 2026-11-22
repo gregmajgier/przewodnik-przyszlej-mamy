@@ -11,7 +11,7 @@ import type { BenefitMatch, Summary } from '../benefits/types'
 import type { CalendarEvent } from '../calendar/types'
 import { STATUS_LABEL } from '../applications/types'
 import { isOpen, latestMessage, senderLabel, STATUS_TONE, useApplications } from '../applications/useApplications'
-import { connectedGmail } from '../family/gmail'
+import { connectedMailbox, mailboxConnectedText } from '../family/gmail'
 import { guidesFor, mattersOf, peopleFor } from '../matters/model'
 import type { Person } from '../matters/model'
 import './dashboard.css'
@@ -55,7 +55,7 @@ export default function DashboardPage() {
   const benefits = useApi<BenefitMatch[]>(family ? '/api/benefits' : null)
   const calendar = useApi<CalendarEvent[]>(family ? '/api/calendar' : null)
   const apps = useApplications(!!family)
-  const gmail = connectedGmail()
+  const mailbox = connectedMailbox()
 
   // przy wejściu na panel dociągamy nowe odpowiedzi z poczty (status wniosków aktualizuje się sam)
   const { sync } = apps
@@ -190,10 +190,10 @@ export default function DashboardPage() {
               })}
               {apps.apps && recentApps.length === 0 && <li className="muted">Nie macie jeszcze wniosków.</li>}
             </ul>
-            {gmail && (
+            {mailbox && (
               <span className="bento-sync">
                 <span className={`sync-dot ${apps.syncing ? 'is-busy' : ''}`} aria-hidden="true" />
-                {apps.syncing ? 'Sprawdzam Gmail…' : 'Gmail połączony, statusy aktualizują się same'}
+                {apps.syncing ? 'Sprawdzam pocztę…' : `${mailboxConnectedText(mailbox)}, statusy aktualizują się same`}
               </span>
             )}
           </Link>

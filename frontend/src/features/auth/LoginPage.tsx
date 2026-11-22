@@ -28,7 +28,7 @@ function Welcome({ onNext }: { onNext: () => void }) {
       </div>
       <div className="flow-body flow-center">
         <div className="welcome-copy rise">
-          <p>Mamo! Tato! Masz wiele na głowie…</p>
+          <p>Mamo! Tato! Macie dużo na głowie…</p>
           <p>
             <span className="wordmark">
               <Logo className="wordmark-logo" color="#fff" duration={1400} />

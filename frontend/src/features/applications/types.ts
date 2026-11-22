@@ -49,6 +49,8 @@ export interface Application {
   sent_at: string | null
   created_at: string
   fields: FieldInfo[]
+  /** przykładowy wniosek rodziny demo: tylko do podglądu (nie da się go otworzyć ani złożyć) */
+  demo?: boolean
 }
 
 export interface FormEntry {

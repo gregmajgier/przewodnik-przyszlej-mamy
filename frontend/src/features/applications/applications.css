@@ -71,6 +71,17 @@
     var(--shadow),
     inset 0 0 0 1px var(--line);
 }
+.app-card.is-demo {
+  cursor: default;
+}
+.app-card.is-demo:hover {
+  transform: none;
+}
+.app-card-demo {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
 .app-card-top {
   display: flex;
   align-items: center;

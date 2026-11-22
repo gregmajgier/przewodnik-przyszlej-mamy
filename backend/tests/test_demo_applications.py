@@ -67,3 +67,32 @@ def test_no_demo_without_children_or_when_disabled(client):
     h = login(client, "persona-nowak-anna")
     _family_with_children(client, h)
     assert client.get("/api/applications", headers=h).json() == []  # DEMO_APPLICATIONS=0 w testach
+
+
+def test_demo_applications_are_read_only(client, demo_on):
+    """Przykłady widać na liście, ale nie da się ich wypełnić, podpisać ani złożyć (poprawka 26)."""
+    h = login(client, "persona-nowak-anna")
+    _family_with_children(client, h)
+    apps = client.get("/api/applications", headers=h).json()
+    assert apps and all(a["demo"] is True for a in apps)
+    draft = next(a for a in apps if a["form_code"] == "ZAM")
+    for method, path, body in (
+        ("post", f"/api/applications/{draft['id']}/answers", {"answers": {"street": "Floriańska"}}),
+        ("patch", f"/api/applications/{draft['id']}", {"channel": "pdf_download"}),
+        ("post", f"/api/applications/{draft['id']}/sign", None),
+        ("post", f"/api/applications/{draft['id']}/submit", None),
+    ):
+        r = getattr(client, method)(path, json=body, headers=h) if body else getattr(client, method)(path, headers=h)
+        assert r.status_code == 403, (path, r.text)
+        assert "przykładowy wniosek" in r.json()["detail"]
+    # podgląd nadal działa
+    assert client.get(f"/api/applications/{draft['id']}", headers=h).status_code == 200
+
+
+def test_own_applications_are_not_marked_demo(client, demo_on):
+    h = login(client, "persona-nowak-anna")
+    _family_with_children(client, h)
+    kids = client.get("/api/families/me", headers=h).json()["children"]
+    unborn = next(c for c in kids if c["status"] == "expected")
+    r = client.post("/api/applications", json={"form_code": "ZAM", "child_id": unborn["id"]}, headers=h)
+    assert r.status_code == 201 and r.json()["demo"] is False
