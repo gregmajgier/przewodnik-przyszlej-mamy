@@ -16,24 +16,88 @@ plany wdrożenia: [`docs/superpowers/plans/`](docs/superpowers/plans/) · przewo
 | `landing/` | Strona wizerunkowa z linkiem do aplikacji i do `/jaskolka`. |
 | `docs/` | Specyfikacja, plany, notatki decyzji (`NOTES-*.md`), podział pracy (`docs/assignments/`). |
 
-## Jak uruchomić (bez Azure)
+## Uruchomienie na Windowsie — krok po kroku
 
-Wszystko działa lokalnie bez konfiguracji: dane w pamięci procesu, asystent AI w trybie demo, symulowany mObywatel/ZUS.
+Nie potrzebujesz Azure. Lokalnie aplikacja używa danych demo i symuluje logowanie przez mObywatela oraz dane ZUS.
+Potrzebujesz Pythona 3.12+ i Node.js 22+.
 
-```bash
-# backend → http://localhost:8000/docs
-cd backend && python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest -q && .venv/bin/uvicorn app.main:app --reload
+### 1. Otwórz projekt
 
-# aplikacja → http://localhost:5173   (Node 22+)
-cd frontend && npm ci && npm run dev
+Otwórz folder projektu w VS Code. Z menu wybierz **Terminal → New Terminal**. Polecenia poniżej zakładają,
+że terminal otwiera się w głównym folderze projektu (tam, gdzie jest ten README).
 
-# strona wizerunkowa
-cd landing && npm ci && npm run dev
+### 2. Przygotuj projekt — tylko za pierwszym razem
+
+W pierwszym terminalu wklej:
+
+```powershell
+Set-Location backend
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 ```
 
-Weryfikacja: `cd backend && .venv/bin/pytest -q` oraz `cd frontend && npm test -- --run && npm run lint && npm run build`
-(to samo w `landing/`: `npm run lint && npm run build`).
+Wybierz **Terminal → New Terminal** jeszcze dwa razy. W drugim terminalu wklej:
+
+```powershell
+Set-Location frontend
+npm ci
+```
+
+W trzecim terminalu wklej:
+
+```powershell
+Set-Location landing
+npm ci
+```
+
+Poczekaj, aż instalacje się zakończą. Nie zamykaj terminali z błędem.
+
+Jeśli PowerShell mówi, że `npm` albo `node` nie jest rozpoznawane, a Node.js jest zainstalowany w standardowym
+katalogu, w każdym terminalu frontendu wklej najpierw:
+
+```powershell
+$env:Path = 'C:\Program Files\nodejs;' + $env:Path
+```
+
+### 3. Uruchom aplikację
+
+W pierwszym terminalu (backend) wklej:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+W drugim terminalu (frontend) wklej:
+
+```powershell
+npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
+```
+
+W trzecim terminalu (landing) wklej:
+
+```powershell
+npm run dev -- --host 127.0.0.1 --port 5174 --strictPort
+```
+
+**Zostaw te trzy terminale otwarte.** Otwórz w przeglądarce:
+
+- Aplikacja: <http://localhost:5173>
+- Strona wizerunkowa: <http://localhost:5174>
+- Dokumentacja API: <http://localhost:8000/docs>
+
+Aby wyłączyć serwer, kliknij jego terminal i naciśnij **Ctrl+C**. Jeśli zobaczysz błąd „port already in use”,
+serwer już działa — nie uruchamiaj drugiej kopii.
+
+### Testy (opcjonalnie)
+
+- Backend: w terminalu z głównego folderu projektu uruchom `.\backend\.venv\Scripts\python.exe -m pytest -q`.
+- Frontend: w folderze `frontend` uruchom `npm test -- --run`.
+- Build frontendu: `npm run build` w folderach `frontend` i `landing`.
+
+### Linux/macOS
+
+W backendzie utwórz środowisko poleceniem `python3 -m venv .venv`, a polecenia
+`.\.venv\Scripts\python.exe` zamień na `.venv/bin/python`. Polecenia `npm` pozostają takie same.
 
 ## Persony i konta
 
@@ -60,6 +124,7 @@ Wszystkie opcjonalne lokalnie; pełna lista z opisami: [`backend/.env.example`](
 | `WEB_SEARCH_PROVIDER`, `WEB_SEARCH_API_KEY` | Wyszukiwarka czatu: `none` \| `brave` \| `serper`. |
 | `UNDO_WINDOW_DAYS` | Ile dni można cofnąć zgłoszenie w trybie jaskółki (domyślnie 7). |
 | `VITE_API_URL`, `VITE_APP_URL` | Adres API dla frontendu; adres aplikacji dla linków z landingu. |
+| `CORS_ORIGINS` | Dozwolone adresy frontendów; lokalnie domyślnie aplikacja i landing. |
 
 ## Co jest prawdziwe, a co symulowane
 
@@ -90,7 +155,7 @@ Kolumna „Stan” pokazuje, co jest gotowe **w tej gałęzi**; reszta [P] powst
 | Wnioski, agent w makiecie portalu | [P] | 08 | w toku (inny autor) |
 | Poczta symulowana, kalendarz, powiadomienia w aplikacji | [P] | 09 | w toku (inny autor) |
 | Tryb jaskółki w koncie, „Za życiem”, test całości | [P] | 10 | gotowe w części niezależnej od planów 03/08/09 (patrz `docs/superpowers/plans/NOTES-10.md`) |
-| Kalkulator urlopu | zaparkowany | — | osobny autor |
+| Kalkulator świadczeń (publiczny landing + API) | [P] | silnik `backend/app/engine/` | działa w wersji demo |
 | Powiadomienia e-mail i SMS | [W] | — | tylko wzmianka w UI |
 | Prawdziwe Gmail/Outlook (OAuth), prawdziwy Profil Zaufany | [W] | — | — |
 | Agent na prawdziwym Playwright w kontenerze, model on-premise | [W] | — | — |

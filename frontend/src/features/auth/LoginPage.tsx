@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Doodles } from '../../brand/Doodles'
 import { BrandMark, Wordmark } from '../../brand/Splash'
 import { Logo } from '../../components/Logo'
@@ -64,6 +64,7 @@ function Welcome({ onNext }: { onNext: () => void }) {
 export default function LoginPage() {
   const { user, family, login } = useSession()
   const navigate = useNavigate()
+  const location = useLocation()
   const [step, setStep] = useState<Step>('welcome')
   const [personas, setPersonas] = useState<Persona[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -103,7 +104,19 @@ export default function LoginPage() {
     try {
       const { user: me, family: fam } = await login(persona.id)
       const wait = Math.max(0, CONNECT_STEPS.length * CONNECT_STEP_MS + 300 - (Date.now() - started))
-      window.setTimeout(() => navigate(fam && isOnboarded(me.id) ? '/' : '/start', { replace: true }), import.meta.env.MODE === 'test' ? 0 : wait)
+      const requestedPath = (location.state as { from?: unknown } | null)?.from
+      const destination =
+        typeof requestedPath === 'string' &&
+        requestedPath.startsWith('/') &&
+        !requestedPath.startsWith('//')
+          ? requestedPath
+          : fam && isOnboarded(me.id)
+            ? '/'
+            : '/start'
+      window.setTimeout(
+        () => navigate(destination, { replace: true }),
+        import.meta.env.MODE === 'test' ? 0 : wait,
+      )
     } catch {
       setError('Nie udało się zalogować. Spróbuj ponownie.')
       setStep('account')

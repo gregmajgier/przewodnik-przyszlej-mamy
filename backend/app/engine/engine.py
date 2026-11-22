@@ -103,12 +103,13 @@ def profil_drugiego_rodzica(profile: UserProfile) -> UserProfile | None:
     """Profil matki/ojca zbudowany z `drugi_rodzic` (wspólne: ciąża, poród, dzieci, rodzina) — żeby pokazać
     świadczenia drugiego rodzica, np. SR-7 dla nieubezpieczonej matki, gdy wnioskodawcą jest ojciec."""
     dr = profile.drugi_rodzic
-    if dr.tytul_ubezpieczenia is None or profile.wnioskodawca.rola not in ("matka", "ojciec"):
+    tytul = dr.ubezpieczenie.tytul if dr.ubezpieczenie and dr.ubezpieczenie.tytul else dr.tytul_ubezpieczenia
+    if tytul is None or profile.wnioskodawca.rola not in ("matka", "ojciec"):
         return None
     rola = "ojciec" if profile.wnioskodawca.rola == "matka" else "matka"
     dane = dr.dane
     adres = profile.wnioskodawca.adres_zamieszkania
-    bez = dr.tytul_ubezpieczenia in TYTULY_BEZ_CHOROBOWEGO
+    bez = tytul in TYTULY_BEZ_CHOROBOWEGO
     data = {
         "wnioskodawca": {
             "etap": profile.wnioskodawca.etap, "rola": rola,
@@ -117,7 +118,11 @@ def profil_drugiego_rodzica(profile: UserProfile) -> UserProfile | None:
             "obywatelstwo": dane.obywatelstwo if dane else None,
             "adres_zamieszkania": adres.model_dump() if adres and profile.rodzina.wspolne_gospodarstwo_domowe else None,
         },
-        "ubezpieczenie": {"tytul": dr.tytul_ubezpieczenia, "chorobowe": "brak" if bez else None},
+        "ubezpieczenie": (
+            {**dr.ubezpieczenie.model_dump(mode="json", exclude_none=True), "tytul": tytul}
+            if dr.ubezpieczenie is not None
+            else {"tytul": tytul, "chorobowe": "brak" if bez else None}
+        ),
         "ciaza": profile.ciaza.model_dump(), "porod": profile.porod.model_dump(),
         "dzieci": [d.model_dump() for d in profile.dzieci] if profile.dzieci is not None else None,
         "rodzina": profile.rodzina.model_dump(),
@@ -320,8 +325,8 @@ def evaluate_user_profile(profile_data: dict | UserProfile, rules_json: dict | N
     if partner is not None:
         wyl_p = compute_derived_variables(partner, kontrakt.params, dzis)
         drugi = [w for w in ocen_swiadczenia(partner, wyl_p, kontrakt, dzis)
-                 if w.status == "przysluguje" and w.typ in ("swiadczenie_gminne", "zasilek_zus")
-                 and w.id not in {x.id for x in wyniki if x.status == "przysluguje"}]
+                 if w.status in ("przysluguje", "brak_danych")
+                 and w.typ in ("swiadczenie_gminne", "zasilek_zus")]
         lista += [w for w in zbuduj_wnioski(drugi, [], partner, wyl_p, kontrakt, dla="drugi_rodzic")
                   if w.kod not in {x.kod for x in lista}]
 

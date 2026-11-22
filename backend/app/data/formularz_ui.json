@@ -1021,12 +1021,12 @@
         },
         {
           "nazwa": "tytul",
-          "etykieta": "tytul",
+          "etykieta": "Tytuł ubezpieczenia",
           "kontrolka": "text"
         },
         {
           "nazwa": "chorobowe",
-          "etykieta": "chorobowe",
+          "etykieta": "Ubezpieczenie chorobowe",
           "kontrolka": "text"
         },
         {
@@ -2936,6 +2936,153 @@
         "URLOP-ROD",
         "URLOP-OJC",
         "AKTYWNY-RODZIC"
+      ]
+    },
+    {
+      "klucz": "drugi_rodzic.ubezpieczenie",
+      "krok": "zatrudnienie_i_finanse",
+      "pytanie": "Jakie są szczegóły ubezpieczenia drugiego rodzica?",
+      "podpowiedz": "Podaj daty ubezpieczenia i podstawy składek, aby oszacować jego/jej zasiłek.",
+      "kontrolka": "grupa",
+      "opcje": null,
+      "show_if": {
+        "in": [
+          {
+            "var": "wnioskodawca.rola"
+          },
+          [
+            "matka",
+            "ojciec"
+          ]
+        ]
+      },
+      "wsparcie_ai": false,
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_umowy"
+      ],
+      "wrazliwe": false,
+      "swiadczenia": [],
+      "wymagane_dla": [
+        "URLOP-ROD",
+        "URLOP-OJC"
+      ],
+      "pola": [
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.tytul",
+          "etykieta": "Tytuł ubezpieczenia",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.chorobowe",
+          "etykieta": "Ubezpieczenie chorobowe",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.data_objecia_chorobowym",
+          "etykieta": "Data objęcia ubezpieczeniem chorobowym",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.okresy",
+          "etykieta": "Okresy ubezpieczenia",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.data_ustania",
+          "etykieta": "Data ustania ubezpieczenia",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.umowa_rozwiazana_w_ciazy",
+          "etykieta": "Czy umowa została rozwiązana w ciąży?",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.przyczyna_rozwiazania_umowy",
+          "etykieta": "Przyczyna rozwiązania umowy",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.prawomocny_wyrok_naruszenie_przepisow",
+          "etykieta": "Czy jest prawomocny wyrok o naruszeniu przepisów?",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.zapewniono_inne_zatrudnienie",
+          "etykieta": "Czy zapewniono inne zatrudnienie?",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.platnik",
+          "etykieta": "Płatnik składek",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.wymiar_etatu",
+          "etykieta": "Wymiar etatu",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.rodzaj_umowy_o_prace",
+          "etykieta": "Rodzaj umowy o pracę",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.data_konca_umowy",
+          "etykieta": "Data końca umowy",
+          "kontrolka": "date"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.dni_wynagrodzenia_chorobowego_w_roku",
+          "etykieta": "Dni wynagrodzenia chorobowego w tym roku",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.przychody_12_miesiecy",
+          "etykieta": "Podstawy składek za ostatnie 12 miesięcy",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.przerwa_od_poprzedniego_zasilku_dni",
+          "etykieta": "Przerwa od poprzedniego zasiłku (dni)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.podstawa_poprzedniego_zasilku",
+          "etykieta": "Podstawa poprzedniego zasiłku (zł)",
+          "kontrolka": "number"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.zadeklarowana_podstawa_jdg",
+          "etykieta": "Deklarowane podstawy składek z działalności",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.zmiana_podstawy_w_ciazy",
+          "etykieta": "Zmiana podstawy składek w ciąży",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.zmiana_warunkow_zatrudnienia_w_ciazy",
+          "etykieta": "Zmiana warunków zatrudnienia w ciąży",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.zadluzenie_skladkowe",
+          "etykieta": "Zadłużenie składkowe",
+          "kontrolka": "text"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.pobiera_emeryture_rente",
+          "etykieta": "Czy pobiera emeryturę lub rentę?",
+          "kontrolka": "boolean_toggle"
+        },
+        {
+          "klucz": "drugi_rodzic.ubezpieczenie.zlozyla_wniosek_emerytura_renta",
+          "etykieta": "Czy złożono wniosek o emeryturę lub rentę?",
+          "kontrolka": "boolean_toggle"
+        }
       ]
     },
     {

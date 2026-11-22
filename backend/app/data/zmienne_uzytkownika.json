@@ -2084,6 +2084,114 @@
       ]
     },
     {
+      "klucz": "drugi_rodzic.ubezpieczenie",
+      "typ": "object",
+      "opis": "Szczegóły tytułu, okresu chorobowego i podstawy składek drugiego rodzica",
+      "zrodlo": [
+        "uzytkownik",
+        "ocr_umowy"
+      ],
+      "wrazliwe": false,
+      "wymagane_dla": [
+        "URLOP-ROD",
+        "URLOP-OJC"
+      ],
+      "pola": [
+        {
+          "nazwa": "tytul",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "chorobowe",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "data_objecia_chorobowym",
+          "typ": "date"
+        },
+        {
+          "nazwa": "okresy",
+          "typ": "array"
+        },
+        {
+          "nazwa": "data_ustania",
+          "typ": "date"
+        },
+        {
+          "nazwa": "umowa_rozwiazana_w_ciazy",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "przyczyna_rozwiazania_umowy",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "prawomocny_wyrok_naruszenie_przepisow",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "zapewniono_inne_zatrudnienie",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "platnik",
+          "typ": "object"
+        },
+        {
+          "nazwa": "wymiar_etatu",
+          "typ": "number"
+        },
+        {
+          "nazwa": "rodzaj_umowy_o_prace",
+          "typ": "enum"
+        },
+        {
+          "nazwa": "data_konca_umowy",
+          "typ": "date"
+        },
+        {
+          "nazwa": "dni_wynagrodzenia_chorobowego_w_roku",
+          "typ": "integer"
+        },
+        {
+          "nazwa": "przychody_12_miesiecy",
+          "typ": "array"
+        },
+        {
+          "nazwa": "przerwa_od_poprzedniego_zasilku_dni",
+          "typ": "integer"
+        },
+        {
+          "nazwa": "podstawa_poprzedniego_zasilku",
+          "typ": "number"
+        },
+        {
+          "nazwa": "zadeklarowana_podstawa_jdg",
+          "typ": "array"
+        },
+        {
+          "nazwa": "zmiana_podstawy_w_ciazy",
+          "typ": "object"
+        },
+        {
+          "nazwa": "zmiana_warunkow_zatrudnienia_w_ciazy",
+          "typ": "object"
+        },
+        {
+          "nazwa": "zadluzenie_skladkowe",
+          "typ": "object"
+        },
+        {
+          "nazwa": "pobiera_emeryture_rente",
+          "typ": "boolean"
+        },
+        {
+          "nazwa": "zlozyla_wniosek_emerytura_renta",
+          "typ": "boolean"
+        }
+      ]
+    },
+    {
       "klucz": "drugi_rodzic.platnik",
       "typ": "object",
       "opis": "Pracodawca drugiego rodzica",
@@ -4197,6 +4305,17 @@
           "URLOP-ROD",
           "URLOP-OJC",
           "AKTYWNY-RODZIC"
+        ],
+        "dane_wrazliwe": false
+      },
+      {
+        "klucz": "drugi_rodzic.ubezpieczenie",
+        "typ": "object (jak ubezpieczenie wnioskodawcy)",
+        "opis": "Szczegóły tytułu, okresu chorobowego i podstawy składek drugiego rodzica",
+        "zrodlo": "uzytkownik|eZUS",
+        "wymagane_dla": [
+          "URLOP-ROD",
+          "URLOP-OJC"
         ],
         "dane_wrazliwe": false
       },
