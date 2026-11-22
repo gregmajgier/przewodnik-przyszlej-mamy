@@ -88,6 +88,18 @@ def test_nowak_family_fits_expected_benefits(client):
     assert "reasons" in items["nat-800-plus"]["match"] and items["nat-800-plus"]["match"]["reasons"]
 
 
+def test_urlop_ojcowski_only_for_the_father(client):
+    anna = _by_id(client, _setup_family(client, "persona-nowak-anna"))
+    assert anna["nat-urlop-ojcowski"]["match"]["status"] == "no"
+    piotr = _by_id(client, _setup_family(client, "persona-nowak-piotr"))
+    assert piotr["nat-urlop-ojcowski"]["match"]["status"] == "fits"
+
+
+def test_dobry_start_has_application_form(client):
+    items = _by_id(client, _setup_family(client))
+    assert items["nat-dobry-start"]["benefit"]["form_codes"] == ["DOBRY-START"]
+
+
 def test_third_child_born_unlocks_kdr(client):
     h = _setup_family(client, third_born=True)
     items = _by_id(client, h)

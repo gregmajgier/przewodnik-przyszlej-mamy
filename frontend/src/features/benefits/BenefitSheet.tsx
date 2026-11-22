@@ -23,6 +23,9 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
   const cat = catMeta(categoryOf(benefit))
   const why = match.status === 'no' ? match.unmet : match.reasons
   const form = match.status !== 'no' ? benefit.form_codes[0] : undefined
+  // świadczenie na jedno dziecko: kreator od razu zna dziecko
+  const onlyChild = benefit.per_child && match.child_ids?.length === 1 ? match.child_ids[0] : undefined
+  const childParam = onlyChild ? `&child=${encodeURIComponent(onlyChild)}` : ''
 
   return (
     <Sheet
@@ -49,7 +52,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
             Zapytaj
           </Button>
           {form ? (
-            <Button to={`/wnioski/nowy?form=${encodeURIComponent(form)}`} icon="arrowRight">
+            <Button to={`/wnioski/nowy?form=${encodeURIComponent(form)}${childParam}`} icon="arrowRight">
               Złóż wniosek
             </Button>
           ) : (

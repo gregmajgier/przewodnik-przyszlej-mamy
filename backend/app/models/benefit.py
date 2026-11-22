@@ -21,6 +21,8 @@ class Criteria(BaseModel):
     requires_disability: bool | None = None
     requires_foster: bool | None = None
     employment_kinds: list[Literal["employment", "mandate", "jdg"]] | None = None
+    # świadczenie osobiste rodzica danej płci (np. urlop ojcowski); płeć z PESEL zalogowanego rodzica
+    parent_sex: Literal["male", "female"] | None = None
 
 
 class Condition(BaseModel):
