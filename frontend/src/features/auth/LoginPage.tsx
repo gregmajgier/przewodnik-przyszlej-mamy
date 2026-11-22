@@ -34,7 +34,7 @@ function Welcome({ onNext }: { onNext: () => void }) {
               <Logo className="wordmark-logo" color="#fff" duration={1400} />
               <span>Rodzina</span>
             </span>
-            pomoże.
+            pomoże!
           </p>
         </div>
         <div className="welcome-points rise" style={{ ['--i' as string]: 3 }}>

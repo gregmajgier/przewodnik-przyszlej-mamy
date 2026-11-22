@@ -71,7 +71,7 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
 
         {why.length > 0 && (
           <section>
-            <h3>{match.status === 'no' ? 'Dlaczego nie teraz' : 'Dlaczego Wam pasuje'}</h3>
+            <h3>{match.status === 'no' ? 'Dlaczego nie teraz' : 'Co już wiemy'}</h3>
             <ul className="bsheet-why">
               {why.map((r) => (
                 <li key={r}>

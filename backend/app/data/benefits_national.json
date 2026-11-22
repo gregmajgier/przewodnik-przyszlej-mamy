@@ -347,7 +347,8 @@
           "id": "bez-zasilku",
           "text": "Nie przysługuje zasiłek macierzyński",
           "kind": "ask",
-          "question": "Czy nie przysługuje ci zasiłek macierzyński (np. umowa o dzieło, studia, bezrobocie, brak ubezpieczenia chorobowego)?"
+          "question": "Czy przysługuje ci zasiłek macierzyński (nie, jeśli np. umowa o dzieło, studia, bezrobocie, brak ubezpieczenia chorobowego)?",
+          "negate": true
         }
       ],
       "status": "published",
