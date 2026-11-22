@@ -246,20 +246,17 @@ function ApplicationCard({ application }: { application: RequiredApplication }) 
 function Results({
   summaries,
   appUrl,
-  location,
   adoption,
   childLoss,
 }: {
   summaries: { title: string; summary: Summary }[]
   appUrl: string
-  location: string
   adoption: boolean
   childLoss: boolean
 }) {
   return (
     <div className="calc-results">
       <h3>Wynik dopasowany do podanych danych</h3>
-      <p className="calc-lead">To symulacja, nie decyzja ZUS. Niepełne dane oznaczamy zamiast zgadywać uprawnienia lub kwoty.</p>
       {summaries.map(({ title, summary }) => (
         <section className="calc-result-section" key={title} aria-label={title}>
           <h4 className="calc-result-title">{title}</h4>
@@ -336,15 +333,6 @@ function Results({
           )}
         </section>
       ))}
-      {location && (
-        <div className="calc-block calc-local">
-          <h4>Właściwa lokalizacja: {location}</h4>
-          <p>
-            Wnioski obsługuje urząd właściwy dla miejsca zamieszkania. Nie pokazujemy tu kwot lokalnych programów bez
-            potwierdzonego, aktualnego katalogu gminy — sprawdź je w swoim urzędzie lub OPS.
-          </p>
-        </div>
-      )}
       {childLoss && (
         <div className="calc-block calc-support">
           <h4>Nie musisz szukać wsparcia samodzielnie</h4>
@@ -477,8 +465,6 @@ export function Calculator({ appUrl }: { appUrl: string }) {
   const asksSickness = insured && a.work !== 'umowa_o_prace'
   const payRequired = needsPay(a)
   const childLoss = a.stage === 'urodzone' && a.childStatus !== 'zywe'
-  const location = [a.municipality, a.city, a.voivodeship].filter(Boolean).join(', ')
-
   function applyDemo(specific: boolean) {
     const insuranceStart = isoDate(new Date(new Date().getFullYear() - 2, 0, 1))
     setA({
@@ -1157,7 +1143,6 @@ export function Calculator({ appUrl }: { appUrl: string }) {
             <Results
               summaries={state.summaries}
               appUrl={appUrl}
-              location={location}
               adoption={a.stage === 'adopcja_zastepcza'}
               childLoss={childLoss}
             />
