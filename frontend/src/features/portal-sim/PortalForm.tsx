@@ -186,7 +186,10 @@ export default function PortalForm({ portalId, kind }: { portalId: string; kind:
                     ) : (
                       <input
                         {...common}
-                        type={f.type === 'date' ? 'date' : 'text'}
+                        type={f.type === 'date' ? 'date' : /kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(f.label) ? 'number' : 'text'}
+                        min={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(f.label) ? 0 : undefined}
+                        step="0.01"
+                        inputMode={/kwot|dochód|zł|wynagrodz|podstaw|zadłuż/i.test(f.label) ? 'decimal' : undefined}
                         value={String(values[f.id] ?? '')}
                         autoComplete="off"
                         onChange={(e) => edit(f, e.target.value)}

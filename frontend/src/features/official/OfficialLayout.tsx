@@ -59,6 +59,10 @@ function AccountMenu({ name, unit, onLogout }: { name: string; unit: Unit | null
             <Icon name="plus" size={20} />
             Nowe świadczenie
           </Link>
+          <Link to="/urzednik/parametry" role="menuitem" className="user-menu-item">
+            <Icon name="scale" size={20} />
+            Parametry krajowe
+          </Link>
           <button type="button" role="menuitem" className="user-menu-item" onClick={onLogout}>
             <Icon name="logout" size={20} />
             Wyloguj
