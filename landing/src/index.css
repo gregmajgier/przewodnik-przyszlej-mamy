@@ -4,6 +4,10 @@
   --accent: #ef4363;
   /* darker brand pink: white text on it passes WCAG AA */
   --accent-strong: #c8234a;
+  /* calm, neutral buttons leading to /jaskolka (no accent colour there) */
+  --quiet: #262626;
+  --quiet-hover: #3a3a3a;
+  --quiet-border: #9b9b9b;
   --font-decorative: 'Sniglet', system-ui, sans-serif;
   --font-body: 'Nunito', system-ui, sans-serif;
 }
