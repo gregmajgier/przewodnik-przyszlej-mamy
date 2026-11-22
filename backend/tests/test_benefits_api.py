@@ -317,8 +317,10 @@ def test_calendar_for_pregnancy_has_pre_and_post_birth_deadlines(client):
     titles = [e["title"] for e in client.get("/api/calendar", headers=h).json()]
     joined = " | ".join(titles)
     for expected in ("Zaświadczenie lekarskie o ciąży", "Przewidywany termin porodu", "Urlop rodzicielski: wniosek po porodzie",
-                     "Świadczenie rodzicielskie (1000 zł miesięcznie): wniosek po porodzie", "Zgłoszenie urodzenia w USC"):
+                     "Zgłoszenie urodzenia w USC"):
         assert expected in joined, f"brak w kalendarzu: {expected}"
+    # Anna ma umowę o pracę, więc dostanie zasiłek macierzyński; świadczenie rodzicielskie (1000 zł) jej nie przysługuje
+    assert "Świadczenie rodzicielskie" not in joined
 
 
 def test_tool_swiadczenia_query_returns_only_the_best_matches_with_details(client, store, fresh_tools):

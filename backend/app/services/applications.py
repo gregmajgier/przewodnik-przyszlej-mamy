@@ -33,6 +33,7 @@ from ..models.family import Child, FamilyView
 from ..models.profile import ParentProfile
 from ..storage import Store
 from . import prefill as pf
+from .application_children import child_block_reason
 from .employer_pdf import TITLES, EmployerData, render_employer_application
 from .families import NO_FAMILY, FamilyService
 from .pdf_fill import fill_pdf
@@ -211,14 +212,21 @@ class ApplicationService:
     # ---------- katalog ----------
 
     async def forms(self, user_id: str) -> dict:
-        _, profiles = await self._context(user_id)
+        view, profiles = await self._context(user_id)
         me = next((p for p in profiles if p.user_id == user_id), profiles[0])
         kind = me.insurance[0].kind if me.insurance else None
         catalog = _catalog()
+        today = date.today()
         items = []
         for code in supported_codes():
             channels = channels_for(code)
             entry = catalog.get(code, {})
+            # dzieci, o które tego wniosku nie da się złożyć (np. urlop ojcowski na 7-latka), z powodem do pokazania
+            blocks = {
+                c.id: reason
+                for c in view.children
+                if (reason := child_block_reason(code, c, view.children, today)) is not None
+            }
             items.append(
                 {
                     "code": code,
@@ -229,6 +237,7 @@ class ApplicationService:
                     "default_channel": channels[0],
                     "only_electronic": bool(entry.get("tylko_elektronicznie")),
                     "requires_child": pf.requires_child(code),
+                    "child_blocks": blocks,
                     "loss_ok": code in loss_forms(),
                     "portal_id": pf.CODE_TO_PORTAL.get(code),
                 }
@@ -251,6 +260,10 @@ class ApplicationService:
         child = pf._select_child(view, data.child_id)  # cudze/nieistniejące dziecko → 404
         if child is not None and child.situation == "loss" and data.form_code not in loss_forms():
             raise DomainError(409, MSG_LOSS)
+        if child is not None and child.situation != "loss":
+            reason = child_block_reason(data.form_code, child, view.children, date.today())
+            if reason is not None:
+                raise DomainError(422, reason)
         app = Application(
             id=f"app-{uuid.uuid4().hex[:12]}",
             family_id=view.family.id,

@@ -37,7 +37,7 @@ def parent(name="Anna", pesel=MUM_PESEL, insurance=()) -> ParentProfile:
     )
 
 
-def benefit(tags=(PAYOUT_TAG,), kinds=None, pregnancy=None) -> Benefit:
+def benefit(tags=(PAYOUT_TAG,), kinds=None, pregnancy=None, forms=()) -> Benefit:
     return Benefit(
         id="b",
         name="Zasiłek",
@@ -48,6 +48,7 @@ def benefit(tags=(PAYOUT_TAG,), kinds=None, pregnancy=None) -> Benefit:
         source_url="https://www.zus.pl",
         criteria=Criteria(employment_kinds=kinds, requires_pregnancy=pregnancy),
         tags=list(tags),
+        form_codes=list(forms),
     )
 
 
@@ -124,6 +125,22 @@ def test_pregnancy_sickness_concerns_only_the_mother():
     lines = payouts_for(benefit(tags=(PAYOUT_TAG, "ezla"), pregnancy=True), [mum, dad])
     assert [x.parent_name for x in lines] == ["Anna"]
     assert "e-ZLA" in lines[0].where
+
+
+def test_pregnancy_sick_leave_needs_a_form_only_for_business_owners():
+    sick = benefit(tags=(PAYOUT_TAG, "ezla"), pregnancy=True, forms=("ZAS-53",))
+    employee = parent(insurance=[ins(count=240), ins("mandate", count=3, voluntary=True)])
+    owner = parent(insurance=[ins("jdg", voluntary=True)])
+    assert [x.form_code for x in payouts_for(sick, [employee])] == [None, None]  # e-ZLA wystarczy
+    assert [x.form_code for x in payouts_for(sick, [owner])] == ["ZAS-53"]
+
+
+def test_leave_forms_depend_on_insurance_title():
+    maternity = benefit(forms=("URLOP-MAC-ROD", "ZAM"))
+    p = parent(
+        insurance=[ins(count=240), ins("mandate", count=3, voluntary=True), ins("mandate", voluntary=False, payer="Bez")]
+    )
+    assert [x.form_code for x in payouts_for(maternity, [p])] == ["URLOP-MAC-ROD", "ZAM", None]
 
 
 def test_payout_lines_never_contain_pesel_or_amounts():

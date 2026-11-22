@@ -14,7 +14,7 @@ const PAYOUT: Payout = {
   where: 'Wniosek o urlop składasz w kadrach.',
 }
 
-function item(status: 'fits' | 'no', payouts?: Payout[]): BenefitMatch {
+function item(status: 'fits' | 'no', payouts?: Payout[], formCodes: string[] = []): BenefitMatch {
   return {
     benefit: {
       id: 'nat-zasilek-macierzynski',
@@ -26,7 +26,7 @@ function item(status: 'fits' | 'no', payouts?: Payout[]): BenefitMatch {
       amount_text: null,
       annual_value_estimate: null,
       how_to_apply: 'jak',
-      form_codes: [],
+      form_codes: formCodes,
       source_url: 'https://www.zus.pl',
       extra_text: null,
       verify: false,
@@ -50,6 +50,24 @@ describe('BenefitSheet — kto wypłaci zasiłek', () => {
   it('nie pokazuje sekcji, gdy świadczenie nie pasuje', () => {
     renderWithSession(<BenefitSheet item={item('no', [PAYOUT])} onClose={noop} onAnswer={noop} />)
     expect(screen.queryByText('Kto wypłaci zasiłek i gdzie złożyć dokumenty')).not.toBeInTheDocument()
+  })
+
+  it('nie proponuje wniosku, gdy osoba nic nie składa (pracownik na e-ZLA)', () => {
+    const employee = { ...PAYOUT, form_code: null }
+    renderWithSession(<BenefitSheet item={item('fits', [employee], ['ZAS-53'])} onClose={noop} onAnswer={noop} />)
+    expect(screen.queryByRole('link', { name: /Złóż wniosek/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Źródło/ })).toBeInTheDocument()
+  })
+
+  it('prowadzi do wniosku właściwego dla tytułu ubezpieczenia', () => {
+    const owner = { ...PAYOUT, form_code: 'ZAS-53' }
+    renderWithSession(<BenefitSheet item={item('fits', [owner], ['ZAS-53'])} onClose={noop} onAnswer={noop} />)
+    expect(screen.getByRole('link', { name: /Złóż wniosek/ })).toHaveAttribute('href', '/wnioski/nowy?form=ZAS-53')
+  })
+
+  it('bez danych o wypłacie zostaje pierwszy wniosek z katalogu', () => {
+    renderWithSession(<BenefitSheet item={item('fits', [], ['URLOP-OJC', 'ZAM'])} onClose={noop} onAnswer={noop} />)
+    expect(screen.getByRole('link', { name: /Złóż wniosek/ })).toHaveAttribute('href', '/wnioski/nowy?form=URLOP-OJC')
   })
 
   it('działa ze starszą odpowiedzią API bez pola payouts', () => {

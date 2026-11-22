@@ -620,6 +620,19 @@
   font-size: 0.875rem;
   color: var(--ink-2);
 }
+.form-option[aria-disabled='true'] {
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  cursor: not-allowed;
+}
+.form-option[aria-disabled='true'] strong {
+  color: var(--ink-2);
+}
+.form-option-main .form-option-reason {
+  margin-top: 0.3rem;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
 
 .app-card-full {
   margin: 0.2rem 0 0;

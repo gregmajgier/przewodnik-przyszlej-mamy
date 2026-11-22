@@ -22,8 +22,14 @@ export function BenefitSheet({ item, onClose, onAnswer, busy = false }: Props) {
   const { benefit, match } = item
   const cat = catMeta(categoryOf(benefit))
   const why = match.status === 'no' ? match.unmet : match.reasons
-  const form = match.status !== 'no' ? benefit.form_codes[0] : undefined
   const payouts = item.payouts ?? []
+  // Gdy wiemy, kto wypłaca, wniosek zależy od tytułu ubezpieczenia (np. pracownik na zwolnieniu nic nie składa).
+  const form =
+    match.status === 'no'
+      ? undefined
+      : payouts.length > 0
+        ? (payouts.find((p) => p.form_code)?.form_code ?? undefined)
+        : benefit.form_codes[0]
 
   return (
     <Sheet

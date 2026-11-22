@@ -35,6 +35,22 @@ class Payout(BaseModel):
     headline: str
     why: str
     where: str
+    # wniosek, który ta osoba składa sama (kod z katalogu wniosków); None = nic nie składa, np. pracownik
+    # na zwolnieniu: e-ZLA trafia do płatnika i ZUS bez wniosku
+    form_code: str | None = None
+
+
+def form_for(ins: Insurance, paid_by: PaidBy, benefit: Benefit, sickness: bool) -> str | None:
+    """Wniosek dla danego tytułu: zwolnienie w ciąży tylko przy działalności (ZAS-53); urlopy: pracownik składa
+    wniosek o urlop u pracodawcy, zleceniobiorca i przedsiębiorca wniosek ZAM."""
+    if paid_by == "none":
+        return None
+    codes = benefit.form_codes
+    if sickness:
+        return "ZAS-53" if ins.kind == "jdg" and "ZAS-53" in codes else None
+    if ins.kind == "employment":
+        return next((c for c in codes if c.startswith("URLOP")), codes[0] if codes else None)
+    return "ZAM" if "ZAM" in codes else None
 
 
 def payer_threshold() -> int:
@@ -169,6 +185,7 @@ def payouts_for(benefit: Benefit, parents: list[ParentProfile], threshold: int |
                     headline=headline,
                     why=why,
                     where=where,
+                    form_code=form_for(ins, paid_by, benefit, sickness),
                 )
             )
     return out

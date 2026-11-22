@@ -43,6 +43,8 @@ export interface Payout {
   headline: string
   why: string
   where: string
+  /** wniosek, który ta osoba składa sama; null = nic nie składa (np. pracownik na zwolnieniu e-ZLA) */
+  form_code?: string | null
 }
 
 export interface BenefitMatch {

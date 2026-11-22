@@ -5,7 +5,7 @@
     "scope": "national",
     "unit_id": null,
     "category": "perk",
-    "description": "Po martwym urodzeniu przysługuje skrócony urlop macierzyński: 8 tygodni od zakończenia ciąży, niezależnie od tego, w którym tygodniu ciąży do tego doszło. Pracodawca nie może go odmówić.",
+    "description": "Po martwym urodzeniu albo śmierci dziecka przed ukończeniem 8 tygodni życia przysługuje urlop macierzyński przez 8 tygodni po porodzie, nie krócej niż 7 dni od dnia śmierci dziecka. Jeśli dziecko zmarło po 8 tygodniach życia, urlop trwa jeszcze 7 dni od dnia jego śmierci. Przy porodzie mnogim wymiar zależy od liczby dzieci, które żyją. Pracodawca nie może go odmówić.",
     "amount_text": null,
     "annual_value_estimate": null,
     "deadline": null,
@@ -25,7 +25,7 @@
     "scope": "national",
     "unit_id": null,
     "category": "benefit",
-    "description": "Za okres skróconego urlopu po martwym urodzeniu możesz dostać zasiłek macierzyński z ZUS, jeśli podlegasz ubezpieczeniu chorobowemu.",
+    "description": "Za okres tego urlopu (po martwym urodzeniu albo śmierci dziecka) możesz dostać zasiłek macierzyński w wysokości 100% podstawy, jeśli podlegasz ubezpieczeniu chorobowemu.",
     "amount_text": null,
     "annual_value_estimate": null,
     "deadline": null,
@@ -37,9 +37,10 @@
       {
         "id": "ubezpieczenie-chorobowe",
         "text": "Podlegasz ubezpieczeniu chorobowemu (umowa o pracę, zlecenie z dobrowolnym ubezpieczeniem albo działalność z dobrowolnym ubezpieczeniem).",
-        "kind": "ask",
+        "kind": "auto",
         "question": "Czy podlegasz ubezpieczeniu chorobowemu?",
-        "profile_key": null
+        "profile_key": "family.sickness_insured",
+        "unmet_text": "W danych z ZUS nie widać ubezpieczenia chorobowego, więc zasiłek macierzyński nie przysługuje. Jeśli to się nie zgadza, zapytaj w ZUS."
       }
     ],
     "extra_text": null,
