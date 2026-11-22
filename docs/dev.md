@@ -1,26 +1,50 @@
 # mRodzina — przewodnik developera
 
-## Szybki start (bez Azure)
+## Szybki start Windows (bez Azure)
 
 Wszystko działa lokalnie bez żadnej konfiguracji: dane w pamięci procesu (`MemoryStore`),
 symulowany mObywatel/ZUS.
 
-```bash
-# backend
-cd backend
-python3 -m venv .venv
-.venv/bin/pip install -r requirements-dev.txt
-.venv/bin/pytest -q
-.venv/bin/uvicorn app.main:app --reload      # http://localhost:8000/docs
+Wymagania: Python 3.12+, Node 22+.
+Jeśli PowerShell nie rozpoznaje `node`, a Node jest zainstalowany w standardowym katalogu, dodaj go do `PATH`:
+`$env:Path = 'C:\Program Files\nodejs;' + $env:Path`.
 
-# frontend (drugi terminal)
-cd frontend
-npm ci
-npm run dev                                   # http://localhost:5173
-npm test -- --run && npm run lint && npm run build
+Backend — pierwszy terminal PowerShell:
+
+```powershell
+Set-Location backend
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-Wymagania: Python 3.12+, Node 22+.
+Frontend — drugi terminal:
+
+```powershell
+Set-Location frontend
+npm ci
+npm run dev -- --port 5173 --strictPort
+```
+
+Landing — trzeci terminal:
+
+```powershell
+Set-Location landing
+npm ci
+npm run dev -- --port 5174 --strictPort
+```
+
+Adresy: API `http://localhost:8000/docs`, aplikacja `http://localhost:5173`,
+landing `http://localhost:5174`.
+
+Testy frontendu uruchom w katalogu `frontend/`: `npm test -- --run`, `npm run lint`,
+`npm run build`. W `landing/` uruchom `npm run lint` i `npm run build`.
+
+### Linux/macOS
+
+Wymień `py -3 -m venv .venv` na `python3 -m venv .venv`, a polecenia
+`.\.venv\Scripts\python.exe` na `.venv/bin/python`. Polecenia npm pozostają takie same.
 
 ## Persony i konta
 
@@ -65,7 +89,7 @@ Wymagania: Python 3.12+, Node 22+.
 | `OFFICIAL_DEFAULT_PASSWORD` | `demo1234` | Hasło początkowe kont urzędników. Seed tworzy tylko brakujące konta i **nigdy nie nadpisuje** istniejących haseł. Poza `dev` (lub z Cosmos) hasło musi mieć min. 12 znaków i różnić się od `demo1234`, inaczej seedowanie urzędników jest pomijane (ostrzeżenie w logu); dodatkowo istniejące konta z hasłem `demo1234` są przy starcie **wyłączane** (`disabled: true`, logowanie → 401). |
 | `SESSION_TTL_HOURS` | `12` | Ważność tokenu. |
 | `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` | puste | Puste = `MemoryStore`. Ustawione = `CosmosStore` i tryb produkcyjny. |
-| `CORS_ORIGINS` | `["http://localhost:5173"]` | Dozwolone originy (JSON). |
+| `CORS_ORIGINS` | `["http://localhost:5173","http://localhost:5174","http://127.0.0.1:5173","http://127.0.0.1:5174"]` | Dozwolone originy (JSON), w tym aplikacja i landing lokalny. |
 
 Losowy sekret: `python -c "import secrets; print(secrets.token_urlsafe(48))"`.
 
@@ -171,7 +195,8 @@ limity: zakresy dat `od ≤ do` i najwyżej 3 lata, listy do 50 pozycji (inaczej
 **Kalkulator na landingu** (`landing/src/components/Calculator.tsx`, logika w `calcEngine.ts`): kilka pytań → profil
 silnika → `POST ${VITE_API_URL}/api/silnik/ocena`. W ciąży liczy stan na termin porodu (`data_oceny`), więc pokazuje
 też to, co zaczyna się po porodzie. Landing sam niczego nie liczy i nic nie zapisuje; pokazuje tylko świadczenia
-pieniężne z listy `SHOWN` (bez zasiłku opiekuńczego i ścieżek straty). Origin landingu musi być w `CORS_ORIGINS` backendu.
+pieniężne z listy `SHOWN` (bez zasiłku opiekuńczego i ścieżek straty). Domyślna konfiguracja CORS dopuszcza lokalny landing;
+przy własnym `CORS_ORIGINS` trzeba dodać origin, z którego otwierasz stronę.
 
 ## Wnioski, agent i makiety portali (plan 08)
 

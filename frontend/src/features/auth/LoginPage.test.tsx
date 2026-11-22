@@ -1,8 +1,10 @@
-import { screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Route, Routes } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { markOnboarded } from '../../lib/onboarding'
+import { SessionContext } from '../../lib/session'
+import type { SessionValue } from '../../lib/session'
 import { ANNA, makeSession, renderWithSession } from '../../test/utils'
 import { routeApi } from '../../test/routeApi'
 import LoginPage from './LoginPage'
@@ -23,6 +25,7 @@ function Tree() {
       <Route path="/logowanie" element={<LoginPage />} />
       <Route path="/start" element={<p>Strona start</p>} />
       <Route path="/" element={<p>Strona główna</p>} />
+      <Route path="/poczta" element={<p>Poczta</p>} />
     </Routes>
   )
 }
@@ -31,6 +34,16 @@ function Tree() {
 async function openAccounts() {
   await userEvent.click(screen.getByRole('button', { name: /zaczynamy/i }))
   await userEvent.click(screen.getByRole('button', { name: /zaloguj przez mobywatel/i }))
+}
+
+function renderWithReturnPath(session: SessionValue, from: unknown) {
+  return render(
+    <SessionContext.Provider value={session}>
+      <MemoryRouter initialEntries={[{ pathname: '/logowanie', state: { from } }]}>
+        <Tree />
+      </MemoryRouter>
+    </SessionContext.Provider>,
+  )
 }
 
 describe('LoginPage', () => {
@@ -76,6 +89,20 @@ describe('LoginPage', () => {
       })),
     })
     renderWithSession(<Tree />, { route: '/logowanie', session })
+    await openAccounts()
+    await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
+    expect(await screen.findByText('Strona start')).toBeInTheDocument()
+  })
+
+  it('po zalogowaniu wraca na stronę, którą użytkownik chciał otworzyć', async () => {
+    renderWithReturnPath(makeSession({ user: null, token: null }), '/poczta')
+    await openAccounts()
+    await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
+    expect(await screen.findByText('Poczta')).toBeInTheDocument()
+  })
+
+  it('ignoruje zewnętrzny adres powrotu', async () => {
+    renderWithReturnPath(makeSession({ user: null, token: null }), '//example.com')
     await openAccounts()
     await userEvent.click(await screen.findByRole('button', { name: /Anna Nowak/ }))
     expect(await screen.findByText('Strona start')).toBeInTheDocument()
