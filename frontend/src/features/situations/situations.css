@@ -94,3 +94,37 @@
 .sit-lost {
   font-size: 0.92rem;
 }
+/* Komunikat „po tym zgłoszeniu możesz złożyć N wniosków” w panelu dziecka (Rodzina). */
+.sit-forms {
+  padding: 1rem;
+}
+.sit-forms p {
+  margin: 0;
+}
+.sit-forms-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+.sit-forms-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+.sit-forms-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+}
+.sit-forms-name {
+  font-weight: 700;
+}
+/* kod wniosku („Z-12”) nie łamie się na łączniku */
+.sit-nowrap {
+  white-space: nowrap;
+}
+.sit-forms-list .btn {
+  min-height: 44px;
+}

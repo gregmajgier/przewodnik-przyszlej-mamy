@@ -58,9 +58,6 @@ class Settings(BaseSettings):
     # Przykładowe wnioski „w toku” dla rodziny demo (seed/demo_applications.py). Testy: DEMO_APPLICATIONS=0.
     demo_applications: bool = True
 
-    # Tryb jaskółki (plan 10): ile dni od zgłoszenia można je cofnąć.
-    undo_window_days: int = 7
-
     @property
     def is_production(self) -> bool:
         """Produkcja = ENV != dev albo podłączony Cosmos (prawdziwe dane)."""

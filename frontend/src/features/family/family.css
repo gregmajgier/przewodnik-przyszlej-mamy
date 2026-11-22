@@ -238,3 +238,68 @@ a.member-card:hover {
   background: var(--white);
   box-shadow: var(--shadow-sm);
 }
+
+/* Instrukcja „Jak zgłosić trudną sytuację” (wejście z menu konta → „Ciężka sytuacja”). Czerwień z tokenu --danger;
+   w trybie jaskółki ([data-theme='mono']) token jest szary. Bez wykrzykników; animacja tylko bez reduced-motion. */
+.hard-help {
+  margin: 0 0 1.25rem;
+  padding: 1rem 1.25rem 1.1rem;
+  border: 2px solid var(--danger);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  color: var(--fg);
+}
+.hard-help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.hard-help h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--danger);
+}
+.hard-help h2:focus {
+  outline: none;
+}
+.hard-help h2:focus-visible {
+  outline: 3px solid var(--danger);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+.hard-help p {
+  margin: 0.6rem 0 0;
+}
+.hard-help ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.3rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.hard-help .icon-btn {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+}
+.hard-help-kids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hard-help {
+    animation: hard-help-in 0.25s ease-out;
+  }
+}
+@keyframes hard-help-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

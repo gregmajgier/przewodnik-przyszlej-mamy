@@ -80,7 +80,7 @@ def test_loss_for_expected_child_poronienie(fam, store):
     child = run(set_situation(store, anna, ids["Dziecko w drodze"], "poronienie", now=T0))
     assert (child.situation, child.situation_kind, child.situation_at) == ("loss", "poronienie", T0)
     assert child.status == "expected" and child.name == "Dziecko w drodze"  # dziecko zostaje w profilu
-    assert run(mode_info(store, piotr, now=T0))["mode"] == "jaskolka"  # drugi rodzic widzi to samo
+    assert run(mode_info(store, piotr))["mode"] == "jaskolka"  # drugi rodzic widzi to samo
 
 
 def test_loss_for_born_child_smierc_only_one_child_changes(fam, store):
@@ -128,7 +128,7 @@ def test_no_notification_created_for_partner(fam, store):
     before = run(store.find("notifications"))  # np. „Piotr dołączył do rodziny”
     run(set_situation(store, anna, ids["Maja"], "poronienie", now=T0))
     assert run(store.find("notifications")) == before
-    assert run(mode_info(store, piotr, now=T0))["child_id"] == ids["Maja"]
+    assert run(mode_info(store, piotr))["child_id"] == ids["Maja"]
 
 
 def test_other_family_child_404_and_no_family_404_and_bad_kind(client, store, fam):
@@ -149,26 +149,31 @@ def test_other_family_child_404_and_no_family_404_and_bad_kind(client, store, fa
 # ---------- cofnięcie ----------
 
 
-def test_undo_works_on_day_7_and_409_on_day_8(fam, store):
+def test_undo_works_any_time_even_long_after_report(fam, store):
     anna, piotr, ids, family_id, _ = fam
     run(seed_apps(store, family_id, ids["Maja"], ids["Antek"]))
-    run(set_situation(store, anna, ids["Maja"], "poronienie", now=T0))
+    run(set_situation(store, anna, ids["Maja"], "poronienie", now=T0 - timedelta(days=400)))
+    assert run(mode_info(store, anna))["can_undo"] is True
 
-    with pytest.raises(DomainError) as e:  # 8. dzień
-        run(undo_situation(store, piotr, ids["Maja"], now=T0 + timedelta(days=7, seconds=1)))
-    assert e.value.status_code == 409 and "Czas na cofnięcie" in e.value.detail
-    assert run(store.get("children", ids["Maja"]))["situation"] == "loss"
-
-    child = run(undo_situation(store, piotr, ids["Maja"], now=T0 + timedelta(days=6, hours=23)))  # 7. dzień
+    child = run(undo_situation(store, piotr, ids["Maja"]))  # drugi rodzic, ponad rok później
     assert child.situation is None and child.situation_kind is None and child.situation_at is None
-    assert run(mode_info(store, anna, now=T0))["mode"] == "normal"
+    assert run(mode_info(store, anna))["mode"] == "normal"
+
+
+def test_undo_after_exit_mode_still_possible(fam, store):
+    anna, _, ids, _, _ = fam
+    run(set_situation(store, anna, ids["Maja"], "smierc-dziecka", now=T0))
+    run(exit_mode(store, anna))
+    assert run(store.get("children", ids["Maja"]))["situation"] == "loss"
+    child = run(undo_situation(store, anna, ids["Maja"]))
+    assert child.situation is None and child.situation_exited_at is None
 
 
 def test_undo_keeps_cancelled_drafts_but_restores_benefits_calendar_and_notes(fam, store):
     anna, _, ids, family_id, _ = fam
     run(seed_apps(store, family_id, ids["Maja"], ids["Antek"]))
     run(set_situation(store, anna, ids["Maja"], "smierc-dziecka", now=T0))
-    run(undo_situation(store, anna, ids["Maja"], now=T0 + timedelta(days=1)))
+    run(undo_situation(store, anna, ids["Maja"]))
     apps = {d["id"]: d for d in run(store.find("applications", family_id=family_id))}
     assert apps["a-draft"]["status"] == "cancelled"  # nie wraca
     assert "child_loss_note" not in apps["a-sent"]  # pomyłka odwołana
@@ -177,25 +182,19 @@ def test_undo_keeps_cancelled_drafts_but_restores_benefits_calendar_and_notes(fa
     assert loss_support_applies(["loss_support"], children) is False
 
 
-def test_undo_without_report_409_and_window_is_configurable(fam, store, monkeypatch):
+def test_undo_without_report_409(fam, store):
     anna, _, ids, _, _ = fam
     with pytest.raises(DomainError) as e:
         run(undo_situation(store, anna, ids["Maja"]))
     assert e.value.status_code == 409 and "Nie ma zgłoszenia" in e.value.detail
-    monkeypatch.setattr(situations.settings, "undo_window_days", 1)
-    run(set_situation(store, anna, ids["Maja"], "poronienie", now=T0))
-    with pytest.raises(DomainError):
-        run(undo_situation(store, anna, ids["Maja"], now=T0 + timedelta(days=2)))
 
 
-def test_mode_info_undo_until_only_inside_window(fam, store):
+def test_mode_info_reports_can_undo(fam, store):
     anna, _, ids, _, _ = fam
-    assert run(mode_info(store, anna)) == {"mode": "normal", "since": None, "undo_until": None, "child_id": None}
+    assert run(mode_info(store, anna)) == {"mode": "normal", "since": None, "child_id": None, "can_undo": False}
     run(set_situation(store, anna, ids["Maja"], "poronienie", now=T0))
-    inside = run(mode_info(store, anna, now=T0 + timedelta(days=3)))
-    assert inside["mode"] == "jaskolka" and inside["undo_until"] == (T0 + timedelta(days=7)).isoformat()
-    outside = run(mode_info(store, anna, now=T0 + timedelta(days=9)))
-    assert outside["mode"] == "jaskolka" and outside["undo_until"] is None  # tryb zostaje; cofnięcie już nie
+    info = run(mode_info(store, anna))
+    assert info == {"mode": "jaskolka", "since": T0.isoformat(), "child_id": ids["Maja"], "can_undo": True}
 
 
 # ---------- wyjście z trybu ----------
@@ -205,7 +204,7 @@ def test_exit_mode_is_manual_and_keeps_child_in_situation(fam, store):
     anna, piotr, ids, family_id, _ = fam
     run(set_situation(store, anna, ids["Maja"], "smierc-dziecka", now=T0))
     # po długim czasie tryb nadal trwa — nie wychodzi sam
-    assert run(mode_info(store, piotr, now=T0 + timedelta(days=400)))["mode"] == "jaskolka"
+    assert run(mode_info(store, piotr))["mode"] == "jaskolka"
     run(exit_mode(store, piotr, now=T0 + timedelta(days=400)))
     assert run(mode_info(store, anna))["mode"] == "normal"
     child = run(store.get("children", ids["Maja"]))

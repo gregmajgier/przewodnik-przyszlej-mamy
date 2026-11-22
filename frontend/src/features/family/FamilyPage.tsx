@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { api, ApiError } from '../../lib/api'
 import { useSession } from '../../lib/session'
 import type { Child, FamilyView } from '../../lib/types'
@@ -7,12 +7,19 @@ import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
 import { Avatar, PageHeader, Pill, Toggle } from '../../ui/controls'
 import { Sheet } from '../../ui/Sheet'
+import { NewFormsNotice } from '../situations/NewFormsNotice'
+import type { HardSituation } from '../situations/newForms'
 import { SituationMenu } from '../situations/SituationMenu'
 import { useFamilyMode } from '../situations/useFamilyMode'
 import { childLabel, childTone, describeAge } from '../matters/model'
 import { AddChildSheet } from './AddChildSheet'
 import '../../ui/ui.css'
 import './family.css'
+
+/** Stan nawigacji z menu konta („Ciężka sytuacja”): pokaż na górze instrukcję zgłoszenia. */
+interface FamilyNavState {
+  hardSituation?: boolean
+}
 
 export default function FamilyPage() {
   const { user, refresh } = useSession()
@@ -23,6 +30,21 @@ export default function FamilyPage() {
   const [manage, setManage] = useState<Child | null>(null)
   const [confirmRemove, setConfirmRemove] = useState(false)
   const [copied, setCopied] = useState(false)
+  // komunikat „możesz złożyć N wniosków” w panelu dziecka, po zgłoszeniu sytuacji
+  const [notice, setNotice] = useState<{ childId: string; situation: HardSituation } | null>(null)
+  // instrukcja z menu konta: każde kliknięcie w menu (nowy `location.key`) pokazuje ją na nowo
+  const location = useLocation()
+  const helpKey = (location.state as FamilyNavState | null)?.hardSituation ? location.key : null
+  const [dismissedHelp, setDismissedHelp] = useState<string | null>(null)
+  const showHelp = helpKey !== null && helpKey !== dismissedHelp
+  const helpRef = useRef<HTMLHeadingElement>(null)
+  const ready = view !== null
+
+  useEffect(() => {
+    if (!showHelp || !ready) return
+    window.scrollTo?.({ top: 0 })
+    helpRef.current?.focus()
+  }, [showHelp, helpKey, ready])
 
   const load = useCallback(async () => {
     try {
@@ -47,6 +69,13 @@ export default function FamilyPage() {
       setError(e instanceof ApiError ? e.detail : 'Nie udało się wykonać operacji.')
     }
   }
+
+  const undoLoss = (childId: string) =>
+    run(async () => {
+      await api(`/api/families/me/children/${childId}/situation`, { method: 'DELETE' })
+      setNotice(null)
+      await familyMode.refresh()
+    })
 
   const decide = (id: string, verb: 'accept' | 'reject') =>
     run(() => api(`/api/families/me/join-requests/${id}/${verb}`, { method: 'POST' }), true)
@@ -81,6 +110,45 @@ export default function FamilyPage() {
 
   return (
     <div className="page page-narrow family">
+      {showHelp && (
+        <section className="hard-help" aria-labelledby="hard-help-h">
+          <div className="hard-help-head">
+            <h2 id="hard-help-h" ref={helpRef} tabIndex={-1}>
+              Jak zgłosić trudną sytuację
+            </h2>
+            <button type="button" className="icon-btn" aria-label="Zamknij instrukcję" onClick={() => setDismissedHelp(helpKey)}>
+              <Icon name="close" size={20} />
+            </button>
+          </div>
+          {kids.length === 0 ? (
+            <p>
+              Najpierw dodaj dziecko przyciskiem „Dodaj dziecko” niżej na tej stronie. Potem zaznaczysz na jego karcie, co
+              się wydarzyło.
+            </p>
+          ) : (
+            <>
+              <p>Jeśli doszło do poronienia, martwego urodzenia albo śmierci dziecka, zaznacz to na karcie dziecka poniżej:</p>
+              <ol>
+                <li>Na karcie dziecka kliknij przycisk z trzema kropkami.</li>
+                <li>Rozwiń „Zmiana sytuacji” i wybierz, co się wydarzyło: Poronienie, Martwe urodzenie albo Śmierć dziecka.</li>
+                <li>Jeśli dziecko jest ciężko i nieodwracalnie chore, włącz tam „Ciężka, nieodwracalna choroba”.</li>
+              </ol>
+              <p>
+                Zapiszemy to w Waszych danych, pokażemy, jakie wnioski możesz teraz złożyć, i schowamy to, co do tej sytuacji
+                nie pasuje. Zgłoszenie możesz cofnąć w każdej chwili w tym samym miejscu.
+              </p>
+              <div className="hard-help-kids">
+                {kids.map((c) => (
+                  <Button key={c.id} variant="secondary" size="sm" onClick={() => setManage(c)}>
+                    Otwórz kartę: {childLabel(c)}
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
       <PageHeader title={view.family.name} eyebrow="Rodzina">
         <div className="family-hero">
           <div className="family-avatars">
@@ -230,14 +298,28 @@ export default function FamilyPage() {
         onClose={() => {
           setManage(null)
           setConfirmRemove(false)
+          setNotice(null)
         }}
         title={managed ? childLabel(managed) : ''}
         subtitle={managed ? describeAge(managed) : undefined}
       >
         {managed && (
           <div className="stack">
+            {notice?.childId === managed.id && <NewFormsNotice situation={notice.situation} childId={managed.id} />}
             {managed.situation === 'loss' ? (
-              <p className="muted">Zmiana sytuacji została zapisana. Jesteśmy z Wami.</p>
+              <div className="stack">
+                <p className="muted" style={{ margin: 0 }}>
+                  Zmiana sytuacji została zapisana. Jesteśmy z Wami.
+                </p>
+                <div>
+                  <Button variant="secondary" leading="history" onClick={() => void undoLoss(managed.id)}>
+                    Cofnij zgłoszenie
+                  </Button>
+                  <p className="muted small" style={{ margin: '0.5rem 0 0' }}>
+                    Możesz to zrobić w każdej chwili. Szkice wniosków o to dziecko anulowane przy zgłoszeniu nie wrócą.
+                  </p>
+                </div>
+              </div>
             ) : (
               <>
                 <div className="card" style={{ padding: '1rem' }}>
@@ -248,12 +330,19 @@ export default function FamilyPage() {
                     onChange={(v) =>
                       void run(async () => {
                         await api(`/api/families/me/children/${managed.id}/serious-illness`, { method: 'PATCH', body: { value: v } })
+                        setNotice(v ? { childId: managed.id, situation: 'ciezka-choroba' } : null)
                         await familyMode.refresh()
                       })
                     }
                   />
                 </div>
-                <SituationMenu child={managed} onChanged={load} />
+                <SituationMenu
+                  child={managed}
+                  onChanged={async (kind) => {
+                    setNotice({ childId: managed.id, situation: kind })
+                    await load()
+                  }}
+                />
               </>
             )}
             {!confirmRemove ? (
