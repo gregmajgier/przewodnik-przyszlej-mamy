@@ -61,7 +61,7 @@ describe('ContractsPage', () => {
     await uploadFile()
     expect(await screen.findByRole('heading', { name: 'Sprawdź dane umowy' })).toBeInTheDocument()
     expect(screen.getByLabelText('Pracodawca / zleceniodawca')).toHaveValue(SCAN.draft.employer_name)
-    expect(screen.getByLabelText('Wynagrodzenie brutto miesięcznie (zł)')).toHaveValue('7850')
+    expect(screen.getByLabelText('Wynagrodzenie brutto miesięcznie (zł)')).toHaveValue(7850)
     const scanCall = api.mock.calls.find(([p]) => p === '/api/contracts/scan')
     expect(scanCall?.[1]?.body).toBeInstanceOf(FormData)
   })
