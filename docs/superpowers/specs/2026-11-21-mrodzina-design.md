@@ -52,7 +52,7 @@ Osobno, bez logowania: **`/jaskolka`** — spokojna ścieżka dla rodziców w sy
 ### 3.2 Dołączanie drugiego rodzica [P]
 1. Założyciel rodziny generuje **kod zaproszenia** w ustawieniach rodziny.
 2. Drugi rodzic (po własnym logowaniu) wybiera „Dołącz do rodziny” i wpisuje kod.
-3. Założyciel dostaje prośbę i ją **akceptuje** (lub odrzuca). Dopiero po akceptacji drugi rodzic jest członkiem.
+3. ~~Założyciel dostaje prośbę i ją akceptuje.~~ *Zmiana 2026-11-22 (decyzja zespołu):* **kod jest zgodą założyciela**, więc drugi rodzic dołącza od razu po wpisaniu kodu, a założyciel dostaje powiadomienie „X dołączył(a) do Waszej rodziny”. Kod ważny 7 dni i do wymiany w ustawieniach rodziny; stare, wiszące prośby domyka ponowne wpisanie kodu („Sprawdź status”).
 - Po dołączeniu **oboje widzą wszystko**: dane obojga, dzieci, umowy, dochody — bo wiele wniosków liczy dochód na członka rodziny.
 - Każdy rodzic może składać wnioski; **wnioskodawcą jest zalogowany rodzic**, dane drugiego rodzica i dzieci wypełniają się z profilu. W kalendarzu widać, kto co złożył.
 - *Decyzja buildera:* ważność kodu, jednorazowość, limit członków (rozsądnie: 2 rodziców).

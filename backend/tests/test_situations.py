@@ -38,8 +38,7 @@ def make_family(client, store):
     """Anna i Piotr w jednej rodzinie; dzieci: Maja (7 lat), Antek (3 lata) i Dziecko w drodze."""
     ha, hp = login(client, ANNA), login(client, PIOTR)
     fam = client.post("/api/families", json={}, headers=ha).json()["family"]
-    jr = client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp).json()
-    assert client.post(f"/api/families/me/join-requests/{jr['id']}/accept", headers=ha).status_code == 200
+    assert client.post("/api/families/join", json={"code": fam["invite_code"]}, headers=hp).status_code == 201
     ids = {}
     for name, body in {
         "Maja": {"birth_date": "2019-02-01"},
@@ -126,8 +125,9 @@ def test_cancelled_drafts_and_sent_applications_noted(fam, store):
 
 def test_no_notification_created_for_partner(fam, store):
     anna, piotr, ids, _, _ = fam
+    before = run(store.find("notifications"))  # np. „Piotr dołączył do rodziny”
     run(set_situation(store, anna, ids["Maja"], "poronienie", now=T0))
-    assert run(store.find("notifications")) == []
+    assert run(store.find("notifications")) == before
     assert run(mode_info(store, piotr, now=T0))["child_id"] == ids["Maja"]
 
 

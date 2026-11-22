@@ -70,31 +70,20 @@ function Header({ inSituation }: { inSituation: boolean }) {
 }
 
 function Helpline() {
-  // Stała stopka ma być jedną spokojną linią (nie zasłania treści); reszta numerów po kliknięciu „Potrzebuję pomocy”.
-  const [open, setOpen] = useState(false)
+  // Numery pomocy widać zawsze, bez klikania: osoba w kryzysie nie powinna ich szukać.
   return (
     <footer className="jk-help">
-      <div className="jk-help-bar">
-        <p>
-          Wsparcie: <a href="tel:116123">116 123</a>
-        </p>
-        <button type="button" className="jk-help-toggle" aria-expanded={open} aria-controls="jk-help-more" onClick={() => setOpen((o) => !o)}>
-          Potrzebuję pomocy
-        </button>
-      </div>
-      {open && (
-        <p id="jk-help-more" className="jk-help-more">
-          Potrzebujesz porozmawiać? Telefon wsparcia emocjonalnego <a href="tel:116123">116 123</a> jest bezpłatny i
-          działa całą dobę. Jeśli ktoś jest w niebezpieczeństwie, zadzwoń pod <a href="tel:112">112</a>.{' '}
-          <a
-            href="https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Więcej miejsc pomocy<span className="jk-sr"> (otwiera się w nowej karcie)</span>
-          </a>
-        </p>
-      )}
+      <p className="jk-help-line">
+        Telefon wsparcia emocjonalnego: <a href="tel:116123">116 123</a>, bezpłatnie i całą dobę.{' '}
+        Jeśli ktoś jest w niebezpieczeństwie: <a href="tel:112">112</a>.{' '}
+        <a
+          href="https://www.gov.pl/web/zdrowie/gdzie-uzyskac-pomoc-psychologiczna-i-psychiatryczna"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Więcej miejsc pomocy<span className="jk-sr"> (otwiera się w nowej karcie)</span>
+        </a>
+      </p>
     </footer>
   )
 }

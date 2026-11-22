@@ -39,8 +39,7 @@ def family_with_partner(c):
     anna = login(c, "persona-nowak-anna")
     code = c.post("/api/families", headers=anna).json()["family"]["invite_code"]
     piotr = login(c, "persona-nowak-piotr")
-    req = c.post("/api/families/join", json={"code": code}, headers=piotr).json()
-    c.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=anna)
+    assert c.post("/api/families/join", json={"code": code}, headers=piotr).status_code == 201
     due = (date.today() + timedelta(days=60)).isoformat()
     c.post("/api/families/me/children", json={"name": "Maluszek", "due_date": due}, headers=anna)
     return anna, piotr

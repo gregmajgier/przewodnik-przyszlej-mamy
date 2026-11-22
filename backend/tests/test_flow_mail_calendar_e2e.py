@@ -12,8 +12,7 @@ def test_anna_application_reply_status_calendar_notification(client):
     anna = login(client, "persona-nowak-anna")
     code = client.post("/api/families", headers=anna).json()["family"]["invite_code"]
     piotr = login(client, "persona-nowak-piotr")
-    req = client.post("/api/families/join", json={"code": code}, headers=piotr).json()
-    client.post(f"/api/families/me/join-requests/{req['id']}/accept", headers=anna)
+    assert client.post("/api/families/join", json={"code": code}, headers=piotr).status_code == 201
     due = (date.today() + timedelta(days=60)).isoformat()
     client.post("/api/families/me/children", json={"name": "Maluszek", "due_date": due}, headers=anna)
 
@@ -42,6 +41,7 @@ def test_anna_application_reply_status_calendar_notification(client):
 
     # 5. ponowna synchronizacja nic nie dubluje
     assert client.post("/api/mail/sync", headers=anna).json()["status_changes"] == 0
-    assert len(client.get("/api/notifications", headers=anna).json()) == 2
+    mail_notes = [n for n in client.get("/api/notifications", headers=anna).json() if n["kind"] != "family"]
+    assert len(mail_notes) == 2  # bez „Piotr dołączył do rodziny”
     # maile niezwiązane z wnioskami nie trafiły do wątków
     assert all(m["from_addr"] != "babcia.krysia@gmail.com" for m in thread["messages"])
