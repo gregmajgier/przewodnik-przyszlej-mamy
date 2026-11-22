@@ -7,6 +7,7 @@ import { Icon } from '../../ui/Icon'
 import { Select } from '../../ui/controls'
 import type { AnswerValue, Application, Channel, FieldInfo, FormEntry } from './types'
 import { CHANNEL_LABEL } from './types'
+import { openNativePicker } from '../../ui/nativePicker'
 
 interface Props {
   app: Application
@@ -57,6 +58,7 @@ function FieldRow({ field, value, disabled, onEdit }: { field: FieldInfo; value:
                 id={inputId}
                 className="input"
                 type={field.type === 'date' ? 'date' : 'text'}
+                onClick={field.type === 'date' ? (e) => openNativePicker(e.currentTarget) : undefined}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
               />

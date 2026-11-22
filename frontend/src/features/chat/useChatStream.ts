@@ -57,8 +57,13 @@ async function readDetail(res: Response): Promise<string> {
   return 'Nie udało się wysłać pytania. Spróbuj ponownie za chwilę.'
 }
 
-export function useChatStream() {
+export function useChatStream({ onSession }: { onSession?: (id: string) => void } = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  // zawsze najnowszy callback, bez przebudowy `send`/`open` przy każdym renderze
+  const onSessionRef = useRef(onSession)
+  useEffect(() => {
+    onSessionRef.current = onSession
+  })
   const [sending, setSending] = useState(false)
   /** spokojny komunikat o limitach (429) — nie jest błędem rozmowy */
   const [banner, setBanner] = useState<string | null>(null)
@@ -131,6 +136,7 @@ export function useChatStream() {
               patchLast((m) => ({ ...m, sources: d.sources as ChatSource[] }))
             } else if (event === 'done' && typeof d.session_id === 'string') {
               sessionId.current = d.session_id
+              onSessionRef.current?.(d.session_id)
             } else if (event === 'error') {
               const message = typeof d.message === 'string' ? d.message : 'Coś poszło nie tak. Spróbuj ponownie.'
               setError(message)
@@ -159,7 +165,7 @@ export function useChatStream() {
   }, [])
 
   /** Wczytuje zapisaną rozmowę (historia). */
-  const open = useCallback(async (id: string) => {
+  const open = useCallback(async (id: string): Promise<boolean> => {
     abort.current?.abort()
     busy.current = false
     setSending(false)
@@ -170,6 +176,7 @@ export function useChatStream() {
         `/api/chat/sessions/${encodeURIComponent(id)}`,
       )
       sessionId.current = doc.id
+      onSessionRef.current?.(doc.id)
       setMessages(
         doc.messages
           .filter((m) => m.role === 'user' || m.role === 'assistant')
@@ -181,8 +188,10 @@ export function useChatStream() {
             tools: [],
           })),
       )
+      return true
     } catch {
       setError('Nie udało się wczytać rozmowy.')
+      return false
     }
   }, [])
 

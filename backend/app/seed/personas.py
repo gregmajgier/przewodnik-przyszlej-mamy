@@ -38,6 +38,7 @@ PERSONAS: dict[str, dict] = {
                     "contribution_base": 7850.0,
                     "voluntary_sickness": None,
                     "since_days_ago": 5 * 365,
+                    "payer_insured_count": 240,  # > 20: zasiłki wypłaca pracodawca
                 }
             ],
             "ezla": [{"code": "B", "from_days": -7, "to_days": 21}],
@@ -89,6 +90,7 @@ PERSONAS: dict[str, dict] = {
                     "contribution_base": 6400.0,
                     "voluntary_sickness": None,
                     "since_days_ago": 8 * 365,
+                    "payer_insured_count": 18,  # <= 20: zasiłki wypłaca ZUS
                 }
             ],
             "ezla": [],

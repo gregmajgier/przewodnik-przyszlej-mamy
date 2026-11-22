@@ -5,7 +5,7 @@ import { useSession } from '../../lib/session'
 import { Button } from '../../ui/Button'
 import { Icon } from '../../ui/Icon'
 import { Avatar, PageHeader, Pill, Segmented } from '../../ui/controls'
-import { connectedGmail } from '../family/gmail'
+import { connectedMailbox, mailboxConnectedText } from '../family/gmail'
 import { childLabel } from '../matters/model'
 import { STATUS_LABEL } from './types'
 import type { Application } from './types'
@@ -34,7 +34,7 @@ export default function ApplicationsPage() {
   const { family, user } = useSession()
   const { apps, catalog, error, syncing, syncedAt, sync, nameOf, titleOf, threadOf } = useApplications(!!family)
   const [tab, setTab] = useState<'open' | 'done'>('open')
-  const gmail = connectedGmail()
+  const mailbox = connectedMailbox()
 
   useEffect(() => {
     if (family) void sync()
@@ -66,7 +66,7 @@ export default function ApplicationsPage() {
           <Icon name="mail" size={20} />
         </span>
         <span className="sync-bar-text">
-          <strong>{gmail ? 'Gmail połączony' : 'Skrzynka pocztowa'}</strong>
+          <strong>{mailbox ? mailboxConnectedText(mailbox) : 'Skrzynka pocztowa'}</strong>
           <span>
             {syncing
               ? 'Sprawdzam nowe odpowiedzi z urzędów…'
@@ -121,13 +121,13 @@ export default function ApplicationsPage() {
           const child = childOf(a.child_id)
           const last = latestMessage(threadOf(a.id))
           const needsYou = a.status === 'needs_input' || a.status === 'draft' || a.status === 'ready' || a.status === 'more_info'
-          return (
-            <li key={a.id} className="rise" style={{ ['--i' as string]: i }}>
-              <Link to={`/wnioski/${a.id}`} className="app-card">
+          const content = (
+            <>
                 <div className="app-card-top">
                   <Pill tone={STATUS_TONE[a.status]} dot>
                     {STATUS_LABEL[a.status]}
                   </Pill>
+                  {a.demo && <Pill>Przykład</Pill>}
                   <span className="app-card-channel">
                     <Icon name={a.channel === 'portal_agent' ? 'globe' : 'doc'} size={15} />
                     {CHANNEL_SHORT[a.channel]}
@@ -157,6 +157,8 @@ export default function ApplicationsPage() {
                     </span>
                     <span className="app-card-mail-time">{timeAgo(last.received_at)}</span>
                   </div>
+                ) : a.demo ? (
+                  <p className="app-card-demo">Przykład tylko do podglądu. Załóż własny wniosek, żeby go złożyć.</p>
                 ) : needsYou ? (
                   <div className="app-card-cta">
                     <Icon name="sparkle" size={17} />
@@ -164,7 +166,20 @@ export default function ApplicationsPage() {
                     <Icon name="arrowRight" size={16} />
                   </div>
                 ) : null}
-              </Link>
+            </>
+          )
+          return (
+            <li key={a.id} className="rise" style={{ ['--i' as string]: i }}>
+              {a.demo ? (
+                // przykładowy wniosek: widoczny na liście, ale nie da się go otworzyć ani edytować
+                <article className="app-card is-demo" aria-label={`Przykładowy wniosek: ${titleOf(a.form_code)}`}>
+                  {content}
+                </article>
+              ) : (
+                <Link to={`/wnioski/${a.id}`} className="app-card">
+                  {content}
+                </Link>
+              )}
             </li>
           )
         })}

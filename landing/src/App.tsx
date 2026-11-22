@@ -44,7 +44,7 @@ function App() {
         <section className="hero">
           <HeroIcons />
           <div className="hero-copy">
-            <p>Mamo! Tato! Masz wiele na głowie...</p>
+            <p>Mamo! Tato! Macie dużo na głowie...</p>
             <p className="pitch">
               <span className="wordmark">
                 <Logo className="wordmark-logo" />

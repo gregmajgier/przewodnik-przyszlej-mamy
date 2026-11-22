@@ -18,6 +18,10 @@ class Criteria(BaseModel):
     requires_pregnancy: bool | None = None
     # „w ciąży albo dziecko do N miesięcy włącznie” (np. zasiłek macierzyński: przed i po porodzie)
     pregnant_or_child_max_months: int | None = None
+    # „w ciąży albo dziecko do końca roku kalendarzowego, w którym kończy N lat” (urlop rodzicielski: N = 6)
+    pregnant_or_child_until_year_end_of_age: int | None = None
+    # „w ciąży albo trwa urlop macierzyński” (20–37 tygodni od porodu, zależnie od liczby dzieci z jednego porodu)
+    pregnant_or_in_maternity_leave: bool | None = None
     requires_disability: bool | None = None
     requires_foster: bool | None = None
     employment_kinds: list[Literal["employment", "mandate", "jdg"]] | None = None
@@ -33,6 +37,11 @@ class Condition(BaseModel):
     kind: Literal["auto", "ask"]
     question: str | None = None
     profile_key: str | None = None
+    # Pytanie zadane twierdząco o coś, czego warunek wymaga braku („Czy przysługuje ci zasiłek…?”):
+    # odpowiedź „tak” oznacza, że warunek NIE jest spełniony. Nie dotyczy faktów `auto` z profilu.
+    negated_question: bool = False
+    # Własny komunikat, gdy warunek nie jest spełniony (domyślnie „Warunek niespełniony: <text>.”).
+    unmet_text: str | None = None
     # Pytanie `ask` zadane „odwrotnie” do warunku (np. „Czy przysługuje ci…?” przy warunku „Nie przysługuje…”):
     # odpowiedź „tak” oznacza wtedy warunek niespełniony.
     negate: bool = False
