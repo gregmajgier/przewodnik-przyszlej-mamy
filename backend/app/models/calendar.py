@@ -23,5 +23,7 @@ class CalendarEvent(BaseModel):
     recipient: str | None = None
     status: str | None = None
     severity: Literal["info", "medium", "high"] | None = None
+    # termin ze świadczenia: kod wniosku do złożenia (frontend prowadzi z kalendarza prosto do kreatora)
+    form_code: str | None = None
     # tryb jaskółki: terminy innych dzieci są wyciszone (pokazywane spokojnie, bez przypominania)
     muted: bool = False
