@@ -22,6 +22,11 @@ B800 = Benefit(
     id="800", name="800+", scope="national", category="benefit", description="x", how_to_apply="x", source_url="https://x.pl",
     deadline=Deadline(anchor="birth", offset_months=3), criteria=Criteria(child_age_min_months=0, child_age_max_months=215),
 )
+ACTIVE_PARENT = Benefit(
+    id="active-parent", name="Aktywny rodzic", scope="national", category="benefit", description="x", how_to_apply="x",
+    source_url="https://x.pl", deadline=Deadline(anchor="child_age", offset_months=35),
+    criteria=Criteria(child_age_min_months=12, child_age_max_months=35), per_child=True,
+)
 
 
 def view(*children: Child) -> FamilyView:
@@ -68,6 +73,20 @@ def test_birth_unlocks_800plus_deadline_3_months():
 def test_no_benefit_events_for_status_no():
     evs = generate_events(view(born()), [BenefitWithMatch(benefit=B800, status="no")], [], [], TODAY)
     assert not [e for e in evs if e.kind == "deadline" and e.source_ref.startswith("benefit:")]
+
+
+def test_per_child_benefit_deadlines_skip_children_outside_matching_age():
+    older = Child(id="c-older", family_id="fam", name="Antek", birth_date=date(2023, 7, 26))
+    eligible = Child(id="c-eligible", family_id="fam", name="Maja", birth_date=date(2024, 11, 22))
+    match = BenefitWithMatch(benefit=ACTIVE_PARENT, status="fits", child_ids=[eligible.id])
+
+    events = generate_events(view(older, eligible), [match], [], [], TODAY)
+    deadlines = [e for e in events if e.source_ref == "benefit:active-parent"]
+
+    assert len(deadlines) == 1
+    assert "Maja" in deadlines[0].title
+    assert deadlines[0].due_date == date(2027, 10, 22)
+    assert not any("Antek" in e.title for e in deadlines)
 
 
 def test_done_preserved_on_regeneration():
@@ -166,6 +185,29 @@ def test_calendar_api_generates_and_patch_done_persists(client):
     again = client.get("/api/calendar", headers=anna).json()
     assert next(e for e in again if e["id"] == target)["done"] is True
     assert len(again) == len({e["id"] for e in again})
+
+
+def test_calendar_hides_age_limited_deadlines_for_ineligible_sibling(client):
+    anna, _ = family(client)
+    today = date.today()
+    older_birth = add_months(today, -40)
+    eligible_birth = add_months(today, -24)
+    older = client.post(
+        "/api/families/me/children", json={"name": "Antek", "birth_date": older_birth.isoformat()}, headers=anna
+    )
+    eligible = client.post(
+        "/api/families/me/children", json={"name": "Maja", "birth_date": eligible_birth.isoformat()}, headers=anna
+    )
+    assert older.status_code == eligible.status_code == 201
+
+    events = client.get("/api/calendar", headers=anna).json()
+    active_parent = [
+        e for e in events if e["source_ref"].startswith("benefit:nat-aktywny-rodzic")
+    ]
+
+    assert active_parent
+    assert any("Maja" in e["title"] for e in active_parent)
+    assert not any("Antek" in e["title"] for e in active_parent)
 
 
 def test_calendar_due_date_change_no_duplicates(client):

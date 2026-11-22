@@ -346,8 +346,9 @@ Hasło w trybie `dev`: `demo1234` (`OFFICIAL_DEFAULT_PASSWORD`). Nowe konto = wp
   porodu/urodzenia, złożone wnioski („kto złożył”, do kogo, status), termin porodu i ostrzeżenia z ryzyk (plan 04).
   Przy wnioskach data oznacza utworzenie szkicu albo złożenie, nie termin końcowy; dopóki brak decyzji, koniec sprawy
   nie ma znanej daty. Po złożeniu wykonana czynność trafia do „Zrobione”, a status sprawy pozostaje widoczny.
-  Wpisy mają stałe `id` (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są
-  oznaczone „po terminie”. Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
+  Terminy świadczeń na dziecko generują się tylko dla dzieci spełniających kryteria wieku. Wpisy mają stałe `id`
+  (zmiana daty porodu nie dubluje), odkliknięcie przeżywa regenerację, terminy po czasie są oznaczone „po terminie”.
+  Powiadomienia: dzwonek w nagłówku (`/api/notifications`). E-mail/SMS — tylko wzmianka
   „Wkrótce”.
 - **Wysyłka wniosku uruchamia przygotowanie odpowiedzi testowej:** `ApplicationService.submit` (e-mail do pracodawcy) i
   `portal_submitted` (eZUS → adresat `wnioski@zus.pl`, Emp@tia → `swiadczenia@um.krakow.pl`) wołają

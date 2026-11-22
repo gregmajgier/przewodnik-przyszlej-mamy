@@ -12,7 +12,7 @@ from datetime import date, timedelta
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..models.application import Application
 from ..models.benefit import Benefit
@@ -27,6 +27,7 @@ class BenefitWithMatch(BaseModel):
 
     benefit: Benefit
     status: Literal["fits", "maybe", "no"]
+    child_ids: list[str] = Field(default_factory=list)
 
 
 STALE_DAYS = 365  # terminów sprzed ponad roku nie pokazujemy (np. 800+ dla 7-latka)
@@ -83,7 +84,9 @@ def _benefit_events(family_id: str, bm: BenefitWithMatch, children: list[Child],
             )
         return out
 
-    for ch in children:
+    concerned_ids = set(bm.child_ids)
+    target_children = [ch for ch in children if not b.per_child or ch.id in concerned_ids]
+    for ch in target_children:
         if dl.anchor == "due":
             if ch.status != "expected" or not ch.due_date:
                 continue
